@@ -1,0 +1,105 @@
+########################################
+# Sistema Operacional / Editores
+########################################
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.iml
+
+########################################
+# Node.js / React / Vite (apps/web)
+########################################
+node_modules/
+dist/
+dist-ssr/
+build/
+*.local
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+.turbo/
+coverage/
+
+########################################
+# React Native / Expo (apps/mobile)
+########################################
+.expo/
+.expo-shared/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Metro
+.metro-health-check*
+
+# Android
+apps/mobile/android/app/build/
+apps/mobile/android/build/
+apps/mobile/android/.gradle/
+apps/mobile/android/local.properties
+*.hprof
+
+# iOS
+apps/mobile/ios/build/
+apps/mobile/ios/Pods/
+*.xcworkspace
+!default.xcworkspace
+*.xcuserstate
+
+########################################
+# Python / FastAPI (apps/api)
+########################################
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+instance/
+.env
+*.db
+*.sqlite3
+
+########################################
+# Banco de dados / Docker
+########################################
+*.sql.gz
+docker-compose.override.yml
+pgdata/
+
+########################################
+# Segredos e configs locais (geral)
+########################################
+.env
+.env.*
+!.env.example
+*.pem
+
+########################################
+# Logs
+########################################
+logs/
+*.log
