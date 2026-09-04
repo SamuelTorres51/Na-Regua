@@ -1,8 +1,21 @@
 {
+  "name": "mobile",
+  "version": "1.0.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "android": "expo start --android",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "ios": "expo start --ios",
+    "start": "expo start",
+    "web": "expo start --web"
+  },
   "dependencies": {
     "expo": "~57.0.19",
     "expo-constants": "~57.0.17",
     "expo-font": "~57.0.3",
+    "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.9",
     "expo-router": "~57.0.18",
     "expo-splash-screen": "~57.0.8",
@@ -27,17 +40,5 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~6.0.3",
     "ultracite": "^7.10.7"
-  },
-  "name": "mobile",
-  "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "check": "ultracite check",
-    "fix": "ultracite fix"
-  },
-  "version": "1.0.0",
-  "main": "expo-router/entry",
-  "private": true
+  }
 }
