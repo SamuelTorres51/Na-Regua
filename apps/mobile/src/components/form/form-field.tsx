@@ -1,11 +1,5 @@
 import { type RefObject, useCallback, useEffect, useState } from "react";
-import {
-  Pressable,
-  Text,
-  TextInput,
-  type TextInputProps,
-  View,
-} from "react-native";
+import { Pressable, Text, TextInput, type TextInputProps } from "react-native";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -15,16 +9,22 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-
-export const BORDER_IDLE = "#3f3f46";
-export const BORDER_FOCUSED = "#f59e0b";
-export const BORDER_ERROR = "#f87171";
+import { colors } from "@/theme/colors";
 
 const COLOR_DURATION = 180;
-const SHAKE_OFFSET = 7;
+const ENTERING_DURATION = 600;
+const ERROR_FADE_DURATION = 220;
 const SHAKE_DURATION = 55;
+const SHAKE_OFFSET = 7;
 
-interface FieldProps {
+const BORDER_STEPS = [0, 1, 2];
+const BORDER_COLORS = [
+  colors.border.idle,
+  colors.border.focused,
+  colors.border.error,
+];
+
+interface FormFieldProps {
   autoCapitalize?: "none" | "words";
   autoComplete: TextInputProps["autoComplete"];
   delay: number;
@@ -42,7 +42,7 @@ interface FieldProps {
   value: string;
 }
 
-export function Field({
+export function FormField({
   autoCapitalize = "none",
   autoComplete,
   delay,
@@ -58,7 +58,7 @@ export function Field({
   returnKeyType,
   shakeTrigger,
   value,
-}: FieldProps) {
+}: FormFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
@@ -68,9 +68,7 @@ export function Field({
   const colorTarget = error ? 2 : Number(isFocused);
 
   useEffect(() => {
-    focusProgress.value = withTiming(colorTarget, {
-      duration: COLOR_DURATION,
-    });
+    focusProgress.value = withTiming(colorTarget, { duration: COLOR_DURATION });
   }, [colorTarget, focusProgress]);
 
   useEffect(() => {
@@ -87,8 +85,8 @@ export function Field({
   const fieldStyle = useAnimatedStyle(() => ({
     borderColor: interpolateColor(
       focusProgress.value,
-      [0, 1, 2],
-      [BORDER_IDLE, BORDER_FOCUSED, BORDER_ERROR]
+      BORDER_STEPS,
+      BORDER_COLORS
     ),
     transform: [{ translateX: shakeX.value }],
   }));
@@ -101,7 +99,9 @@ export function Field({
   );
 
   return (
-    <Animated.View entering={FadeInDown.delay(delay).duration(600)}>
+    <Animated.View
+      entering={FadeInDown.delay(delay).duration(ENTERING_DURATION)}
+    >
       <Text className="mb-2 font-roboto-medium text-sm text-zinc-400">
         {label}
       </Text>
@@ -122,7 +122,7 @@ export function Field({
           onFocus={handleFocus}
           onSubmitEditing={onSubmit}
           placeholder={placeholder}
-          placeholderTextColor="#52525b"
+          placeholderTextColor={colors.placeholder}
           ref={inputRef}
           returnKeyType={returnKeyType}
           secureTextEntry={isSecure && !isPasswordVisible}
@@ -138,7 +138,7 @@ export function Field({
             hitSlop={8}
             onPress={handleToggleVisibility}
           >
-            <Text className="font-roboto-medium text-amber-500 text-xs uppercase">
+            <Text className="font-roboto-medium text-brand text-xs uppercase">
               {isPasswordVisible ? "Ocultar" : "Mostrar"}
             </Text>
           </Pressable>
@@ -147,8 +147,8 @@ export function Field({
 
       {error ? (
         <Animated.Text
-          className="mt-2 font-roboto text-red-400 text-xs"
-          entering={FadeIn.duration(220)}
+          className="mt-2 font-roboto text-danger text-xs"
+          entering={FadeIn.duration(ERROR_FADE_DURATION)}
         >
           {error}
         </Animated.Text>
@@ -156,5 +156,3 @@ export function Field({
     </Animated.View>
   );
 }
-
-export { View as FieldSpacer };
