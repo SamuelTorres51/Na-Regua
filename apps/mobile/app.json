@@ -21,6 +21,9 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": ["expo-font"],
-    "platforms": ["android"]
+    "platforms": ["android"],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }

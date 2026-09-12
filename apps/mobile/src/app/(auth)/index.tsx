@@ -90,7 +90,7 @@ export default function BemVindo() {
               accessibilityRole="button"
               className="items-center rounded-2xl bg-amber-500 py-4 active:opacity-80"
               // biome-ignore lint/performance/noJsxPropsBind: .
-              onPress={() => router.push("/cadastro")}
+              onPress={() => router.push("/register")}
             >
               <Text className="font-roboto-semibold text-base text-zinc-950">
                 Criar conta
