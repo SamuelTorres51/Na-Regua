@@ -1,20 +1,20 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./src/app/App.tsx",
-    "./src/components/**/*.{tsx}"
-  ],
+  content: ["./src/**/*.{ts,tsx}"],
+  plugins: [],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      colors: {
+        brand: "#F59E0B",
+        danger: "#F87171",
+      },
       fontFamily: {
         roboto: ["Roboto-Regular"],
-        'roboto-medium': ['Roboto-Medium'],
-        'roboto-semibold': ['Roboto-SemiBold'],
-        'roboto-bold': ['Roboto-Bold']
-      }
+        "roboto-bold": ["Roboto-Bold"],
+        "roboto-medium": ["Roboto-Medium"],
+        "roboto-semibold": ["Roboto-SemiBold"],
+      },
     },
   },
-  plugins: [],
-}
-
+};
