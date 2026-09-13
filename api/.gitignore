@@ -1,3 +1,26 @@
 # local env files
 .env*.local
 .env
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.coverage.*
+instance/
+*.db
+*.sqlite3
+.gitkeep
+
+logs/
+*.log
