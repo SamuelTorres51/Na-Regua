@@ -9,7 +9,9 @@ dependencies = [
     "sqlalchemy",
     "psycopg[binary]",
     "alembic",
-    "pydantic-settings"
+    "pydantic-settings",
+    "bcrypt",
+    "PyJWT"
 ]
 
 [dependency-groups]
