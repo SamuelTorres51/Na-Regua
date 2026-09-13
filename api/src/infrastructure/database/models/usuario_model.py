@@ -28,6 +28,11 @@ class UsuarioModel(Base):
         index=True,
     )
 
+    telefone: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+    )
+
     senha_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,

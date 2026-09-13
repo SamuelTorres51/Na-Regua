@@ -9,6 +9,7 @@ class Usuario:
     id: int | None
     nome: str
     email: str
+    telefone: str
     senha_hash: str
     perfil: PerfilAcesso
     ativo: bool
