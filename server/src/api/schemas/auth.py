@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 class RegisterRequest(BaseModel):
-    nome: str = Field(min_length=2, max_length=150)
+    nome: str = Field(min_length=3, max_length=150)
     email: str = Field(min_length=5, max_length=150)
     telefone: str = Field(min_length=10, max_length=20)
     senha: str = Field(min_length=8, max_length=128)
