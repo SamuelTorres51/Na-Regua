@@ -36,3 +36,8 @@ export interface User {
   id: string;
   phone: string;
 }
+
+export interface AuthSession {
+  token: string;
+  user: User;
+}

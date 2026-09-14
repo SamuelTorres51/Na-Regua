@@ -1,13 +1,12 @@
-import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import type { TextInput } from "react-native";
 import { useAsyncAction } from "@/hooks/use-async-action";
-import { signUp } from "@/services/auth";
 import { formatPhone } from "@/utils/phone";
+import { useSession } from "./session-provider";
 import { type RegisterErrors, validateRegister } from "./validation";
 
 export function useRegisterForm() {
-  const router = useRouter();
+  const { signUp } = useSession();
 
   const emailRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
@@ -23,14 +22,7 @@ export function useRegisterForm() {
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [shakeTrigger, setShakeTrigger] = useState(0);
 
-  const handleSuccess = useCallback(() => {
-    // PROVISÓRIO: apontar para a área logada quando ela existir.
-    router.replace("/");
-  }, [router]);
-
-  const { isRunning: isSubmitting, run } = useAsyncAction(signUp, {
-    onSuccess: handleSuccess,
-  });
+  const { isRunning: isSubmitting, run } = useAsyncAction(signUp);
 
   const handleChangePhone = useCallback(
     (value: string) => setPhone(formatPhone(value)),
