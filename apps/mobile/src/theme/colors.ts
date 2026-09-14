@@ -1,6 +1,7 @@
 export const colors = {
   accent: "#f59e0b",
   accentContrast: "#09090b",
+  background: "#09090b",
   border: {
     error: "#f87171",
     focused: "#f59e0b",
