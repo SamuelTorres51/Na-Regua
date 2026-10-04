@@ -7,6 +7,13 @@ export const colors = {
     idle: "#3f3f46",
   },
   gradient: ["#27272a", "#111113", "#09090b"] as const,
+  icon: {
+    accent: "#f59e0b",
+    danger: "#fca5a5",
+    muted: "#71717a",
+    primary: "#ffffff",
+    subtle: "#a1a1aa",
+  },
   placeholder: "#52525b",
   strength: ["#3f3f46", "#f87171", "#fbbf24", "#a3e635", "#4ade80"] as const,
 } as const;

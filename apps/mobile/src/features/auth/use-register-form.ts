@@ -24,8 +24,8 @@ export function useRegisterForm() {
   const [shakeTrigger, setShakeTrigger] = useState(0);
 
   const handleSuccess = useCallback(() => {
-    // PROVISÓRIO: apontar para a área logada quando ela existir.
-    router.replace("/");
+    // PROVISÓRIO: sem sessão até a integração com a API.
+    router.replace("/home");
   }, [router]);
 
   const { isRunning: isSubmitting, run } = useAsyncAction(signUp, {
