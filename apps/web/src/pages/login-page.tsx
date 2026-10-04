@@ -16,7 +16,11 @@ const HIGHLIGHTS = [
   "Histórico de atendimentos em um só lugar.",
 ];
 
-export function LoginPage() {
+interface LoginPageProps {
+  onAuthenticated?: () => void;
+}
+
+export function LoginPage({ onAuthenticated }: LoginPageProps) {
   const {
     email,
     errors,
@@ -27,7 +31,7 @@ export function LoginPage() {
     setEmail,
     setPassword,
     submitError,
-  } = useLoginForm();
+  } = useLoginForm({ onSuccess: onAuthenticated });
 
   const handleFormSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {

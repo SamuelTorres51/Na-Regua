@@ -6,7 +6,11 @@ import { type LoginErrors, validateLogin } from "./validation";
 const INVALID_CREDENTIALS_MESSAGE =
   "Não foi possível entrar. Confira seu e-mail e senha.";
 
-export function useLoginForm() {
+interface UseLoginFormOptions {
+  onSuccess?: () => void;
+}
+
+export function useLoginForm({ onSuccess }: UseLoginFormOptions = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<LoginErrors>({});
@@ -26,13 +30,14 @@ export function useLoginForm() {
 
     try {
       await signIn({ email: email.trim(), password });
-      // PROVISÓRIO: redirecionar para a área logada quando as rotas existirem.
+      // PROVISÓRIO: trocar por navegação quando as rotas existirem.
+      onSuccess?.();
     } catch {
       setSubmitError(INVALID_CREDENTIALS_MESSAGE);
     } finally {
       setIsSubmitting(false);
     }
-  }, [email, password]);
+  }, [email, onSuccess, password]);
 
   const handleRecoverPassword = useCallback(() => {
     // PROVISÓRIO: abrir o fluxo de recuperação de senha.

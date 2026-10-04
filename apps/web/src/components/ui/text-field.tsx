@@ -14,7 +14,7 @@ function getBorderClass(hasError: boolean, isFocused: boolean) {
 }
 
 function getInputType(
-  type: "email" | "password" | "text",
+  type: "date" | "email" | "password" | "text" | "time",
   isPasswordVisible: boolean
 ) {
   if (type !== "password") {
@@ -32,7 +32,7 @@ interface TextFieldProps {
   name: string;
   onChange: (value: string) => void;
   placeholder: string;
-  type?: "email" | "password" | "text";
+  type?: "date" | "email" | "password" | "text" | "time";
   value: string;
 }
 
