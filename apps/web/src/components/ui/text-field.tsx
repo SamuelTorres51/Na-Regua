@@ -13,6 +13,17 @@ function getBorderClass(hasError: boolean, isFocused: boolean) {
   return isFocused ? BORDER_FOCUSED : BORDER_IDLE;
 }
 
+function getInputType(
+  type: "email" | "password" | "text",
+  isPasswordVisible: boolean
+) {
+  if (type !== "password") {
+    return type;
+  }
+
+  return isPasswordVisible ? "text" : "password";
+}
+
 interface TextFieldProps {
   autoComplete: string;
   error?: string;
@@ -79,7 +90,7 @@ export function TextField({
           onFocus={handleFocus}
           placeholder={placeholder}
           ref={inputRef}
-          type={isPassword && !isPasswordVisible ? "password" : type}
+          type={getInputType(type, isPasswordVisible)}
           value={value}
         />
 
