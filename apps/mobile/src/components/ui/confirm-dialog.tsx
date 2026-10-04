@@ -1,4 +1,4 @@
-import Feather from "@expo/vector-icons/Feather";
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCallback } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "@/theme/colors";
@@ -11,13 +11,13 @@ const ICON_SIZE = 22;
 const APPEARANCES = {
   danger: {
     badge: "bg-red-500/15",
-    icon: "alert-triangle",
+    icon: "warning-outline",
     iconColor: colors.icon.danger,
     tone: "danger",
   },
   neutral: {
     badge: "bg-amber-500/15",
-    icon: "help-circle",
+    icon: "help-circle-outline",
     iconColor: colors.icon.accent,
     tone: "brand",
   },
@@ -77,7 +77,7 @@ export function ConfirmDialog({
           <View
             className={`h-12 w-12 items-center justify-center rounded-full ${appearance.badge}`}
           >
-            <Feather
+            <Ionicons
               color={appearance.iconColor}
               name={appearance.icon}
               size={ICON_SIZE}

@@ -1,46 +1,62 @@
 import { useCallback, useEffect, useState } from "react";
-import { createMockAppointments } from "./mock-appointments";
-import type { Appointment } from "./types";
+import {
+  listAppointments,
+  cancelAppointment as requestCancelAppointment,
+} from "@/services/appointments";
+import type { Appointment } from "@/types/models";
 
-const FAKE_LATENCY_MS = 700;
-
-function wait(ms: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
-// PROVISÓRIO: dados estáticos até a API existir. Na integração, o corpo vira
-// useQuery para a lista e useMutation para o cancelamento; o retorno mantém
-// a mesma forma para as telas não precisarem mudar.
+// PROVISÓRIO: quando a API existir, o corpo vira useQuery para a lista e
+// useMutation para o cancelamento; o retorno mantém a mesma forma para a tela
+// não precisar mudar.
 export function useAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasLoadError, setHasLoadError] = useState(false);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setAppointments(createMockAppointments());
-      setIsLoading(false);
-    }, FAKE_LATENCY_MS);
-
-    return () => clearTimeout(timeoutId);
+  const loadAppointments = useCallback(async () => {
+    try {
+      setAppointments(await listAppointments());
+      setHasLoadError(false);
+    } catch {
+      setHasLoadError(true);
+    }
   }, []);
+
+  useEffect(() => {
+    loadAppointments().finally(() => setIsLoading(false));
+  }, [loadAppointments]);
+
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true);
+    await loadAppointments();
+    setIsRefreshing(false);
+  }, [loadAppointments]);
 
   const cancelAppointment = useCallback(async (appointmentId: string) => {
     setCancellingId(appointmentId);
-    await wait(FAKE_LATENCY_MS);
 
-    setAppointments((current) =>
-      current.map(
-        (appointment): Appointment =>
-          appointment.id === appointmentId
-            ? { ...appointment, status: "cancelled" }
-            : appointment
-      )
-    );
-    setCancellingId(null);
+    try {
+      const cancelled = await requestCancelAppointment(appointmentId);
+
+      setAppointments((current) =>
+        current.map((appointment) =>
+          appointment.id === cancelled.id ? cancelled : appointment
+        )
+      );
+    } finally {
+      setCancellingId(null);
+    }
   }, []);
 
-  return { appointments, cancelAppointment, cancellingId, isLoading };
+  return {
+    appointments,
+    cancelAppointment,
+    cancellingId,
+    hasLoadError,
+    isLoading,
+    isRefreshing,
+    refresh,
+  };
 }

@@ -1,11 +1,16 @@
 import { Stack } from "expo-router";
+import { colors } from "@/theme/colors";
 
-// PROVISÓRIO: sem proteção de sessão até a integração com a API. Quando ela
-// existir, o layout raiz passa a usar Stack.Protected em volta deste grupo.
+export const unstable_settings = { initialRouteName: "(tabs)" };
+
 export default function AppLayout() {
   return (
     <Stack
-      screenOptions={{ animation: "slide_from_right", headerShown: false }}
+      screenOptions={{
+        animation: "slide_from_right",
+        contentStyle: { backgroundColor: colors.background },
+        headerShown: false,
+      }}
     />
   );
 }
