@@ -1,5 +1,5 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { useCallback } from "react";
+import { type ComponentProps, useCallback } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
 import {
@@ -20,6 +20,34 @@ import { AppointmentStatusBadge } from "./appointment-status-badge";
 const FADE_DURATION = 280;
 const ICON_SIZE = 15;
 const ACTION_ICON_SIZE = 17;
+
+const DETAIL_TONES = {
+  muted: {
+    iconColor: colors.icon.muted,
+    textClassName: "font-roboto text-zinc-400",
+  },
+  strong: {
+    iconColor: colors.icon.subtle,
+    textClassName: "font-roboto-medium text-zinc-200",
+  },
+} as const;
+
+interface DetailProps {
+  icon: ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  tone: keyof typeof DETAIL_TONES;
+}
+
+function Detail({ icon, label, tone }: DetailProps) {
+  const { iconColor, textClassName } = DETAIL_TONES[tone];
+
+  return (
+    <View className="flex-row items-center">
+      <Ionicons color={iconColor} name={icon} size={ICON_SIZE} />
+      <Text className={`ml-1.5 text-sm ${textClassName}`}>{label}</Text>
+    </View>
+  );
+}
 
 interface CancellationFooterProps {
   onRequestCancel: () => void;
@@ -103,41 +131,27 @@ export function AppointmentCard({
         {service.name}
       </Text>
 
-      <View className="mt-1.5 flex-row items-center">
-        <Ionicons
-          color={colors.icon.muted}
-          name="person-outline"
-          size={ICON_SIZE}
+      <View className="mt-1.5">
+        <Detail
+          icon="person-outline"
+          label={`${barber.name} · ${formatDuration(service.durationMinutes)}`}
+          tone="muted"
         />
-        <Text className="ml-1.5 font-roboto text-sm text-zinc-400">
-          {barber.name} · {formatDuration(service.durationMinutes)}
-        </Text>
       </View>
 
       <View className="my-4 h-px bg-zinc-800" />
 
-      <View className="flex-row items-center">
-        <View className="flex-row items-center">
-          <Ionicons
-            color={colors.icon.subtle}
-            name="calendar-outline"
-            size={ICON_SIZE}
-          />
-          <Text className="ml-1.5 font-roboto-medium text-sm text-zinc-200">
-            {formatRelativeDate(startsAt)}
-          </Text>
-        </View>
-
-        <View className="ml-5 flex-row items-center">
-          <Ionicons
-            color={colors.icon.subtle}
-            name="time-outline"
-            size={ICON_SIZE}
-          />
-          <Text className="ml-1.5 font-roboto-medium text-sm text-zinc-200">
-            {formatTime(startsAt)}
-          </Text>
-        </View>
+      <View className="flex-row items-center gap-5">
+        <Detail
+          icon="calendar-outline"
+          label={formatRelativeDate(startsAt)}
+          tone="strong"
+        />
+        <Detail
+          icon="time-outline"
+          label={formatTime(startsAt)}
+          tone="strong"
+        />
       </View>
 
       <CancellationFooter

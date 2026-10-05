@@ -7,7 +7,7 @@ import { colors } from "@/theme/colors";
 const FADE_DURATION = 320;
 const ICON_SIZE = 26;
 
-interface EmptyStateProps {
+export interface EmptyStateProps {
   description: string;
   icon: ComponentProps<typeof Ionicons>["name"];
   title: string;

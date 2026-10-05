@@ -48,8 +48,6 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const appearance = isDestructive ? APPEARANCES.danger : APPEARANCES.neutral;
 
-  // Enquanto a confirmação está em andamento, fechar o diálogo (fundo,
-  // botão voltar do Android ou "cancelar") não deve fazer nada.
   const handleDismiss = useCallback(() => {
     if (!isConfirming) {
       onCancel();

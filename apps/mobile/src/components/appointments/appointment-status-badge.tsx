@@ -13,14 +13,13 @@ import type { AppointmentStatus } from "@/types/models";
 
 const PULSE_DURATION = 800;
 const PULSE_MIN_OPACITY = 0.25;
-// Sufixo hexadecimal de opacidade (~15%) aplicado à cor do status no fundo.
-const BACKGROUND_ALPHA = "26";
+const BACKGROUND_OPACITY_HEX = "26";
+const DOT_CLASS_NAME = "h-1.5 w-1.5 rounded-full";
 
 interface PulsingDotProps {
   color: string;
 }
 
-// Indica "acontecendo agora" no status Em atendimento.
 function PulsingDot({ color }: PulsingDotProps) {
   const opacity = useSharedValue(1);
 
@@ -38,7 +37,7 @@ function PulsingDot({ color }: PulsingDotProps) {
 
   return (
     <Animated.View
-      className="h-1.5 w-1.5 rounded-full"
+      className={DOT_CLASS_NAME}
       style={[{ backgroundColor: color }, pulseStyle]}
     />
   );
@@ -56,15 +55,12 @@ export function AppointmentStatusBadge({
   return (
     <View
       className="flex-row items-center self-start rounded-full px-2.5 py-1"
-      style={{ backgroundColor: `${color}${BACKGROUND_ALPHA}` }}
+      style={{ backgroundColor: `${color}${BACKGROUND_OPACITY_HEX}` }}
     >
       {status === "inProgress" ? (
         <PulsingDot color={color} />
       ) : (
-        <View
-          className="h-1.5 w-1.5 rounded-full"
-          style={{ backgroundColor: color }}
-        />
+        <View className={DOT_CLASS_NAME} style={{ backgroundColor: color }} />
       )}
       <Text className="ml-1.5 font-roboto-medium text-xs" style={{ color }}>
         {STATUS_LABELS[status]}

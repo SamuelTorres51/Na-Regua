@@ -1,10 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { useMemo, useState } from "react";
+import { View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { AppointmentCard } from "@/components/appointments/appointment-card";
+import { AppointmentList } from "@/components/appointments/appointment-list";
 import { TabScreen } from "@/components/layout/tab-screen";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { EmptyState } from "@/components/ui/empty-state";
+import type { EmptyStateProps } from "@/components/ui/empty-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   SegmentedControl,
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/segmented-control";
 import { splitAppointments } from "@/features/appointments/status";
 import { useAppointments } from "@/features/appointments/use-appointments";
-import { colors } from "@/theme/colors";
+import { useCancellationDialog } from "@/features/appointments/use-cancellation-dialog";
 import type { Appointment } from "@/types/models";
 import { formatRelativeDate, formatTime } from "@/utils/format";
 
@@ -23,7 +23,7 @@ const TABS: readonly SegmentedOption<AppointmentsTab>[] = [
   { label: "Histórico", value: "history" },
 ];
 
-const EMPTY_STATES = {
+const EMPTY_STATES: Record<AppointmentsTab, EmptyStateProps> = {
   history: {
     description:
       "Atendimentos concluídos, cancelados e perdidos aparecem aqui.",
@@ -35,15 +35,10 @@ const EMPTY_STATES = {
     icon: "calendar-outline",
     title: "Nenhum horário marcado",
   },
-} as const;
+};
 
 const TABS_DELAY = 260;
 const TABS_DURATION = 600;
-
-interface CancelDialogState {
-  appointment: Appointment;
-  isVisible: boolean;
-}
 
 function describeCancellation({ barber, service, startsAt }: Appointment) {
   const date = formatRelativeDate(startsAt).toLowerCase();
@@ -51,106 +46,30 @@ function describeCancellation({ barber, service, startsAt }: Appointment) {
   return `${service.name} com ${barber.name}, ${date} às ${formatTime(startsAt)}. O horário será liberado para outros clientes.`;
 }
 
-interface AppointmentListProps {
-  appointments: Appointment[];
-  emptyState: (typeof EMPTY_STATES)[AppointmentsTab];
-  hasLoadError: boolean;
-  isLoading: boolean;
-  onRequestCancel: (appointment: Appointment) => void;
-}
-
-function AppointmentList({
-  appointments,
-  emptyState,
-  hasLoadError,
-  isLoading,
-  onRequestCancel,
-}: AppointmentListProps) {
-  if (isLoading) {
-    return (
-      <View className="items-center py-16">
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
-  }
-
-  if (hasLoadError) {
-    return (
-      <EmptyState
-        description="Puxe a tela para baixo para tentar de novo."
-        icon="cloud-offline-outline"
-        title="Não foi possível carregar"
-      />
-    );
-  }
-
-  if (appointments.length === 0) {
-    return (
-      <EmptyState
-        description={emptyState.description}
-        icon={emptyState.icon}
-        title={emptyState.title}
-      />
-    );
-  }
-
-  return (
-    <View className="gap-3">
-      {appointments.map((appointment) => (
-        <AppointmentCard
-          appointment={appointment}
-          key={appointment.id}
-          onRequestCancel={onRequestCancel}
-        />
-      ))}
-    </View>
-  );
-}
-
 export default function Appointments() {
   const {
     appointments,
     cancelAppointment,
-    cancellingId,
     hasLoadError,
+    isCancelling,
     isLoading,
     isRefreshing,
     refresh,
   } = useAppointments();
 
+  const {
+    dialog,
+    handleCloseDialog,
+    handleConfirmCancel,
+    handleRequestCancel,
+  } = useCancellationDialog(cancelAppointment);
+
   const [tab, setTab] = useState<AppointmentsTab>("upcoming");
-  const [cancelDialog, setCancelDialog] = useState<CancelDialogState | null>(
-    null
-  );
 
   const { history, upcoming } = useMemo(
     () => splitAppointments(appointments),
     [appointments]
   );
-
-  const handleRequestCancel = useCallback((appointment: Appointment) => {
-    setCancelDialog({ appointment, isVisible: true });
-  }, []);
-
-  // Mantém o agendamento no estado ao fechar, para o texto do diálogo não
-  // sumir durante a animação de saída do modal.
-  const handleCloseDialog = useCallback(() => {
-    setCancelDialog((current) =>
-      current ? { ...current, isVisible: false } : null
-    );
-  }, []);
-
-  const handleConfirmCancel = useCallback(async () => {
-    if (!cancelDialog) {
-      return;
-    }
-
-    try {
-      await cancelAppointment(cancelDialog.appointment.id);
-    } finally {
-      handleCloseDialog();
-    }
-  }, [cancelAppointment, cancelDialog, handleCloseDialog]);
 
   return (
     <>
@@ -180,14 +99,14 @@ export default function Appointments() {
         </View>
       </TabScreen>
 
-      {cancelDialog ? (
+      {dialog ? (
         <ConfirmDialog
           cancelLabel="Voltar"
           confirmLabel="Sim, cancelar"
-          description={describeCancellation(cancelDialog.appointment)}
-          isConfirming={cancellingId !== null}
+          description={describeCancellation(dialog.appointment)}
+          isConfirming={isCancelling}
           isDestructive
-          isVisible={cancelDialog.isVisible}
+          isVisible={dialog.isVisible}
           onCancel={handleCloseDialog}
           onConfirm={handleConfirmCancel}
           title="Cancelar agendamento?"

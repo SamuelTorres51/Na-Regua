@@ -7,9 +7,8 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-// Precisa bater com as classes `border` (1px) e `p-1` (4px) do container.
-const TRACK_INSET = 5;
-// Desacelera até parar, sem passar do ponto (uma mola daria "quique").
+const BORDER_WIDTH = 1;
+const TRACK_PADDING = 4;
 const SLIDE_CONFIG = { duration: 260, easing: Easing.out(Easing.cubic) };
 
 export interface SegmentedOption<T extends string> {
@@ -82,7 +81,9 @@ export function SegmentedControl<T extends string>({
   }));
 
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
-    setTrackWidth(event.nativeEvent.layout.width - TRACK_INSET * 2);
+    setTrackWidth(
+      event.nativeEvent.layout.width - (BORDER_WIDTH + TRACK_PADDING) * 2
+    );
   }, []);
 
   return (
