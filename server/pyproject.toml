@@ -11,7 +11,7 @@ dependencies = [
     "alembic",
     "pydantic-settings",
     "bcrypt",
-    "PyJWT"
+    "PyJWT",
 ]
 
 [dependency-groups]

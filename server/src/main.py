@@ -1,5 +1,7 @@
 from fastapi import FastAPI
+
 from api.routes import auth, health
+
 
 app = FastAPI(
     title="Na Régua API",

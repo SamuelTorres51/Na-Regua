@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, Enum, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -39,7 +39,12 @@ class UsuarioModel(Base):
     )
 
     perfil: Mapped[PerfilAcesso] = mapped_column(
-        Enum(PerfilAcesso),
+        Enum(
+            PerfilAcesso,
+            values_callable=lambda enum_type: [
+                perfil.value for perfil in enum_type
+            ],
+        ),
         nullable=False,
     )
 
@@ -52,5 +57,5 @@ class UsuarioModel(Base):
     criado_em: Mapped[datetime] = mapped_column(
         DateTime,
         nullable=False,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
     )
