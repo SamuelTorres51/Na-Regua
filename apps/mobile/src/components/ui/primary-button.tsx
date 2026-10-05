@@ -3,11 +3,17 @@ import Animated from "react-native-reanimated";
 import { usePressScale } from "@/hooks/use-press-scale";
 import { colors } from "@/theme/colors";
 
+const TONE_CLASSES = {
+  brand: "bg-brand",
+  danger: "bg-danger",
+} as const;
+
 interface PrimaryButtonProps {
   accessibilityLabel: string;
   isLoading?: boolean;
   label: string;
   onPress: () => void;
+  tone?: keyof typeof TONE_CLASSES;
 }
 
 export function PrimaryButton({
@@ -15,6 +21,7 @@ export function PrimaryButton({
   isLoading = false,
   label,
   onPress,
+  tone = "brand",
 }: PrimaryButtonProps) {
   const { animatedStyle, handlePressIn, handlePressOut } = usePressScale();
 
@@ -24,7 +31,7 @@ export function PrimaryButton({
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
         accessibilityState={{ busy: isLoading, disabled: isLoading }}
-        className="h-14 items-center justify-center rounded-2xl bg-brand active:opacity-90"
+        className={`h-14 items-center justify-center rounded-2xl active:opacity-90 ${TONE_CLASSES[tone]}`}
         disabled={isLoading}
         onPress={onPress}
         onPressIn={handlePressIn}

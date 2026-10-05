@@ -1,4 +1,8 @@
-const FAKE_LATENCY_MS = 900;
+import type { AuthSession } from "@/types/models";
+import { simulateLatency } from "./fake-api";
+
+const MOCK_TOKEN = "mock-token";
+const MOCK_USER_ID = "usr-1";
 
 export interface SignInInput {
   email: string;
@@ -12,17 +16,30 @@ export interface SignUpInput {
   phone: string;
 }
 
-function delay(ms: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
 // PROVISÓRIO: trocar pelas chamadas reais da API.
-export async function signIn(_input: SignInInput) {
-  await delay(FAKE_LATENCY_MS);
+export async function signIn({ email }: SignInInput): Promise<AuthSession> {
+  await simulateLatency();
+
+  return {
+    token: MOCK_TOKEN,
+    user: {
+      email,
+      fullName: "Dagoberto",
+      id: MOCK_USER_ID,
+      phone: "(89) 99999-9999",
+    },
+  };
 }
 
-export async function signUp(_input: SignUpInput) {
-  await delay(FAKE_LATENCY_MS);
+export async function signUp({
+  email,
+  fullName,
+  phone,
+}: SignUpInput): Promise<AuthSession> {
+  await simulateLatency();
+
+  return {
+    token: MOCK_TOKEN,
+    user: { email, fullName, id: MOCK_USER_ID, phone },
+  };
 }

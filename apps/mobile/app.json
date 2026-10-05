@@ -20,7 +20,7 @@
       "bundler": "metro",
       "favicon": "./assets/images/favicon.png"
     },
-    "plugins": ["expo-font"],
+    "plugins": ["expo-font", "expo-secure-store"],
     "platforms": ["android"],
     "experiments": {
       "typedRoutes": true

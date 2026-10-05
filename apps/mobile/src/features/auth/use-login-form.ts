@@ -1,12 +1,11 @@
-import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import type { TextInput } from "react-native";
+import { useSession } from "@/features/auth/session-provider";
+import { type LoginErrors, validateLogin } from "@/features/auth/validation";
 import { useAsyncAction } from "@/hooks/use-async-action";
-import { signIn } from "@/services/auth";
-import { type LoginErrors, validateLogin } from "./validation";
 
 export function useLoginForm() {
-  const router = useRouter();
+  const { signIn } = useSession();
   const passwordRef = useRef<TextInput>(null);
 
   const [email, setEmail] = useState("");
@@ -14,14 +13,7 @@ export function useLoginForm() {
   const [errors, setErrors] = useState<LoginErrors>({});
   const [shakeTrigger, setShakeTrigger] = useState(0);
 
-  const handleSuccess = useCallback(() => {
-    // PROVISÓRIO: apontar para a área logada quando ela existir.
-    router.replace("/");
-  }, [router]);
-
-  const { isRunning: isSubmitting, run } = useAsyncAction(signIn, {
-    onSuccess: handleSuccess,
-  });
+  const { isRunning: isSubmitting, run } = useAsyncAction(signIn);
 
   const handleFocusPassword = useCallback(
     () => passwordRef.current?.focus(),

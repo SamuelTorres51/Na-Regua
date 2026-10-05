@@ -1,8 +1,11 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { useRouter } from "expo-router";
-import { Pressable, Text } from "react-native";
+import { Pressable } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { colors } from "@/theme/colors";
 
 const FADE_DURATION = 400;
+const ICON_SIZE = 22;
 
 export function BackButton() {
   const router = useRouter();
@@ -16,7 +19,11 @@ export function BackButton() {
         hitSlop={8}
         onPress={router.back}
       >
-        <Text className="font-roboto-medium text-white text-xl">←</Text>
+        <Ionicons
+          color={colors.icon.primary}
+          name="arrow-back"
+          size={ICON_SIZE}
+        />
       </Pressable>
     </Animated.View>
   );
