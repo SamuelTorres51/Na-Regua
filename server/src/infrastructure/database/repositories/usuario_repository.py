@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from domain.entities.usuario import Usuario
@@ -30,10 +31,14 @@ class SqlAlchemyUsuarioRepository(UsuarioRepository):
             perfil=usuario.perfil,
             ativo=usuario.ativo,
         )
-        self._db.add(model)
-        self._db.commit()
-        self._db.refresh(model)
-        return _para_entidade(model)
+        try:
+            self._db.add(model)
+            self._db.commit()
+            self._db.refresh(model)
+            return _para_entidade(model)
+        except IntegrityError:
+            self._db.rollback()
+            raise
 
     def rollback(self) -> None:
         self._db.rollback()

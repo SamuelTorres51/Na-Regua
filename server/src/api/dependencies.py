@@ -6,6 +6,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from core.security import decode_access_token
+from application.use_cases.auth.autenticar_usuario import AutenticarUsuarioUseCase
+from application.use_cases.auth.registrar_usuario import RegistrarUsuarioUseCase
 from domain.entities.usuario import Usuario
 from domain.repositories.usuario_repository import UsuarioRepository
 from infrastructure.database.connection import get_db as get_database_session
@@ -25,6 +27,18 @@ def get_usuario_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> UsuarioRepository:
     return SqlAlchemyUsuarioRepository(db)
+
+
+def get_registrar_usuario_use_case(
+    repository: Annotated[UsuarioRepository, Depends(get_usuario_repository)],
+) -> RegistrarUsuarioUseCase:
+    return RegistrarUsuarioUseCase(repository)
+
+
+def get_autenticar_usuario_use_case(
+    repository: Annotated[UsuarioRepository, Depends(get_usuario_repository)],
+) -> AutenticarUsuarioUseCase:
+    return AutenticarUsuarioUseCase(repository)
 
 
 def get_current_user(
