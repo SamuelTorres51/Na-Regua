@@ -28,3 +28,12 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     usuario: UserResponse
+
+
+class AlterarSenhaRequest(BaseModel):
+    senha_atual: str = Field(min_length=1)
+    nova_senha: str = Field(min_length=8, max_length=128)
+
+
+class MensagemResponse(BaseModel):
+    mensagem: str
