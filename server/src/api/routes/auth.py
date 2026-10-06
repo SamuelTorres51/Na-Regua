@@ -3,15 +3,29 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from api.dependencies import (
+    get_alterar_senha_use_case,
     get_autenticar_usuario_use_case,
     get_current_user,
     get_registrar_usuario_use_case,
 )
-from api.schemas.auth import AuthResponse, LoginRequest, RegisterRequest, UserResponse
+from api.schemas.auth import (
+    AlterarSenhaRequest,
+    AuthResponse,
+    LoginRequest,
+    MensagemResponse,
+    RegisterRequest,
+    UserResponse,
+)
 from application.common.exceptions import (
     CredenciaisInvalidasError,
     EmailJaCadastradoError,
+    SenhaInvalidaError,
+    UsuarioNaoEncontradoError,
     ValidationError,
+)
+from application.use_cases.auth.alterar_senha import (
+    AlterarSenhaInput,
+    AlterarSenhaUseCase,
 )
 from application.use_cases.auth.autenticar_usuario import (
     AutenticarUsuarioInput,
@@ -102,3 +116,38 @@ def read_current_user(
     usuario: Annotated[Usuario, Depends(get_current_user)],
 ) -> Usuario:
     return usuario
+
+
+@router.put("/alterar-senha", response_model=MensagemResponse)
+def alterar_senha(
+    request: AlterarSenhaRequest,
+    usuario_atual: Annotated[Usuario, Depends(get_current_user)],
+    use_case: Annotated[
+        AlterarSenhaUseCase,
+        Depends(get_alterar_senha_use_case),
+    ],
+) -> MensagemResponse:
+    try:
+        use_case.execute(
+            AlterarSenhaInput(
+                usuario_id=usuario_atual.id,
+                senha_atual=request.senha_atual,
+                nova_senha=request.nova_senha,
+            )
+        )
+        return MensagemResponse(mensagem="Senha alterada com sucesso.")
+    except ValidationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
+    except SenhaInvalidaError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(error),
+        ) from error
+    except UsuarioNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error

@@ -4,7 +4,13 @@ import pytest
 from application.common.exceptions import (
     CredenciaisInvalidasError,
     EmailJaCadastradoError,
+    SenhaInvalidaError,
+    UsuarioNaoEncontradoError,
     ValidationError,
+)
+from application.use_cases.auth.alterar_senha import (
+    AlterarSenhaInput,
+    AlterarSenhaUseCase,
 )
 from application.use_cases.auth.autenticar_usuario import (
     AutenticarUsuarioInput,
@@ -51,6 +57,13 @@ class InMemoryUsuarioRepository(UsuarioRepository):
         self._next_id += 1
         self.usuarios.append(novo)
         return novo
+
+    def atualizar(self, usuario: Usuario) -> Usuario:
+        for idx, u in enumerate(self.usuarios):
+            if u.id == usuario.id:
+                self.usuarios[idx] = usuario
+                return usuario
+        raise ValueError("Usuário não encontrado")
 
 
 def test_registrar_usuario_com_sucesso():
@@ -176,3 +189,90 @@ def test_autenticar_usuario_validacao_campos():
 
     with pytest.raises(ValidationError, match="O e-mail não pode estar vazio"):
         use_case.execute(AutenticarUsuarioInput(email="", senha="qualquercoisa"))
+
+
+def test_alterar_senha_com_sucesso():
+    repo = InMemoryUsuarioRepository()
+    usuario = Usuario(
+        id=None,
+        nome="Samuel",
+        email="samuel@example.com",
+        telefone="86999998888",
+        senha_hash=hash_password("senhaAntiga123"),
+        perfil=PerfilAcesso.CLIENTE,
+        ativo=True,
+        criado_em=datetime.now(timezone.utc),
+    )
+    salvo = repo.criar(usuario)
+
+    alterar_use_case = AlterarSenhaUseCase(repo)
+    alterar_use_case.execute(
+        AlterarSenhaInput(
+            usuario_id=salvo.id,
+            senha_atual="senhaAntiga123",
+            nova_senha="novaSenhaForte123",
+        )
+    )
+
+    # Validar que agora a autenticação funciona com a nova senha
+    auth_use_case = AutenticarUsuarioUseCase(repo)
+    res = auth_use_case.execute(
+        AutenticarUsuarioInput(email="samuel@example.com", senha="novaSenhaForte123")
+    )
+    assert res.usuario.id == salvo.id
+
+    # E falha com a senha antiga
+    with pytest.raises(CredenciaisInvalidasError):
+        auth_use_case.execute(
+            AutenticarUsuarioInput(email="samuel@example.com", senha="senhaAntiga123")
+        )
+
+
+def test_alterar_senha_atual_incorreta():
+    repo = InMemoryUsuarioRepository()
+    usuario = Usuario(
+        id=None,
+        nome="Samuel",
+        email="samuel@example.com",
+        telefone="86999998888",
+        senha_hash=hash_password("senhaAntiga123"),
+        perfil=PerfilAcesso.CLIENTE,
+        ativo=True,
+        criado_em=datetime.now(timezone.utc),
+    )
+    salvo = repo.criar(usuario)
+
+    use_case = AlterarSenhaUseCase(repo)
+    with pytest.raises(SenhaInvalidaError, match="A senha atual está incorreta"):
+        use_case.execute(
+            AlterarSenhaInput(
+                usuario_id=salvo.id,
+                senha_atual="senhaErrada123",
+                nova_senha="novaSenhaForte123",
+            )
+        )
+
+
+def test_alterar_senha_validacao_nova_senha():
+    repo = InMemoryUsuarioRepository()
+    use_case = AlterarSenhaUseCase(repo)
+
+    # Nova senha igual à atual
+    with pytest.raises(ValidationError, match="deve ser diferente da senha atual"):
+        use_case.execute(
+            AlterarSenhaInput(
+                usuario_id=1,
+                senha_atual="mesmaSenha123",
+                nova_senha="mesmaSenha123",
+            )
+        )
+
+    # Nova senha curta
+    with pytest.raises(ValidationError, match="no mínimo 8 caracteres"):
+        use_case.execute(
+            AlterarSenhaInput(
+                usuario_id=1,
+                senha_atual="senhaAntiga123",
+                nova_senha="curta",
+            )
+        )

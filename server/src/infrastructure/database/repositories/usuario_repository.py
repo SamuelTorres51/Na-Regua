@@ -40,6 +40,26 @@ class SqlAlchemyUsuarioRepository(UsuarioRepository):
             self._db.rollback()
             raise
 
+    def atualizar(self, usuario: Usuario) -> Usuario:
+        if usuario.id is None:
+            raise ValueError("Não é possível atualizar usuário sem ID.")
+        model = self._db.get(UsuarioModel, usuario.id)
+        if model is None:
+            raise ValueError(f"Usuário com ID {usuario.id} não encontrado.")
+        model.nome = usuario.nome
+        model.email = usuario.email
+        model.telefone = usuario.telefone
+        model.senha_hash = usuario.senha_hash
+        model.perfil = usuario.perfil
+        model.ativo = usuario.ativo
+        try:
+            self._db.commit()
+            self._db.refresh(model)
+            return _para_entidade(model)
+        except IntegrityError:
+            self._db.rollback()
+            raise
+
     def rollback(self) -> None:
         self._db.rollback()
 

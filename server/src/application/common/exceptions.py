@@ -16,3 +16,7 @@ class CredenciaisInvalidasError(ApplicationError):
 
 class UsuarioNaoEncontradoError(ApplicationError):
     """Lançada quando um usuário solicitado não é encontrado."""
+
+
+class SenhaInvalidaError(ApplicationError):
+    """Lançada quando a senha atual fornecida está incorreta."""

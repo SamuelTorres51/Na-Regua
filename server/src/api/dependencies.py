@@ -6,6 +6,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from core.security import decode_access_token
+from application.use_cases.auth.alterar_senha import AlterarSenhaUseCase
 from application.use_cases.auth.autenticar_usuario import AutenticarUsuarioUseCase
 from application.use_cases.auth.registrar_usuario import RegistrarUsuarioUseCase
 from domain.entities.usuario import Usuario
@@ -39,6 +40,12 @@ def get_autenticar_usuario_use_case(
     repository: Annotated[UsuarioRepository, Depends(get_usuario_repository)],
 ) -> AutenticarUsuarioUseCase:
     return AutenticarUsuarioUseCase(repository)
+
+
+def get_alterar_senha_use_case(
+    repository: Annotated[UsuarioRepository, Depends(get_usuario_repository)],
+) -> AlterarSenhaUseCase:
+    return AlterarSenhaUseCase(repository)
 
 
 def get_current_user(
