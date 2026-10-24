@@ -71,7 +71,10 @@ export function TabBarItem({
       className="flex-1 items-center justify-center"
       onPress={handlePress}
     >
-      <Animated.View style={iconStyle}>
+      <Animated.View
+        className="h-8 items-center justify-center"
+        style={iconStyle}
+      >
         {renderIcon?.({
           color: iconColor,
           focused: isFocused,

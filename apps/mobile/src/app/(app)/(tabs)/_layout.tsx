@@ -1,8 +1,12 @@
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
 import type { ComponentProps } from "react";
 import type { ColorValue } from "react-native";
-import { TabBar, type TabBarProps } from "@/components/navigation/tab-bar";
+import {
+  TabBar,
+  type TabBarActionConfig,
+  type TabBarProps,
+} from "@/components/navigation/tab-bar";
 import { colors } from "@/theme/colors";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -29,8 +33,16 @@ const HomeIcon = createTabIcon("home", "home-outline");
 const AppointmentsIcon = createTabIcon("calendar", "calendar-outline");
 const ProfileIcon = createTabIcon("person", "person-outline");
 
+const BOOKING_ACTION: TabBarActionConfig = {
+  accessibilityLabel: "Agendar um horário",
+  icon: "add",
+  label: "Agendar",
+  onPress: () => router.push("/booking"),
+  position: 1,
+};
+
 function renderTabBar(props: TabBarProps) {
-  return <TabBar {...props} />;
+  return <TabBar {...props} action={BOOKING_ACTION} />;
 }
 
 export default function TabsLayout() {
