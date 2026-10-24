@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   listAppointments,
   cancelAppointment as requestCancelAppointment,
@@ -21,9 +22,11 @@ export function useAppointments() {
     }
   }, []);
 
-  useEffect(() => {
-    loadAppointments().finally(() => setIsLoading(false));
-  }, [loadAppointments]);
+  useFocusEffect(
+    useCallback(() => {
+      loadAppointments().finally(() => setIsLoading(false));
+    }, [loadAppointments])
+  );
 
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
