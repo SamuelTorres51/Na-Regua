@@ -3,31 +3,50 @@ import type { Tabs } from "expo-router";
 import { type ComponentProps, useCallback, useEffect, useState } from "react";
 import { type LayoutChangeEvent, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { metrics } from "@/theme/metrics";
+import { TabBarAction, type TabBarActionProps } from "./tab-bar-action";
 import { TabBarItem } from "./tab-bar-item";
 
 export type TabBarProps = Parameters<
   NonNullable<ComponentProps<typeof Tabs>["tabBar"]>
 >[0];
 
-const SPRING_CONFIG = { damping: 20, stiffness: 220 };
+export interface TabBarActionConfig extends TabBarActionProps {
+  position: number;
+}
+
+interface CustomTabBarProps extends TabBarProps {
+  action?: TabBarActionConfig;
+}
+
+const BORDER_WIDTH = 1;
+const SLIDE_CONFIG = { duration: 260, easing: Easing.out(Easing.cubic) };
 const { bottomOffset, height, padding } = metrics.tabBar;
 
-export function TabBar({ descriptors, navigation, state }: TabBarProps) {
+export function TabBar({
+  action,
+  descriptors,
+  navigation,
+  state,
+}: CustomTabBarProps) {
   const insets = useSafeAreaInsets();
   const [barWidth, setBarWidth] = useState(0);
   const indicatorX = useSharedValue(0);
 
-  const tabWidth = (barWidth - padding * 2) / state.routes.length;
+  const slotCount = state.routes.length + (action ? 1 : 0);
+  const slotWidth = (barWidth - (BORDER_WIDTH + padding) * 2) / slotCount;
+  const activeSlot =
+    action && state.index >= action.position ? state.index + 1 : state.index;
 
   useEffect(() => {
-    indicatorX.value = withSpring(state.index * tabWidth, SPRING_CONFIG);
-  }, [indicatorX, state.index, tabWidth]);
+    indicatorX.value = withTiming(activeSlot * slotWidth, SLIDE_CONFIG);
+  }, [activeSlot, indicatorX, slotWidth]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: indicatorX.value }],
@@ -56,8 +75,39 @@ export function TabBar({ descriptors, navigation, state }: TabBarProps) {
     [navigation]
   );
 
+  const items = state.routes.map((route, index) => {
+    const { options } = descriptors[route.key];
+
+    return (
+      <TabBarItem
+        isFocused={state.index === index}
+        key={route.key}
+        label={options.title ?? route.name}
+        onPress={handlePress}
+        renderIcon={options.tabBarIcon}
+        routeKey={route.key}
+        routeName={route.name}
+      />
+    );
+  });
+
+  if (action) {
+    items.splice(
+      action.position,
+      0,
+      <TabBarAction
+        accessibilityLabel={action.accessibilityLabel}
+        icon={action.icon}
+        key="action"
+        label={action.label}
+        onPress={action.onPress}
+      />
+    );
+  }
+
   return (
     <View
+      accessibilityRole="tablist"
       className="absolute right-6 left-6 flex-row rounded-3xl border border-zinc-800 bg-zinc-900/95"
       onLayout={handleLayout}
       style={{ bottom: insets.bottom + bottomOffset, height, padding }}
@@ -66,27 +116,13 @@ export function TabBar({ descriptors, navigation, state }: TabBarProps) {
         <Animated.View
           className="absolute rounded-2xl bg-brand/15"
           style={[
-            { bottom: padding, left: padding, top: padding, width: tabWidth },
+            { bottom: padding, left: padding, top: padding, width: slotWidth },
             indicatorStyle,
           ]}
         />
       ) : null}
 
-      {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
-
-        return (
-          <TabBarItem
-            isFocused={state.index === index}
-            key={route.key}
-            label={options.title ?? route.name}
-            onPress={handlePress}
-            renderIcon={options.tabBarIcon}
-            routeKey={route.key}
-            routeName={route.name}
-          />
-        );
-      })}
+      {items}
     </View>
   );
 }
