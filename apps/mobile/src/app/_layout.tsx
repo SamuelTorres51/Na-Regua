@@ -3,6 +3,7 @@ import "../global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ToastProvider } from "@/components/feedback/toast-provider";
 import { SessionProvider, useSession } from "@/features/auth/session-provider";
 import { useAppFonts } from "@/hooks/use-app-fonts";
 import { useSplashScreen } from "@/hooks/use-splash-screen";
@@ -40,7 +41,9 @@ export default function RootLayout() {
         translucent
       />
       <SessionProvider>
-        <RootNavigator />
+        <ToastProvider>
+          <RootNavigator />
+        </ToastProvider>
       </SessionProvider>
     </SafeAreaProvider>
   );
