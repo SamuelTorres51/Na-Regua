@@ -27,6 +27,10 @@ function getPageTitle(page: AppPage) {
     return "Gerenciamento de profissionais";
   }
 
+  if (page === "servicos") {
+    return "Gerenciamento de serviços";
+  }
+
   return "Agenda consolidada";
 }
 
@@ -37,6 +41,10 @@ function getPageSubtitle(page: AppPage) {
 
   if (page === "profissionais") {
     return "Equipe, agenda e histórico de atendimentos";
+  }
+
+  if (page === "servicos") {
+    return "Catálogo de serviços da sua barbearia";
   }
 
   return "Todos os profissionais em uma única tela";

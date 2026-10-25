@@ -16,12 +16,12 @@ interface NavItem {
   page?: AppPage;
 }
 
-export type AppPage = "agenda" | "clientes" | "profissionais";
+export type AppPage = "agenda" | "clientes" | "profissionais" | "servicos";
 
 const NAV_ITEMS: NavItem[] = [
   { enabled: true, icon: CalendarIcon, label: "Agenda", page: "agenda" },
   { enabled: true, icon: UsersIcon, label: "Clientes", page: "clientes" },
-  { enabled: false, icon: ScissorsIcon, label: "Serviços" },
+  { enabled: true, icon: ScissorsIcon, label: "Serviços", page: "servicos" },
   {
     enabled: true,
     icon: ProfessionalsIcon,

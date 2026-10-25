@@ -6,6 +6,7 @@ import { AgendaPage } from "@/pages/agenda-page";
 import { ClientsPage } from "@/pages/clients-page";
 import { LoginPage } from "@/pages/login-page";
 import { ProfessionalsPage } from "@/pages/professionals-page";
+import { ServicesPage } from "@/pages/services-page";
 
 // PROVISÓRIO: substituir pelos dados do usuário autenticado quando a
 // autenticação real estiver integrada.
@@ -21,6 +22,10 @@ function getPageContent(page: AppPage) {
 
   if (page === "profissionais") {
     return <ProfessionalsPage />;
+  }
+
+  if (page === "servicos") {
+    return <ServicesPage />;
   }
 
   return <AgendaPage />;
