@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { AppointmentList } from "@/components/appointments/appointment-list";
+import type { StateMessageContent } from "@/components/feedback/state-message";
 import { TabScreen } from "@/components/layout/tab-screen";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import type { EmptyStateProps } from "@/components/ui/empty-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   SegmentedControl,
@@ -23,7 +23,7 @@ const TABS: readonly SegmentedOption<AppointmentsTab>[] = [
   { label: "Histórico", value: "history" },
 ];
 
-const EMPTY_STATES: Record<AppointmentsTab, EmptyStateProps> = {
+const EMPTY_MESSAGES: Record<AppointmentsTab, StateMessageContent> = {
   history: {
     description:
       "Atendimentos concluídos, cancelados e perdidos aparecem aqui.",
@@ -90,7 +90,7 @@ export default function Appointments() {
           <View className="mt-6">
             <AppointmentList
               appointments={tab === "upcoming" ? upcoming : history}
-              emptyState={EMPTY_STATES[tab]}
+              emptyMessage={EMPTY_MESSAGES[tab]}
               hasLoadError={hasLoadError}
               isLoading={isLoading}
               onRequestCancel={handleRequestCancel}

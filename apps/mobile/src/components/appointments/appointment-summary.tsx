@@ -1,36 +1,33 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Text, View } from "react-native";
-import { colors } from "@/theme/colors";
+import { Icon, type IconName } from "@/components/ui/icon";
 import type { Appointment } from "@/types/models";
 import { formatDuration, formatRelativeDate, formatTime } from "@/utils/format";
 import { AppointmentStatusBadge } from "./appointment-status-badge";
 
-const ICON_SIZE = 15;
-
 const DETAIL_TONES = {
   muted: {
-    iconColor: colors.icon.muted,
+    iconTone: "muted",
     textClassName: "font-roboto text-zinc-400",
   },
   strong: {
-    iconColor: colors.icon.subtle,
+    iconTone: "subtle",
     textClassName: "font-roboto-medium text-zinc-200",
   },
 } as const;
 
 interface DetailProps {
-  icon: ComponentProps<typeof Ionicons>["name"];
+  icon: IconName;
   label: string;
   tone: keyof typeof DETAIL_TONES;
 }
 
 function Detail({ icon, label, tone }: DetailProps) {
-  const { iconColor, textClassName } = DETAIL_TONES[tone];
+  const { iconTone, textClassName } = DETAIL_TONES[tone];
 
   return (
     <View className="flex-row items-center">
-      <Ionicons color={iconColor} name={icon} size={ICON_SIZE} />
+      <Icon name={icon} size="sm" tone={iconTone} />
       <Text className={`ml-1.5 text-sm ${textClassName}`}>{label}</Text>
     </View>
   );
