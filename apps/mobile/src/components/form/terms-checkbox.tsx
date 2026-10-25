@@ -1,17 +1,17 @@
 import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, {
-  FadeIn,
   interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { FieldError } from "@/components/feedback/field-error";
+import { Icon } from "@/components/ui/icon";
 import { colors } from "@/theme/colors";
 
 const BASE_SCALE = 0.92;
 const CHECKBOX_DURATION = 180;
-const ERROR_FADE_DURATION = 220;
 const SCALE_RANGE = 0.08;
 const TRANSPARENT_ACCENT = "rgba(245, 158, 11, 0)";
 
@@ -66,12 +66,9 @@ export function TermsCheckbox({
           className="h-6 w-6 items-center justify-center rounded-lg border"
           style={boxStyle}
         >
-          <Animated.Text
-            className="font-roboto-bold text-sm text-zinc-950"
-            style={checkStyle}
-          >
-            ✓
-          </Animated.Text>
+          <Animated.View style={checkStyle}>
+            <Icon name="checkmark" size="sm" tone="onAccent" />
+          </Animated.View>
         </Animated.View>
 
         <Text className="ml-3 flex-1 font-roboto text-sm text-zinc-400">
@@ -79,14 +76,7 @@ export function TermsCheckbox({
         </Text>
       </Pressable>
 
-      {error ? (
-        <Animated.Text
-          className="mt-2 font-roboto text-danger text-xs"
-          entering={FadeIn.duration(ERROR_FADE_DURATION)}
-        >
-          {error}
-        </Animated.Text>
-      ) : null}
+      <FieldError message={error} />
     </View>
   );
 }
