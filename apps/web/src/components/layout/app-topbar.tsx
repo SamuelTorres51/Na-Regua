@@ -1,8 +1,10 @@
 import { MenuIcon, SignOutIcon } from "@/components/ui/icons";
+import type { AppPage } from "./app-sidebar";
 
 interface AppTopbarProps {
   onOpenMenu: () => void;
   onSignOut: () => void;
+  page: AppPage;
   userName: string;
   userRole: string;
 }
@@ -19,6 +21,7 @@ function getInitials(name: string) {
 export function AppTopbar({
   onOpenMenu,
   onSignOut,
+  page,
   userRole,
   userName,
 }: AppTopbarProps) {
@@ -36,10 +39,14 @@ export function AppTopbar({
 
         <div className="min-w-0">
           <p className="truncate font-roboto-semibold text-sm text-white">
-            Agenda consolidada
+            {page === "clientes"
+              ? "Gerenciamento de clientes"
+              : "Agenda consolidada"}
           </p>
           <p className="hidden truncate font-roboto text-xs text-zinc-500 sm:block">
-            Todos os profissionais em uma única tela
+            {page === "clientes"
+              ? "Cadastros da sua barbearia"
+              : "Todos os profissionais em uma única tela"}
           </p>
         </div>
       </div>

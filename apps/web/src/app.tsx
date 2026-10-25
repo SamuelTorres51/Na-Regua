@@ -1,7 +1,9 @@
 import { useCallback, useState } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
+import type { AppPage } from "@/components/layout/app-sidebar";
 import { AgendaPage } from "@/pages/agenda-page";
+import { ClientsPage } from "@/pages/clients-page";
 import { LoginPage } from "@/pages/login-page";
 
 // PROVISÓRIO: substituir pelos dados do usuário autenticado quando a
@@ -13,6 +15,7 @@ const CURRENT_USER = {
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [page, setPage] = useState<AppPage>("agenda");
 
   const handleAuthenticated = useCallback(() => setIsAuthenticated(true), []);
   const handleSignOut = useCallback(() => setIsAuthenticated(false), []);
@@ -23,11 +26,13 @@ export default function App() {
 
   return (
     <AppShell
+      onNavigate={setPage}
       onSignOut={handleSignOut}
+      page={page}
       userName={CURRENT_USER.name}
       userRole={CURRENT_USER.role}
     >
-      <AgendaPage />
+      {page === "clientes" ? <ClientsPage /> : <AgendaPage />}
     </AppShell>
   );
 }
