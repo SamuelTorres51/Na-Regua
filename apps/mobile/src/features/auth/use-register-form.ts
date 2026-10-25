@@ -5,6 +5,9 @@ import { formatPhone } from "@/utils/phone";
 import { useSession } from "./session-provider";
 import { type RegisterErrors, validateRegister } from "./validation";
 
+const SIGN_UP_ERROR_MESSAGE =
+  "Não foi possível criar sua conta. Tente novamente.";
+
 export function useRegisterForm() {
   const { signUp } = useSession();
 
@@ -22,7 +25,8 @@ export function useRegisterForm() {
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [shakeTrigger, setShakeTrigger] = useState(0);
 
-  const { isRunning: isSubmitting, run } = useAsyncAction(signUp);
+  const { error, isRunning: isSubmitting, run } = useAsyncAction(signUp);
+  const submitError = error ? SIGN_UP_ERROR_MESSAGE : null;
 
   const handleChangePhone = useCallback(
     (value: string) => setPhone(formatPhone(value)),
@@ -103,5 +107,6 @@ export function useRegisterForm() {
     setFullName,
     setPassword,
     shakeTrigger,
+    submitError,
   };
 }

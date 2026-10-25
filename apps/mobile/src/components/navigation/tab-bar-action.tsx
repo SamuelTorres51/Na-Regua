@@ -1,14 +1,11 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { selectionAsync } from "expo-haptics";
-import { type ComponentProps, useCallback } from "react";
+import { useCallback } from "react";
 import { Pressable, Text, View } from "react-native";
-import { colors } from "@/theme/colors";
-
-const ICON_SIZE = 20;
+import { Icon, type IconName } from "@/components/ui/icon";
 
 export interface TabBarActionProps {
   accessibilityLabel: string;
-  icon: ComponentProps<typeof Ionicons>["name"];
+  icon: IconName;
   label: string;
   onPress: () => void;
 }
@@ -32,7 +29,7 @@ export function TabBarAction({
       onPress={handlePress}
     >
       <View className="h-8 w-12 items-center justify-center rounded-xl bg-brand">
-        <Ionicons color={colors.accentContrast} name={icon} size={ICON_SIZE} />
+        <Icon name={icon} tone="onAccent" />
       </View>
       <Text className="mt-1 font-roboto-medium text-[11px] text-brand">
         {label}

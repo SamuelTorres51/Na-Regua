@@ -1,7 +1,7 @@
 import { View } from "react-native";
+import { StateMessage } from "@/components/feedback/state-message";
 import { FormScreen } from "@/components/layout/form-screen";
 import { BackButton } from "@/components/ui/back-button";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
 
 export default function Booking() {
@@ -16,7 +16,7 @@ export default function Booking() {
         />
 
         <View className="mt-10">
-          <EmptyState
+          <StateMessage
             description="O agendamento pelo app está em construção."
             icon="construct-outline"
             title="Em breve"

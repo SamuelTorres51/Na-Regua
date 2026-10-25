@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { FormAlert } from "@/components/feedback/form-alert";
 import { FormField } from "@/components/form/form-field";
 import { FormScreen } from "@/components/layout/form-screen";
 import { BackButton } from "@/components/ui/back-button";
@@ -25,6 +26,7 @@ export default function Login() {
     setEmail,
     setPassword,
     shakeTrigger,
+    submitError,
   } = useLoginForm();
 
   const handleGoToRegister = useCallback(
@@ -93,6 +95,8 @@ export default function Login() {
         className="px-6"
         entering={FadeInUp.delay(520).duration(700)}
       >
+        <FormAlert message={submitError} />
+
         <PrimaryButton
           accessibilityLabel="Entrar na conta"
           isLoading={isSubmitting}

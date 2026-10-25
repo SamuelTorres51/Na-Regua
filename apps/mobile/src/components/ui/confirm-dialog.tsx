@@ -1,24 +1,21 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCallback } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors } from "@/theme/colors";
 import { layout } from "@/theme/styles";
+import { Icon } from "./icon";
 import { PrimaryButton } from "./primary-button";
 import { SecondaryButton } from "./secondary-button";
-
-const ICON_SIZE = 22;
 
 const APPEARANCES = {
   danger: {
     badge: "bg-red-500/15",
     icon: "warning-outline",
-    iconColor: colors.icon.danger,
+    iconTone: "danger",
     tone: "danger",
   },
   neutral: {
     badge: "bg-amber-500/15",
     icon: "help-circle-outline",
-    iconColor: colors.icon.accent,
+    iconTone: "accent",
     tone: "brand",
   },
 } as const;
@@ -75,11 +72,7 @@ export function ConfirmDialog({
           <View
             className={`h-12 w-12 items-center justify-center rounded-full ${appearance.badge}`}
           >
-            <Ionicons
-              color={appearance.iconColor}
-              name={appearance.icon}
-              size={ICON_SIZE}
-            />
+            <Icon name={appearance.icon} size="lg" tone={appearance.iconTone} />
           </View>
 
           <Text className="mt-5 font-roboto-bold text-2xl text-white">

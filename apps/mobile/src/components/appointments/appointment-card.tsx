@@ -1,20 +1,18 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { useCallback } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
+import { Icon } from "@/components/ui/icon";
 import {
   type CancellationState,
   getCancellationState,
   MIN_CANCEL_NOTICE_MINUTES,
 } from "@/features/appointments/cancellation";
-import { colors } from "@/theme/colors";
+import { classNames } from "@/theme/class-names";
 import type { Appointment } from "@/types/models";
 import { formatDuration, formatPrice } from "@/utils/format";
 import { AppointmentSummary } from "./appointment-summary";
 
 const FADE_DURATION = 280;
-const ICON_SIZE = 15;
-const ACTION_ICON_SIZE = 17;
 
 interface CancellationFooterProps {
   onRequestCancel: () => void;
@@ -36,11 +34,7 @@ function CancellationFooter({
           className="mt-4 h-11 flex-row items-center justify-center rounded-2xl border border-red-500/25 bg-red-500/10 active:opacity-70"
           onPress={onRequestCancel}
         >
-          <Ionicons
-            color={colors.icon.danger}
-            name="close-circle-outline"
-            size={ACTION_ICON_SIZE}
-          />
+          <Icon name="close-circle-outline" size="sm" tone="danger" />
           <Text className="ml-2 font-roboto-medium text-red-300 text-sm">
             Cancelar agendamento
           </Text>
@@ -49,11 +43,7 @@ function CancellationFooter({
     case "tooLate":
       return (
         <View className="mt-4 flex-row items-center rounded-2xl bg-zinc-800/50 px-3 py-2.5">
-          <Ionicons
-            color={colors.icon.muted}
-            name="information-circle-outline"
-            size={ICON_SIZE}
-          />
+          <Icon name="information-circle-outline" size="sm" tone="muted" />
           <Text className="ml-2 flex-1 font-roboto text-xs text-zinc-500">
             Cancelamento disponível até{" "}
             {formatDuration(MIN_CANCEL_NOTICE_MINUTES)} antes do horário.
@@ -81,7 +71,7 @@ export function AppointmentCard({
 
   return (
     <Animated.View
-      className="rounded-3xl border border-zinc-800 bg-zinc-900/60 p-5"
+      className={`p-5 ${classNames.card}`}
       entering={FadeIn.duration(FADE_DURATION)}
       layout={LinearTransition}
     >

@@ -1,18 +1,16 @@
-import { ActivityIndicator, View } from "react-native";
-import { EmptyState, type EmptyStateProps } from "@/components/ui/empty-state";
-import { colors } from "@/theme/colors";
+import { View } from "react-native";
+import { LoadingState } from "@/components/feedback/loading-state";
+import {
+  LOAD_ERROR_MESSAGE,
+  StateMessage,
+  type StateMessageContent,
+} from "@/components/feedback/state-message";
 import type { Appointment } from "@/types/models";
 import { AppointmentCard } from "./appointment-card";
 
-const LOAD_ERROR_STATE: EmptyStateProps = {
-  description: "Puxe a tela para baixo para tentar de novo.",
-  icon: "cloud-offline-outline",
-  title: "Não foi possível carregar",
-};
-
 interface AppointmentListProps {
   appointments: Appointment[];
-  emptyState: EmptyStateProps;
+  emptyMessage: StateMessageContent;
   hasLoadError: boolean;
   isLoading: boolean;
   onRequestCancel: (appointment: Appointment) => void;
@@ -20,25 +18,21 @@ interface AppointmentListProps {
 
 export function AppointmentList({
   appointments,
-  emptyState,
+  emptyMessage,
   hasLoadError,
   isLoading,
   onRequestCancel,
 }: AppointmentListProps) {
   if (isLoading) {
-    return (
-      <View className="items-center py-16">
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
+    return <LoadingState />;
   }
 
   if (hasLoadError) {
-    return <EmptyState {...LOAD_ERROR_STATE} />;
+    return <StateMessage {...LOAD_ERROR_MESSAGE} />;
   }
 
   if (appointments.length === 0) {
-    return <EmptyState {...emptyState} />;
+    return <StateMessage {...emptyMessage} />;
   }
 
   return (

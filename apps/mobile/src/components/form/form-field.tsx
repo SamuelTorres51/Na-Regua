@@ -1,7 +1,6 @@
 import { type RefObject, useCallback, useEffect, useState } from "react";
 import { Pressable, Text, TextInput, type TextInputProps } from "react-native";
 import Animated, {
-  FadeIn,
   FadeInDown,
   interpolateColor,
   useAnimatedStyle,
@@ -9,11 +8,12 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
+import { FieldError } from "@/components/feedback/field-error";
+import { Icon } from "@/components/ui/icon";
 import { colors } from "@/theme/colors";
 
 const COLOR_DURATION = 180;
 const ENTERING_DURATION = 600;
-const ERROR_FADE_DURATION = 220;
 const SHAKE_DURATION = 55;
 const SHAKE_OFFSET = 7;
 
@@ -138,21 +138,15 @@ export function FormField({
             hitSlop={8}
             onPress={handleToggleVisibility}
           >
-            <Text className="font-roboto-medium text-brand text-xs uppercase">
-              {isPasswordVisible ? "Ocultar" : "Mostrar"}
-            </Text>
+            <Icon
+              name={isPasswordVisible ? "eye-off-outline" : "eye-outline"}
+              tone="subtle"
+            />
           </Pressable>
         ) : null}
       </Animated.View>
 
-      {error ? (
-        <Animated.Text
-          className="mt-2 font-roboto text-danger text-xs"
-          entering={FadeIn.duration(ERROR_FADE_DURATION)}
-        >
-          {error}
-        </Animated.Text>
-      ) : null}
+      <FieldError message={error} />
     </Animated.View>
   );
 }
