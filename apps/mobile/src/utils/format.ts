@@ -3,6 +3,7 @@ const MINUTES_PER_HOUR = 60;
 const AFTERNOON_START_HOUR = 12;
 const EVENING_START_HOUR = 18;
 const MS_PER_DAY = 86_400_000;
+const WHITESPACE_PATTERN = /\s+/;
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
@@ -76,6 +77,14 @@ export function formatTime(isoDate: string) {
 
 export function getFirstName(fullName: string) {
   return fullName.trim().split(" ")[0] ?? "";
+}
+
+export function getInitials(fullName: string) {
+  const names = fullName.trim().split(WHITESPACE_PATTERN).filter(Boolean);
+  const firstInitial = names.at(0)?.charAt(0) ?? "";
+  const lastInitial = names.length > 1 ? (names.at(-1)?.charAt(0) ?? "") : "";
+
+  return `${firstInitial}${lastInitial}`.toUpperCase();
 }
 
 export function getGreeting(date = new Date()) {
