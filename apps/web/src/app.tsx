@@ -5,6 +5,7 @@ import type { AppPage } from "@/components/layout/app-sidebar";
 import { AgendaPage } from "@/pages/agenda-page";
 import { ClientsPage } from "@/pages/clients-page";
 import { LoginPage } from "@/pages/login-page";
+import { ProfessionalsPage } from "@/pages/professionals-page";
 
 // PROVISÓRIO: substituir pelos dados do usuário autenticado quando a
 // autenticação real estiver integrada.
@@ -12,6 +13,18 @@ const CURRENT_USER = {
   name: "Administrador",
   role: "administrador",
 };
+
+function getPageContent(page: AppPage) {
+  if (page === "clientes") {
+    return <ClientsPage />;
+  }
+
+  if (page === "profissionais") {
+    return <ProfessionalsPage />;
+  }
+
+  return <AgendaPage />;
+}
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -32,7 +45,7 @@ export default function App() {
       userName={CURRENT_USER.name}
       userRole={CURRENT_USER.role}
     >
-      {page === "clientes" ? <ClientsPage /> : <AgendaPage />}
+      {getPageContent(page)}
     </AppShell>
   );
 }

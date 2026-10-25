@@ -16,13 +16,18 @@ interface NavItem {
   page?: AppPage;
 }
 
-export type AppPage = "agenda" | "clientes";
+export type AppPage = "agenda" | "clientes" | "profissionais";
 
 const NAV_ITEMS: NavItem[] = [
   { enabled: true, icon: CalendarIcon, label: "Agenda", page: "agenda" },
   { enabled: true, icon: UsersIcon, label: "Clientes", page: "clientes" },
   { enabled: false, icon: ScissorsIcon, label: "Serviços" },
-  { enabled: false, icon: ProfessionalsIcon, label: "Profissionais" },
+  {
+    enabled: true,
+    icon: ProfessionalsIcon,
+    label: "Profissionais",
+    page: "profissionais",
+  },
   { enabled: false, icon: StoreIcon, label: "Barbearia" },
 ];
 
