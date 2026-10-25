@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
+import { Divider } from "@/components/ui/divider";
 import { Icon, type IconName } from "@/components/ui/icon";
 import type { Appointment } from "@/types/models";
 import { formatDuration, formatRelativeDate, formatTime } from "@/utils/format";
@@ -63,7 +64,7 @@ export function AppointmentSummary({
         />
       </View>
 
-      <View className="my-4 h-px bg-zinc-800" />
+      <Divider />
 
       <View className="flex-row items-center gap-5">
         <Detail
