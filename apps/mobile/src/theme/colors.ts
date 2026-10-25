@@ -10,12 +10,12 @@ export const colors = {
   gradient: ["#27272a", "#111113", "#09090b"] as const,
   icon: {
     accent: "#f59e0b",
-    active: "#f59e0b",
     danger: "#fca5a5",
-    default: "#fafafa",
+    default: "#ffffff",
     muted: "#71717a",
-    primary: "#ffffff",
+    onAccent: "#09090b",
     subtle: "#a1a1aa",
+    success: "#4ade80",
   },
   placeholder: "#52525b",
   status: {

@@ -7,10 +7,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { colors } from "@/theme/colors";
+import { metrics } from "@/theme/metrics";
 
 const FOCUS_DURATION = 220;
 const FOCUSED_SCALE = 1.12;
-const ICON_SIZE = 22;
 const SCALE_RANGE = FOCUSED_SCALE - 1;
 
 interface TabIconProps {
@@ -52,7 +52,7 @@ export function TabBarItem({
     color: interpolateColor(
       progress.value,
       [0, 1],
-      [colors.icon.muted, colors.icon.active]
+      [colors.icon.muted, colors.icon.accent]
     ),
   }));
 
@@ -61,7 +61,7 @@ export function TabBarItem({
     [isFocused, onPress, routeKey, routeName]
   );
 
-  const iconColor = isFocused ? colors.icon.active : colors.icon.muted;
+  const iconColor = isFocused ? colors.icon.accent : colors.icon.muted;
 
   return (
     <Pressable
@@ -78,7 +78,7 @@ export function TabBarItem({
         {renderIcon?.({
           color: iconColor,
           focused: isFocused,
-          size: ICON_SIZE,
+          size: metrics.icon.lg,
         })}
       </Animated.View>
 
