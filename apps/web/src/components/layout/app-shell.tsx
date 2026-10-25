@@ -1,11 +1,13 @@
 import type { PropsWithChildren } from "react";
 import { useCallback, useState } from "react";
 
-import { AppSidebar } from "./app-sidebar";
+import { type AppPage, AppSidebar } from "./app-sidebar";
 import { AppTopbar } from "./app-topbar";
 
 interface AppShellProps {
+  onNavigate: (page: AppPage) => void;
   onSignOut: () => void;
+  page: AppPage;
   userName: string;
   userRole: string;
 }
@@ -13,6 +15,8 @@ interface AppShellProps {
 export function AppShell({
   children,
   onSignOut,
+  onNavigate,
+  page,
   userRole,
   userName,
 }: PropsWithChildren<AppShellProps>) {
@@ -24,7 +28,7 @@ export function AppShell({
   return (
     <div className="flex min-h-dvh bg-zinc-950 text-zinc-100">
       <aside className="hidden w-64 shrink-0 border-zinc-800 border-r bg-zinc-900/40 lg:block">
-        <AppSidebar />
+        <AppSidebar onNavigate={onNavigate} page={page} />
       </aside>
 
       {isMenuOpen ? (
@@ -36,7 +40,7 @@ export function AppShell({
             type="button"
           />
           <aside className="relative h-full w-72 animate-fade-in border-zinc-800 border-r bg-zinc-900">
-            <AppSidebar />
+            <AppSidebar onNavigate={onNavigate} page={page} />
           </aside>
         </div>
       ) : null}
@@ -45,6 +49,7 @@ export function AppShell({
         <AppTopbar
           onOpenMenu={handleOpenMenu}
           onSignOut={onSignOut}
+          page={page}
           userName={userName}
           userRole={userRole}
         />
