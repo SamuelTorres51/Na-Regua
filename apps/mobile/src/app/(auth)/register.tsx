@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
+import { FormAlert } from "@/components/feedback/form-alert";
 import { FormField } from "@/components/form/form-field";
 import { PasswordStrengthMeter } from "@/components/form/password-strength-meter";
 import { TermsCheckbox } from "@/components/form/terms-checkbox";
@@ -42,6 +43,7 @@ export default function Register() {
     setFullName,
     setPassword,
     shakeTrigger,
+    submitError,
   } = useRegisterForm();
 
   const handleGoToLogin = useCallback(() => router.push("/login"), [router]);
@@ -152,6 +154,8 @@ export default function Register() {
         className="mt-10 px-6"
         entering={FadeInUp.delay(600).duration(700)}
       >
+        <FormAlert message={submitError} />
+
         <PrimaryButton
           accessibilityLabel="Criar a conta"
           isLoading={isSubmitting}

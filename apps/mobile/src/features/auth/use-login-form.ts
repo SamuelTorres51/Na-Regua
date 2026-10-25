@@ -4,6 +4,9 @@ import { useSession } from "@/features/auth/session-provider";
 import { type LoginErrors, validateLogin } from "@/features/auth/validation";
 import { useAsyncAction } from "@/hooks/use-async-action";
 
+const SIGN_IN_ERROR_MESSAGE =
+  "Não foi possível entrar. Confira seus dados e tente novamente.";
+
 export function useLoginForm() {
   const { signIn } = useSession();
   const passwordRef = useRef<TextInput>(null);
@@ -13,7 +16,8 @@ export function useLoginForm() {
   const [errors, setErrors] = useState<LoginErrors>({});
   const [shakeTrigger, setShakeTrigger] = useState(0);
 
-  const { isRunning: isSubmitting, run } = useAsyncAction(signIn);
+  const { error, isRunning: isSubmitting, run } = useAsyncAction(signIn);
+  const submitError = error ? SIGN_IN_ERROR_MESSAGE : null;
 
   const handleFocusPassword = useCallback(
     () => passwordRef.current?.focus(),
@@ -43,5 +47,6 @@ export function useLoginForm() {
     setEmail,
     setPassword,
     shakeTrigger,
+    submitError,
   };
 }
