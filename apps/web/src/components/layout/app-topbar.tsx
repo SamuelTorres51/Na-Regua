@@ -18,6 +18,30 @@ function getInitials(name: string) {
     .join("");
 }
 
+function getPageTitle(page: AppPage) {
+  if (page === "clientes") {
+    return "Gerenciamento de clientes";
+  }
+
+  if (page === "profissionais") {
+    return "Gerenciamento de profissionais";
+  }
+
+  return "Agenda consolidada";
+}
+
+function getPageSubtitle(page: AppPage) {
+  if (page === "clientes") {
+    return "Cadastros da sua barbearia";
+  }
+
+  if (page === "profissionais") {
+    return "Equipe, agenda e histórico de atendimentos";
+  }
+
+  return "Todos os profissionais em uma única tela";
+}
+
 export function AppTopbar({
   onOpenMenu,
   onSignOut,
@@ -39,14 +63,10 @@ export function AppTopbar({
 
         <div className="min-w-0">
           <p className="truncate font-roboto-semibold text-sm text-white">
-            {page === "clientes"
-              ? "Gerenciamento de clientes"
-              : "Agenda consolidada"}
+            {getPageTitle(page)}
           </p>
           <p className="hidden truncate font-roboto text-xs text-zinc-500 sm:block">
-            {page === "clientes"
-              ? "Cadastros da sua barbearia"
-              : "Todos os profissionais em uma única tela"}
+            {getPageSubtitle(page)}
           </p>
         </div>
       </div>
