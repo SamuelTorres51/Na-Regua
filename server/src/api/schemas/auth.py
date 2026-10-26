@@ -35,5 +35,11 @@ class AlterarSenhaRequest(BaseModel):
     nova_senha: str = Field(min_length=8, max_length=128)
 
 
+class AtualizarPerfilRequest(BaseModel):
+    nome: str | None = Field(default=None, min_length=3, max_length=150)
+    email: EmailStr | None = None
+    telefone: str | None = Field(default=None, min_length=10, max_length=20)
+
+
 class MensagemResponse(BaseModel):
     mensagem: str
