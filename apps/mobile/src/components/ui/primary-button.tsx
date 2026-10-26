@@ -10,6 +10,7 @@ const TONE_CLASSES = {
 
 interface PrimaryButtonProps {
   accessibilityLabel: string;
+  isDisabled?: boolean;
   isLoading?: boolean;
   label: string;
   onPress: () => void;
@@ -18,21 +19,23 @@ interface PrimaryButtonProps {
 
 export function PrimaryButton({
   accessibilityLabel,
+  isDisabled = false,
   isLoading = false,
   label,
   onPress,
   tone = "brand",
 }: PrimaryButtonProps) {
   const { animatedStyle, handlePressIn, handlePressOut } = usePressScale();
+  const isInactive = isDisabled || isLoading;
 
   return (
     <Animated.View style={animatedStyle}>
       <Pressable
         accessibilityLabel={accessibilityLabel}
         accessibilityRole="button"
-        accessibilityState={{ busy: isLoading, disabled: isLoading }}
-        className={`h-14 items-center justify-center rounded-2xl active:opacity-90 ${TONE_CLASSES[tone]}`}
-        disabled={isLoading}
+        accessibilityState={{ busy: isLoading, disabled: isInactive }}
+        className={`h-14 items-center justify-center rounded-2xl active:opacity-90 ${TONE_CLASSES[tone]} ${isDisabled ? "opacity-40" : ""}`}
+        disabled={isInactive}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
