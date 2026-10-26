@@ -1,10 +1,13 @@
 import Constants from "expo-constants";
+import { useRouter } from "expo-router";
+import { useCallback } from "react";
 import { Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { TabScreen } from "@/components/layout/tab-screen";
 import { Avatar } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Divider } from "@/components/ui/divider";
+import { IconButton } from "@/components/ui/icon-button";
 import { InfoRow } from "@/components/ui/info-row";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SecondaryButton } from "@/components/ui/secondary-button";
@@ -20,6 +23,7 @@ const ENTERING_DURATION = 600;
 const APP_VERSION = Constants.expoConfig?.version;
 
 export default function Profile() {
+  const router = useRouter();
   const { session } = useSession();
   const {
     handleCloseDialog,
@@ -28,6 +32,11 @@ export default function Profile() {
     isDialogVisible,
     isSigningOut,
   } = useSignOutDialog();
+
+  const handleGoToEditProfile = useCallback(
+    () => router.push("/edit-profile"),
+    [router]
+  );
 
   if (!session) {
     return null;
@@ -57,6 +66,11 @@ export default function Profile() {
                   Cliente Na Régua
                 </Text>
               </View>
+              <IconButton
+                accessibilityLabel="Editar dados"
+                icon="pencil-outline"
+                onPress={handleGoToEditProfile}
+              />
             </Animated.View>
 
             <Animated.View
