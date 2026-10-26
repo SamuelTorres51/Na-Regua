@@ -10,8 +10,10 @@ import {
 import {
   signIn as requestSignIn,
   signUp as requestSignUp,
+  updateProfile as requestUpdateProfile,
   type SignInInput,
   type SignUpInput,
+  type UpdateProfileInput,
 } from "@/services/auth";
 import {
   clearSession,
@@ -26,6 +28,7 @@ interface SessionContextValue {
   signIn: (input: SignInInput) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (input: SignUpInput) => Promise<void>;
+  updateProfile: (changes: UpdateProfileInput) => Promise<void>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -56,14 +59,26 @@ export function SessionProvider({ children }: PropsWithChildren) {
     [startSession]
   );
 
+  const updateProfile = useCallback(
+    async (changes: UpdateProfileInput) => {
+      if (!session) {
+        return;
+      }
+
+      const user = await requestUpdateProfile(session.user, changes);
+      await startSession({ ...session, user });
+    },
+    [session, startSession]
+  );
+
   const signOut = useCallback(async () => {
     await clearSession();
     setSession(null);
   }, []);
 
   const value = useMemo(
-    () => ({ isLoading, session, signIn, signOut, signUp }),
-    [isLoading, session, signIn, signOut, signUp]
+    () => ({ isLoading, session, signIn, signOut, signUp, updateProfile }),
+    [isLoading, session, signIn, signOut, signUp, updateProfile]
   );
 
   return <SessionContext value={value}>{children}</SessionContext>;
