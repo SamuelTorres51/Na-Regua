@@ -5,12 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from api.dependencies import (
     get_alterar_senha_use_case,
     get_autenticar_usuario_use_case,
+    get_atualizar_perfil_use_case,
     get_current_user,
     get_registrar_usuario_use_case,
 )
 from api.schemas.auth import (
     AlterarSenhaRequest,
     AuthResponse,
+    AtualizarPerfilRequest,
     LoginRequest,
     MensagemResponse,
     RegisterRequest,
@@ -26,6 +28,10 @@ from application.common.exceptions import (
 from application.use_cases.auth.alterar_senha import (
     AlterarSenhaInput,
     AlterarSenhaUseCase,
+)
+from application.use_cases.auth.atualizar_perfil import (
+    AtualizarPerfilInput,
+    AtualizarPerfilUseCase,
 )
 from application.use_cases.auth.autenticar_usuario import (
     AutenticarUsuarioInput,
@@ -116,6 +122,42 @@ def read_current_user(
     usuario: Annotated[Usuario, Depends(get_current_user)],
 ) -> Usuario:
     return usuario
+
+
+@router.patch("/me", response_model=UserResponse)
+def atualizar_perfil(
+    request: AtualizarPerfilRequest,
+    usuario_atual: Annotated[Usuario, Depends(get_current_user)],
+    use_case: Annotated[
+        AtualizarPerfilUseCase,
+        Depends(get_atualizar_perfil_use_case),
+    ],
+) -> UserResponse:
+    try:
+        usuario = use_case.execute(
+            AtualizarPerfilInput(
+                usuario_id=usuario_atual.id,
+                nome=request.nome,
+                email=request.email,
+                telefone=request.telefone,
+            )
+        )
+        return usuario
+    except ValidationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
+    except EmailJaCadastradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except UsuarioNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
 
 
 @router.put("/alterar-senha", response_model=MensagemResponse)
