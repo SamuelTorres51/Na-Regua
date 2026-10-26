@@ -12,6 +12,10 @@ from application.use_cases.auth.alterar_senha import (
     AlterarSenhaInput,
     AlterarSenhaUseCase,
 )
+from application.use_cases.auth.atualizar_perfil import (
+    AtualizarPerfilInput,
+    AtualizarPerfilUseCase,
+)
 from application.use_cases.auth.autenticar_usuario import (
     AutenticarUsuarioInput,
     AutenticarUsuarioUseCase,
@@ -274,5 +278,128 @@ def test_alterar_senha_validacao_nova_senha():
                 usuario_id=1,
                 senha_atual="senhaAntiga123",
                 nova_senha="curta",
+            )
+        )
+
+
+def _criar_usuario_teste(
+    repo: InMemoryUsuarioRepository,
+    *,
+    nome: str = "Samuel Torres",
+    email: str = "samuel@example.com",
+    telefone: str = "86999998888",
+) -> Usuario:
+    return repo.criar(
+        Usuario(
+            id=None,
+            nome=nome,
+            email=email,
+            telefone=telefone,
+            senha_hash=hash_password("senhaSegura123"),
+            perfil=PerfilAcesso.CLIENTE,
+            ativo=True,
+            criado_em=datetime.now(timezone.utc),
+        )
+    )
+
+
+def test_atualizar_perfil_com_sucesso_e_preserva_campos_protegidos():
+    repo = InMemoryUsuarioRepository()
+    usuario = _criar_usuario_teste(repo)
+    use_case = AtualizarPerfilUseCase(repo)
+
+    resultado = use_case.execute(
+        AtualizarPerfilInput(
+            usuario_id=usuario.id,
+            nome="  Samuel Atualizado  ",
+            email="SAMUEL.ATUALIZADO@EXAMPLE.COM",
+            telefone=" 86988887777 ",
+        )
+    )
+
+    assert resultado.nome == "Samuel Atualizado"
+    assert resultado.email == "samuel.atualizado@example.com"
+    assert resultado.telefone == "86988887777"
+    assert resultado.senha_hash == usuario.senha_hash
+    assert resultado.perfil is usuario.perfil
+    assert resultado.ativo is usuario.ativo
+
+
+def test_atualizar_perfil_parcial_preserva_campos_nao_informados():
+    repo = InMemoryUsuarioRepository()
+    usuario = _criar_usuario_teste(repo)
+    use_case = AtualizarPerfilUseCase(repo)
+
+    resultado = use_case.execute(
+        AtualizarPerfilInput(
+            usuario_id=usuario.id,
+            telefone="86988887777",
+        )
+    )
+
+    assert resultado.nome == usuario.nome
+    assert resultado.email == usuario.email
+    assert resultado.telefone == "86988887777"
+
+
+def test_atualizar_perfil_rejeita_email_duplicado():
+    repo = InMemoryUsuarioRepository()
+    usuario = _criar_usuario_teste(repo)
+    _criar_usuario_teste(
+        repo,
+        nome="Outro Usuário",
+        email="outro@example.com",
+        telefone="86988887776",
+    )
+    use_case = AtualizarPerfilUseCase(repo)
+
+    with pytest.raises(EmailJaCadastradoError):
+        use_case.execute(
+            AtualizarPerfilInput(
+                usuario_id=usuario.id,
+                email="OUTRO@EXAMPLE.COM",
+            )
+        )
+
+
+@pytest.mark.parametrize(
+    ("dados", "mensagem"),
+    [
+        (
+            AtualizarPerfilInput(usuario_id=1),
+            "ao menos um campo",
+        ),
+        (
+            AtualizarPerfilInput(usuario_id=1, nome="  "),
+            "nome não pode estar vazio",
+        ),
+        (
+            AtualizarPerfilInput(usuario_id=1, email="email-invalido"),
+            "Formato de e-mail inválido",
+        ),
+        (
+            AtualizarPerfilInput(usuario_id=1, telefone="123"),
+            "telefone deve ter entre 10 e 20",
+        ),
+    ],
+)
+def test_atualizar_perfil_rejeita_dados_invalidos(
+    dados: AtualizarPerfilInput,
+    mensagem: str,
+):
+    use_case = AtualizarPerfilUseCase(InMemoryUsuarioRepository())
+
+    with pytest.raises(ValidationError, match=mensagem):
+        use_case.execute(dados)
+
+
+def test_atualizar_perfil_rejeita_usuario_inexistente():
+    use_case = AtualizarPerfilUseCase(InMemoryUsuarioRepository())
+
+    with pytest.raises(UsuarioNaoEncontradoError, match="não encontrado"):
+        use_case.execute(
+            AtualizarPerfilInput(
+                usuario_id=999,
+                nome="Novo Nome",
             )
         )
