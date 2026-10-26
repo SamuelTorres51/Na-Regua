@@ -9,11 +9,18 @@ from core.security import decode_access_token
 from application.use_cases.auth.alterar_senha import AlterarSenhaUseCase
 from application.use_cases.auth.autenticar_usuario import AutenticarUsuarioUseCase
 from application.use_cases.auth.registrar_usuario import RegistrarUsuarioUseCase
+from application.use_cases.agendamentos.criar_agendamento import (
+    CriarAgendamentoUseCase,
+)
 from domain.entities.usuario import Usuario
 from domain.repositories.usuario_repository import UsuarioRepository
 from infrastructure.database.connection import get_db as get_database_session
 from infrastructure.database.repositories.usuario_repository import (
     SqlAlchemyUsuarioRepository,
+)
+from domain.repositories.agendamento_repository import AgendamentoRepository
+from infrastructure.database.repositories.agendamento_repository import (
+    SqlAlchemyAgendamentoRepository,
 )
 
 
@@ -46,6 +53,21 @@ def get_alterar_senha_use_case(
     repository: Annotated[UsuarioRepository, Depends(get_usuario_repository)],
 ) -> AlterarSenhaUseCase:
     return AlterarSenhaUseCase(repository)
+
+
+def get_agendamento_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> AgendamentoRepository:
+    return SqlAlchemyAgendamentoRepository(db)
+
+
+def get_criar_agendamento_use_case(
+    repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+) -> CriarAgendamentoUseCase:
+    return CriarAgendamentoUseCase(repository)
 
 
 def get_current_user(

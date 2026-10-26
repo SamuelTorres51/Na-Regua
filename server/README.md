@@ -165,3 +165,24 @@ Resposta esperada:
   "status": "ok"
 }
 ```
+
+## Agendamentos
+
+### Criar agendamento
+
+`POST /agendamentos`
+
+O cliente é obtido do token autenticado. O início deve ser enviado em ISO
+8601 com fuso horário, e o agendamento é criado com status `agendado`.
+
+```json
+{
+  "profissional_id": 2,
+  "servico_id": 4,
+  "inicio": "2026-11-10T14:00:00-03:00",
+  "duracao_minutos": 45
+}
+```
+
+A API rejeita horários no passado e conflitos para o mesmo profissional.
+Conflitos retornam `409 Conflict`.

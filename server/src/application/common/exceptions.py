@@ -1,22 +1,26 @@
 class ApplicationError(Exception):
-    """Exceção base para erros na camada de aplicação."""
+    """Base exception for application errors."""
 
 
 class ValidationError(ApplicationError):
-    """Lançada quando os dados de entrada falham na validação de formato ou regras."""
+    """Raised when input data fails validation."""
 
 
 class EmailJaCadastradoError(ApplicationError):
-    """Lançada quando uma tentativa de cadastro usa um e-mail já existente."""
+    """Raised when an email is already registered."""
 
 
 class CredenciaisInvalidasError(ApplicationError):
-    """Lançada quando as credenciais de autenticação são inválidas ou o usuário está inativo."""
+    """Raised when authentication credentials are invalid."""
 
 
 class UsuarioNaoEncontradoError(ApplicationError):
-    """Lançada quando um usuário solicitado não é encontrado."""
+    """Raised when a user cannot be found."""
 
 
 class SenhaInvalidaError(ApplicationError):
-    """Lançada quando a senha atual fornecida está incorreta."""
+    pass
+
+
+class HorarioIndisponivelError(ApplicationError):
+    """Raised when the requested appointment time is occupied."""
