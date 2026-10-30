@@ -7,6 +7,7 @@ import { TabScreen } from "@/components/layout/tab-screen";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SecondaryButton } from "@/components/ui/secondary-button";
+import { ShortcutCard } from "@/components/ui/shortcut-card";
 import { getNextAppointment } from "@/features/appointments/status";
 import { useAppointments } from "@/features/appointments/use-appointments";
 import { useSession } from "@/features/auth/session-provider";
@@ -14,6 +15,7 @@ import { layout } from "@/theme/styles";
 import { getFirstName, getGreeting } from "@/utils/format";
 
 const SECTION_DELAY = 260;
+const SHORTCUT_DELAY = 320;
 const ACTIONS_DELAY = 380;
 const ENTERING_DURATION = 600;
 
@@ -35,6 +37,11 @@ export default function Home() {
 
   const handleGoToBooking = useCallback(
     () => router.push("/booking"),
+    [router]
+  );
+
+  const handleGoToServices = useCallback(
+    () => router.push("/services"),
     [router]
   );
 
@@ -63,6 +70,20 @@ export default function Home() {
             hasLoadError={hasLoadError}
             isLoading={isLoading}
             onPress={handleGoToAppointments}
+          />
+        </Animated.View>
+
+        <Animated.View
+          className="mt-6"
+          entering={FadeInDown.delay(SHORTCUT_DELAY).duration(
+            ENTERING_DURATION
+          )}
+        >
+          <ShortcutCard
+            description="Veja o que a barbearia oferece."
+            icon="cut-outline"
+            onPress={handleGoToServices}
+            title="Serviços e preços"
           />
         </Animated.View>
 
