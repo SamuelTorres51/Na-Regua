@@ -6,7 +6,15 @@ export type AppointmentStatus =
   | "noShow"
   | "scheduled";
 
+export type ServiceCategory =
+  | "aesthetics"
+  | "beard"
+  | "hair"
+  | "manicure"
+  | "wigs";
+
 export interface Service {
+  category: ServiceCategory;
   description: string;
   durationMinutes: number;
   id: string;
