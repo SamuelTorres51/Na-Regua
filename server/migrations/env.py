@@ -9,7 +9,9 @@ src_path = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(src_path))
 
 from core.config import settings
+from infrastructure.database.models.base import Base
 from infrastructure.database.models.usuario_model import UsuarioModel as _UsuarioModel
+from infrastructure.database.models.servico_model import ServicoModel as _ServicoModel
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
@@ -17,7 +19,7 @@ config.set_main_option("sqlalchemy.url", settings.database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = _UsuarioModel.metadata
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

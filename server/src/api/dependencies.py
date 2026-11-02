@@ -10,9 +10,19 @@ from application.use_cases.auth.alterar_senha import AlterarSenhaUseCase
 from application.use_cases.auth.autenticar_usuario import AutenticarUsuarioUseCase
 from application.use_cases.auth.registrar_usuario import RegistrarUsuarioUseCase
 from application.use_cases.auth.atualizar_perfil import AtualizarPerfilUseCase
+from application.use_cases.servicos.atualizar_servico import AtualizarServicoUseCase
+from application.use_cases.servicos.buscar_servico_por_id import BuscarServicoPorIdUseCase
+from application.use_cases.servicos.criar_servico import CriarServicoUseCase
+from application.use_cases.servicos.deletar_servico import DeletarServicoUseCase
+from application.use_cases.servicos.listar_servicos import ListarServicosUseCase
 from domain.entities.usuario import Usuario
+from domain.enums.perfil_acesso import PerfilAcesso
+from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
 from infrastructure.database.connection import get_db as get_database_session
+from infrastructure.database.repositories.servico_repository import (
+    SqlAlchemyServicoRepository,
+)
 from infrastructure.database.repositories.usuario_repository import (
     SqlAlchemyUsuarioRepository,
 )
@@ -55,6 +65,42 @@ def get_atualizar_perfil_use_case(
     return AtualizarPerfilUseCase(repository)
 
 
+def get_servico_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> ServicoRepository:
+    return SqlAlchemyServicoRepository(db)
+
+
+def get_criar_servico_use_case(
+    repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
+) -> CriarServicoUseCase:
+    return CriarServicoUseCase(repository)
+
+
+def get_listar_servicos_use_case(
+    repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
+) -> ListarServicosUseCase:
+    return ListarServicosUseCase(repository)
+
+
+def get_buscar_servico_por_id_use_case(
+    repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
+) -> BuscarServicoPorIdUseCase:
+    return BuscarServicoPorIdUseCase(repository)
+
+
+def get_atualizar_servico_use_case(
+    repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
+) -> AtualizarServicoUseCase:
+    return AtualizarServicoUseCase(repository)
+
+
+def get_deletar_servico_use_case(
+    repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
+) -> DeletarServicoUseCase:
+    return DeletarServicoUseCase(repository)
+
+
 def get_current_user(
     credentials: Annotated[
         HTTPAuthorizationCredentials | None,
@@ -76,6 +122,17 @@ def get_current_user(
         raise _credenciais_invalidas()
 
     return usuario
+
+
+def get_current_admin(
+    current_user: Annotated[Usuario, Depends(get_current_user)],
+) -> Usuario:
+    if current_user.perfil != PerfilAcesso.ADMINISTRADOR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado: apenas administradores podem realizar esta operação.",
+        )
+    return current_user
 
 
 def _credenciais_invalidas() -> HTTPException:
