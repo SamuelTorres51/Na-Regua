@@ -16,6 +16,7 @@ from application.use_cases.servicos.criar_servico import CriarServicoUseCase
 from application.use_cases.servicos.deletar_servico import DeletarServicoUseCase
 from application.use_cases.servicos.listar_servicos import ListarServicosUseCase
 from domain.entities.usuario import Usuario
+from domain.enums.perfil_acesso import PerfilAcesso
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
 from infrastructure.database.connection import get_db as get_database_session
@@ -121,6 +122,17 @@ def get_current_user(
         raise _credenciais_invalidas()
 
     return usuario
+
+
+def get_current_admin(
+    current_user: Annotated[Usuario, Depends(get_current_user)],
+) -> Usuario:
+    if current_user.perfil != PerfilAcesso.ADMINISTRADOR:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado: apenas administradores podem realizar esta operação.",
+        )
+    return current_user
 
 
 def _credenciais_invalidas() -> HTTPException:

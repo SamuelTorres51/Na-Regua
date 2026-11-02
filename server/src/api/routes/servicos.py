@@ -6,6 +6,7 @@ from api.dependencies import (
     get_atualizar_servico_use_case,
     get_buscar_servico_por_id_use_case,
     get_criar_servico_use_case,
+    get_current_admin,
     get_deletar_servico_use_case,
     get_listar_servicos_use_case,
 )
@@ -36,6 +37,7 @@ from application.use_cases.servicos.deletar_servico import (
 from application.use_cases.servicos.listar_servicos import (
     ListarServicosUseCase,
 )
+from domain.entities.usuario import Usuario
 
 router = APIRouter(prefix="/servicos", tags=["Serviços"])
 
@@ -44,10 +46,11 @@ router = APIRouter(prefix="/servicos", tags=["Serviços"])
     "",
     response_model=ServicoResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Cadastrar um novo serviço",
+    summary="Cadastrar um novo serviço (Apenas Administrador)",
 )
 def criar_servico(
     request: CriarServicoRequest,
+    _admin: Annotated[Usuario, Depends(get_current_admin)],
     use_case: Annotated[CriarServicoUseCase, Depends(get_criar_servico_use_case)],
 ) -> ServicoResponse:
     try:
@@ -114,11 +117,12 @@ def buscar_servico_por_id(
 @router.put(
     "/{servico_id}",
     response_model=ServicoResponse,
-    summary="Atualizar dados de um serviço",
+    summary="Atualizar dados de um serviço (Apenas Administrador)",
 )
 def atualizar_servico(
     servico_id: int,
     request: AtualizarServicoRequest,
+    _admin: Annotated[Usuario, Depends(get_current_admin)],
     use_case: Annotated[
         AtualizarServicoUseCase,
         Depends(get_atualizar_servico_use_case),
@@ -156,10 +160,11 @@ def atualizar_servico(
 @router.delete(
     "/{servico_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Deletar um serviço",
+    summary="Deletar um serviço (Apenas Administrador)",
 )
 def deletar_servico(
     servico_id: int,
+    _admin: Annotated[Usuario, Depends(get_current_admin)],
     use_case: Annotated[
         DeletarServicoUseCase,
         Depends(get_deletar_servico_use_case),
