@@ -20,3 +20,11 @@ class UsuarioNaoEncontradoError(ApplicationError):
 
 class SenhaInvalidaError(ApplicationError):
     """Lançada quando a senha atual fornecida está incorreta."""
+
+
+class ServicoNaoEncontradoError(ApplicationError):
+    """Lançada quando um serviço solicitado não é encontrado."""
+
+
+class ServicoNomeDuplicadoError(ApplicationError):
+    """Lançada quando já existe um serviço cadastrado com o mesmo nome."""
