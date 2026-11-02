@@ -15,11 +15,33 @@ from application.use_cases.servicos.buscar_servico_por_id import BuscarServicoPo
 from application.use_cases.servicos.criar_servico import CriarServicoUseCase
 from application.use_cases.servicos.deletar_servico import DeletarServicoUseCase
 from application.use_cases.servicos.listar_servicos import ListarServicosUseCase
+from application.use_cases.profissionais.atualizar_profissional import (
+    AtualizarProfissionalUseCase,
+)
+from application.use_cases.profissionais.buscar_profissional_por_id import (
+    BuscarProfissionalPorIdUseCase,
+)
+from application.use_cases.profissionais.cadastrar_profissional import (
+    CadastrarProfissionalUseCase,
+)
+from application.use_cases.profissionais.inativar_profissional import (
+    InativarProfissionalUseCase,
+)
+from application.use_cases.profissionais.listar_profissionais import (
+    ListarProfissionaisUseCase,
+)
+from application.use_cases.profissionais.reativar_profissional import (
+    ReativarProfissionalUseCase,
+)
 from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
+from domain.repositories.profissional_repository import ProfissionalRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
 from infrastructure.database.connection import get_db as get_database_session
+from infrastructure.database.repositories.profissional_repository import (
+    SqlAlchemyProfissionalRepository,
+)
 from infrastructure.database.repositories.servico_repository import (
     SqlAlchemyServicoRepository,
 )
@@ -99,6 +121,48 @@ def get_deletar_servico_use_case(
     repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
 ) -> DeletarServicoUseCase:
     return DeletarServicoUseCase(repository)
+
+
+def get_profissional_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> ProfissionalRepository:
+    return SqlAlchemyProfissionalRepository(db)
+
+
+def get_cadastrar_profissional_use_case(
+    repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
+) -> CadastrarProfissionalUseCase:
+    return CadastrarProfissionalUseCase(repository)
+
+
+def get_listar_profissionais_use_case(
+    repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
+) -> ListarProfissionaisUseCase:
+    return ListarProfissionaisUseCase(repository)
+
+
+def get_buscar_profissional_por_id_use_case(
+    repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
+) -> BuscarProfissionalPorIdUseCase:
+    return BuscarProfissionalPorIdUseCase(repository)
+
+
+def get_atualizar_profissional_use_case(
+    repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
+) -> AtualizarProfissionalUseCase:
+    return AtualizarProfissionalUseCase(repository)
+
+
+def get_inativar_profissional_use_case(
+    repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
+) -> InativarProfissionalUseCase:
+    return InativarProfissionalUseCase(repository)
+
+
+def get_reativar_profissional_use_case(
+    repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
+) -> ReativarProfissionalUseCase:
+    return ReativarProfissionalUseCase(repository)
 
 
 def get_current_user(
