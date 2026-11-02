@@ -28,3 +28,7 @@ class ServicoNaoEncontradoError(ApplicationError):
 
 class ServicoNomeDuplicadoError(ApplicationError):
     """Lançada quando já existe um serviço cadastrado com o mesmo nome."""
+
+
+class ProfissionalNaoEncontradoError(ApplicationError):
+    """Lançada quando um profissional solicitado não é encontrado."""
