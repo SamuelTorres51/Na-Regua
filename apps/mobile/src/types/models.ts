@@ -25,8 +25,14 @@ export interface Service {
 export interface Barber {
   id: string;
   name: string;
+  role: string;
   serviceIds: string[];
   specialities: string[];
+}
+
+export interface BarberProfile {
+  barber: Barber;
+  services: Service[];
 }
 
 export interface Appointment {
