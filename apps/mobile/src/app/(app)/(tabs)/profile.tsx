@@ -4,11 +4,11 @@ import { useCallback } from "react";
 import { Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { TabScreen } from "@/components/layout/tab-screen";
-import { Avatar } from "@/components/ui/avatar";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Divider } from "@/components/ui/divider";
 import { IconButton } from "@/components/ui/icon-button";
 import { InfoRow } from "@/components/ui/info-row";
+import { PersonSummary } from "@/components/ui/person-summary";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SecondaryButton } from "@/components/ui/secondary-button";
 import { useSession } from "@/features/auth/session-provider";
@@ -52,24 +52,21 @@ export default function Profile() {
             <ScreenHeader subtitle="Seus dados de cadastro." title="Perfil" />
 
             <Animated.View
-              className={`mt-8 flex-row items-center p-5 ${classNames.card}`}
+              className={`mt-8 p-5 ${classNames.card}`}
               entering={FadeInDown.delay(IDENTITY_DELAY).duration(
                 ENTERING_DURATION
               )}
             >
-              <Avatar name={user.fullName} />
-              <View className="ml-4 flex-1">
-                <Text className="font-roboto-semibold text-lg text-white">
-                  {user.fullName}
-                </Text>
-                <Text className="mt-0.5 font-roboto text-sm text-zinc-500">
-                  Cliente Na Régua
-                </Text>
-              </View>
-              <IconButton
-                accessibilityLabel="Editar dados"
-                icon="pencil-outline"
-                onPress={handleGoToEditProfile}
+              <PersonSummary
+                description="Cliente Na Régua"
+                name={user.fullName}
+                trailing={
+                  <IconButton
+                    accessibilityLabel="Editar dados"
+                    icon="pencil-outline"
+                    onPress={handleGoToEditProfile}
+                  />
+                }
               />
             </Animated.View>
 
