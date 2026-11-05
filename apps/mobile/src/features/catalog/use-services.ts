@@ -1,31 +1,17 @@
-import { useCallback, useEffect, useState } from "react";
+import { useAsyncData } from "@/hooks/use-async-data";
 import { listServices } from "@/services/catalog";
 import type { Service } from "@/types/models";
 
+const NO_SERVICES: Service[] = [];
+
 export function useServices() {
-  const [services, setServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasLoadError, setHasLoadError] = useState(false);
-
-  const loadServices = useCallback(async () => {
-    try {
-      setServices(await listServices());
-      setHasLoadError(false);
-    } catch {
-      setHasLoadError(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadServices().finally(() => setIsLoading(false));
-  }, [loadServices]);
-
-  const refresh = useCallback(async () => {
-    setIsRefreshing(true);
-    await loadServices();
-    setIsRefreshing(false);
-  }, [loadServices]);
+  const {
+    data: services,
+    hasLoadError,
+    isLoading,
+    isRefreshing,
+    refresh,
+  } = useAsyncData(listServices, NO_SERVICES);
 
   return { hasLoadError, isLoading, isRefreshing, refresh, services };
 }

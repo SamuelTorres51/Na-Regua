@@ -40,6 +40,11 @@ export default function Home() {
     [router]
   );
 
+  const handleGoToBarbers = useCallback(
+    () => router.push("/barbers"),
+    [router]
+  );
+
   const handleGoToServices = useCallback(
     () => router.push("/services"),
     [router]
@@ -78,12 +83,19 @@ export default function Home() {
           entering={FadeInDown.delay(SHORTCUT_DELAY).duration(
             ENTERING_DURATION
           )}
+          style={layout.actionGroup}
         >
           <ShortcutCard
             description="Veja o que a barbearia oferece."
             icon="cut-outline"
             onPress={handleGoToServices}
             title="Serviços e preços"
+          />
+          <ShortcutCard
+            description="Conheça a equipe e as especialidades."
+            icon="people-outline"
+            onPress={handleGoToBarbers}
+            title="Profissionais"
           />
         </Animated.View>
 

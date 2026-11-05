@@ -93,42 +93,41 @@ export const SERVICES: Service[] = [
 
 export const BARBERS: Barber[] = [
   {
-    id: "brb-samuel",
-    name: "Samuel de Arrascaeta",
-    serviceIds: ["svc-corte-degrade", "svc-corte-social", "svc-barba"],
-    specialities: ["Degradê", "Cabelo na régua", "Barba"],
+    id: "brb-rafael",
+    name: "Rafael Costa",
+    role: "Barbeiro especialista",
+    serviceIds: [
+      "svc-corte-degrade",
+      "svc-corte-social",
+      "svc-barba",
+      "svc-sobrancelha",
+      "svc-design-sobrancelha",
+    ],
+    specialities: ["Degradê", "Barba", "Sobrancelha"],
   },
   {
-    id: "brb-luciano",
-    name: "Lionel Luciano",
+    id: "brb-lucas",
+    name: "Lucas Mendes",
+    role: "Cabeleireiro",
     serviceIds: [
+      "svc-corte-social",
       "svc-lavagem-escova",
       "svc-aplicacao-peruca",
       "svc-manutencao-peruca",
     ],
-    specialities: ["Hidrata e Trata", "Perucas"],
+    specialities: ["Corte social", "Lavagem e escova", "Perucas"],
   },
   {
-    id: "brb-rafael",
-    name: "Rafael Costa",
+    id: "brb-bruno",
+    name: "Bruno Santos",
+    role: "Barbeiro",
     serviceIds: [
       "svc-corte-degrade",
-      "svc-sobrancelha",
-      "svc-design-sobrancelha",
+      "svc-barba",
+      "svc-manicure",
+      "svc-pedicure",
     ],
-    specialities: ["Degradê", "Sobrancelha"],
-  },
-  {
-    id: "brb-diego",
-    name: "Diego Almeida",
-    serviceIds: ["svc-barba", "svc-manicure", "svc-pedicure"],
-    specialities: ["Barba", "Manicure e pedicure"],
-  },
-  {
-    id: "brb-lucas",
-    name: "Lucas Ferreira",
-    serviceIds: ["svc-corte-social"],
-    specialities: ["Corte social"],
+    specialities: ["Degradê", "Barba", "Manicure e pedicure"],
   },
 ];
 
@@ -168,7 +167,7 @@ export function createMockAppointments(): Appointment[] {
       status: "confirmed",
     },
     {
-      barber: findById(BARBERS, "brb-diego"),
+      barber: findById(BARBERS, "brb-bruno"),
       id: "apt-2",
       service: findById(SERVICES, "svc-barba"),
       startsAt: atDaysFromNow(6, MORNING_HOUR),
@@ -190,7 +189,7 @@ export function createMockAppointments(): Appointment[] {
       status: "cancelled",
     },
     {
-      barber: findById(BARBERS, "brb-diego"),
+      barber: findById(BARBERS, "brb-bruno"),
       id: "apt-5",
       service: findById(SERVICES, "svc-manicure"),
       startsAt: atDaysFromNow(-20, MORNING_HOUR, HALF_HOUR),
@@ -199,21 +198,21 @@ export function createMockAppointments(): Appointment[] {
     // Exemplos de "em atendimento", de cancelamento fora do prazo mínimo e de
     // ausência, para a tela mostrar todos os status do RF36 e a regra do RF34.
     {
-      barber: findById(BARBERS, "brb-samuel"),
+      barber: findById(BARBERS, "brb-bruno"),
       id: "apt-6",
       service: findById(SERVICES, "svc-corte-degrade"),
       startsAt: atMinutesFromNow(-10),
       status: "inProgress",
     },
     {
-      barber: findById(BARBERS, "brb-samuel"),
+      barber: findById(BARBERS, "brb-rafael"),
       id: "apt-7",
       service: findById(SERVICES, "svc-barba"),
       startsAt: atMinutesFromNow(40),
       status: "confirmed",
     },
     {
-      barber: findById(BARBERS, "brb-luciano"),
+      barber: findById(BARBERS, "brb-lucas"),
       id: "apt-8",
       service: findById(SERVICES, "svc-lavagem-escova"),
       startsAt: atDaysFromNow(-26, AFTERNOON_HOUR),
