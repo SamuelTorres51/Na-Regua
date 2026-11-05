@@ -94,7 +94,14 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
             AgendamentoModel.status.in_(_STATUS_ATIVOS),
             AgendamentoModel.inicio < fim,
             AgendamentoModel.inicio
-            + func.make_interval(mins=AgendamentoModel.duracao_minutos)
+            + func.make_interval(
+                0,
+                0,
+                0,
+                0,
+                0,
+                AgendamentoModel.duracao_minutos,
+            )
             > inicio,
         )
         return self._db.scalar(query) is not None

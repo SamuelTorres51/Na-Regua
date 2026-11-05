@@ -28,7 +28,6 @@ status_agendamento = sa.Enum(
 
 
 def upgrade() -> None:
-    status_agendamento.create(op.get_bind(), checkfirst=True)
     op.create_table(
         "agendamentos",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
