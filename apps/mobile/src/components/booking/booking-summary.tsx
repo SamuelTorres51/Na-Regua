@@ -3,10 +3,17 @@ import { Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { PersonSummary } from "@/components/ui/person-summary";
 import { classNames } from "@/theme/class-names";
-import type { BookingSelection } from "@/types/models";
-import { formatDuration, formatPrice } from "@/utils/format";
+import type { BookingSelection, Service } from "@/types/models";
+import { isValidDate } from "@/utils/date";
+import {
+  formatDuration,
+  formatPrice,
+  formatRelativeDate,
+  formatTime,
+} from "@/utils/format";
 
 const FADE_DURATION = 280;
+const MS_PER_MINUTE = 60_000;
 
 interface SummarySectionProps extends PropsWithChildren {
   label: string;
@@ -23,7 +30,29 @@ function SummarySection({ children, label }: SummarySectionProps) {
   );
 }
 
-export function BookingSummary({ barber, service }: BookingSelection) {
+function describeTimeRange(startsAt: string, service?: Service) {
+  const startTime = formatTime(startsAt);
+
+  if (!service) {
+    return `Às ${startTime}`;
+  }
+
+  const endsAt = new Date(
+    Date.parse(startsAt) + service.durationMinutes * MS_PER_MINUTE
+  ).toISOString();
+
+  return `Das ${startTime} às ${formatTime(endsAt)}`;
+}
+
+interface BookingSummaryProps extends BookingSelection {
+  startsAt?: string;
+}
+
+export function BookingSummary({
+  barber,
+  service,
+  startsAt,
+}: BookingSummaryProps) {
   return (
     <>
       {service ? (
@@ -40,6 +69,17 @@ export function BookingSummary({ barber, service }: BookingSelection) {
       {barber ? (
         <SummarySection label="Profissional escolhido">
           <PersonSummary description={barber.role} name={barber.name} />
+        </SummarySection>
+      ) : null}
+
+      {isValidDate(startsAt) ? (
+        <SummarySection label="Data e horário">
+          <Text className="font-roboto-semibold text-lg text-white">
+            {formatRelativeDate(startsAt)}
+          </Text>
+          <Text className="mt-1 font-roboto text-sm text-zinc-400">
+            {describeTimeRange(startsAt, service)}
+          </Text>
         </SummarySection>
       ) : null}
     </>
