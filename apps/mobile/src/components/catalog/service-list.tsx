@@ -12,6 +12,9 @@ import type { Service } from "@/types/models";
 import { ServiceCard } from "./service-card";
 
 interface ServiceListProps {
+  actionHint?: string;
+  actionLabel?: string;
+  emptyDescription?: string;
   hasLoadError: boolean;
   isLoading: boolean;
   onSelect: (service: Service) => void;
@@ -19,6 +22,9 @@ interface ServiceListProps {
 }
 
 export function ServiceList({
+  actionHint,
+  actionLabel,
+  emptyDescription = "A barbearia ainda não cadastrou seus serviços.",
   hasLoadError,
   isLoading,
   onSelect,
@@ -35,7 +41,7 @@ export function ServiceList({
   if (services.length === 0) {
     return (
       <StateMessage
-        description="A barbearia ainda não cadastrou seus serviços."
+        description={emptyDescription}
         icon="cut-outline"
         title="Nenhum serviço disponível"
       />
@@ -55,6 +61,8 @@ export function ServiceList({
           <View className="gap-3">
             {group.services.map((service) => (
               <ServiceCard
+                actionHint={actionHint}
+                actionLabel={actionLabel}
                 key={service.id}
                 onSelect={onSelect}
                 service={service}

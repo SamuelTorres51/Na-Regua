@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { Text, View } from "react-native";
 import { LoadingState } from "@/components/feedback/loading-state";
 import {
   LOAD_ERROR_MESSAGE,
@@ -8,17 +8,23 @@ import type { Barber } from "@/types/models";
 import { BarberCard } from "./barber-card";
 
 interface BarberListProps {
+  actionHint?: string;
   barbers: Barber[];
+  emptyDescription?: string;
   hasLoadError: boolean;
   isLoading: boolean;
   onSelect: (barber: Barber) => void;
+  title?: string;
 }
 
 export function BarberList({
+  actionHint,
   barbers,
+  emptyDescription = "A barbearia ainda não cadastrou sua equipe.",
   hasLoadError,
   isLoading,
   onSelect,
+  title,
 }: BarberListProps) {
   if (isLoading) {
     return <LoadingState />;
@@ -31,7 +37,7 @@ export function BarberList({
   if (barbers.length === 0) {
     return (
       <StateMessage
-        description="A barbearia ainda não cadastrou sua equipe."
+        description={emptyDescription}
         icon="people-outline"
         title="Nenhum profissional disponível"
       />
@@ -39,10 +45,25 @@ export function BarberList({
   }
 
   return (
-    <View className="gap-3">
-      {barbers.map((barber) => (
-        <BarberCard barber={barber} key={barber.id} onSelect={onSelect} />
-      ))}
+    <View>
+      {title ? (
+        <Text
+          accessibilityRole="header"
+          className="mb-3 font-roboto-medium text-sm text-zinc-400"
+        >
+          {title}
+        </Text>
+      ) : null}
+      <View className="gap-3">
+        {barbers.map((barber) => (
+          <BarberCard
+            actionHint={actionHint}
+            barber={barber}
+            key={barber.id}
+            onSelect={onSelect}
+          />
+        ))}
+      </View>
     </View>
   );
 }
