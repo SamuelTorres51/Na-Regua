@@ -19,7 +19,10 @@ export default function Services() {
 
   const handleSelectService = useCallback(
     (service: Service) =>
-      router.push({ params: { serviceId: service.id }, pathname: "/booking" }),
+      router.push({
+        params: { serviceId: service.id },
+        pathname: "/booking/barber",
+      }),
     [router]
   );
 
