@@ -6,11 +6,18 @@ import type { Service } from "@/types/models";
 import { formatDuration, formatPrice } from "@/utils/format";
 
 interface ServiceCardProps {
+  actionHint?: string;
+  actionLabel?: string;
   onSelect: (service: Service) => void;
   service: Service;
 }
 
-export function ServiceCard({ onSelect, service }: ServiceCardProps) {
+export function ServiceCard({
+  actionHint = "Abre o agendamento com este serviço",
+  actionLabel = "Agendar",
+  onSelect,
+  service,
+}: ServiceCardProps) {
   const duration = formatDuration(service.durationMinutes);
   const price = formatPrice(service.priceInCents);
 
@@ -18,7 +25,7 @@ export function ServiceCard({ onSelect, service }: ServiceCardProps) {
 
   return (
     <Pressable
-      accessibilityHint="Abre o agendamento com este serviço"
+      accessibilityHint={actionHint}
       accessibilityLabel={`${service.name}, ${duration}, ${price}`}
       accessibilityRole="button"
       className={`p-5 active:opacity-80 ${classNames.card}`}
@@ -47,7 +54,7 @@ export function ServiceCard({ onSelect, service }: ServiceCardProps) {
 
         <View className="flex-row items-center">
           <Text className="mr-1 font-roboto-medium text-brand text-sm">
-            Agendar
+            {actionLabel}
           </Text>
           <Icon name="chevron-forward" size="sm" tone="accent" />
         </View>

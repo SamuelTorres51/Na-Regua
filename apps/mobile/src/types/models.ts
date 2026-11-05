@@ -35,6 +35,16 @@ export interface BarberProfile {
   services: Service[];
 }
 
+export interface BookingSelection {
+  barber?: Barber;
+  service?: Service;
+}
+
+export interface BookingSelectionIds {
+  barberId?: string;
+  serviceId?: string;
+}
+
 export interface Appointment {
   barber: Barber;
   cancelledAt?: string;

@@ -27,7 +27,7 @@ export default function BarberDetails() {
     (service: Service) =>
       router.push({
         params: { barberId: id, serviceId: service.id },
-        pathname: "/booking",
+        pathname: "/booking/schedule",
       }),
     [id, router]
   );
