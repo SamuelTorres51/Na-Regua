@@ -15,6 +15,12 @@ from application.use_cases.servicos.buscar_servico_por_id import BuscarServicoPo
 from application.use_cases.servicos.criar_servico import CriarServicoUseCase
 from application.use_cases.servicos.deletar_servico import DeletarServicoUseCase
 from application.use_cases.servicos.listar_servicos import ListarServicosUseCase
+from application.use_cases.agendamentos.criar_agendamento import (
+    CriarAgendamentoUseCase,
+)
+from application.use_cases.agendamentos.listar_agendamentos import (
+    ListarAgendamentosUseCase,
+)
 from application.use_cases.profissionais.atualizar_profissional import (
     AtualizarProfissionalUseCase,
 )
@@ -38,6 +44,7 @@ from domain.enums.perfil_acesso import PerfilAcesso
 from domain.repositories.profissional_repository import ProfissionalRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
+from domain.repositories.agendamento_repository import AgendamentoRepository
 from infrastructure.database.connection import get_db as get_database_session
 from infrastructure.database.repositories.profissional_repository import (
     SqlAlchemyProfissionalRepository,
@@ -47,6 +54,9 @@ from infrastructure.database.repositories.servico_repository import (
 )
 from infrastructure.database.repositories.usuario_repository import (
     SqlAlchemyUsuarioRepository,
+)
+from infrastructure.database.repositories.agendamento_repository import (
+    SqlAlchemyAgendamentoRepository,
 )
 
 
@@ -91,6 +101,42 @@ def get_servico_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> ServicoRepository:
     return SqlAlchemyServicoRepository(db)
+
+
+def get_agendamento_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> AgendamentoRepository:
+    return SqlAlchemyAgendamentoRepository(db)
+
+
+def get_criar_agendamento_use_case(
+    agendamento_repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+    usuario_repository: Annotated[
+        UsuarioRepository,
+        Depends(get_usuario_repository),
+    ],
+    servico_repository: Annotated[
+        ServicoRepository,
+        Depends(get_servico_repository),
+    ],
+) -> CriarAgendamentoUseCase:
+    return CriarAgendamentoUseCase(
+        agendamento_repository,
+        usuario_repository,
+        servico_repository,
+    )
+
+
+def get_listar_agendamentos_use_case(
+    repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+) -> ListarAgendamentosUseCase:
+    return ListarAgendamentosUseCase(repository)
 
 
 def get_criar_servico_use_case(
