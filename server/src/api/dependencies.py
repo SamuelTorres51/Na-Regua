@@ -18,6 +18,9 @@ from application.use_cases.servicos.listar_servicos import ListarServicosUseCase
 from application.use_cases.agendamentos.criar_agendamento import (
     CriarAgendamentoUseCase,
 )
+from application.use_cases.agendamentos.listar_agendamentos import (
+    ListarAgendamentosUseCase,
+)
 from application.use_cases.profissionais.atualizar_profissional import (
     AtualizarProfissionalUseCase,
 )
@@ -125,6 +128,15 @@ def get_criar_agendamento_use_case(
         usuario_repository,
         servico_repository,
     )
+
+
+def get_listar_agendamentos_use_case(
+    repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+) -> ListarAgendamentosUseCase:
+    return ListarAgendamentosUseCase(repository)
 
 
 def get_criar_servico_use_case(

@@ -40,6 +40,31 @@ class InMemoryAgendamentoRepository(AgendamentoRepository):
         self.agendamentos.append(criado)
         return criado
 
+    def listar(
+        self,
+        *,
+        inicio: datetime | None = None,
+        fim: datetime | None = None,
+        profissional_id: int | None = None,
+        cliente_id: int | None = None,
+        status: StatusAgendamento | None = None,
+    ) -> list[Agendamento]:
+        return [
+            agendamento
+            for agendamento in self.agendamentos
+            if (
+                inicio is None
+                or agendamento.inicio >= inicio
+            )
+            and (fim is None or agendamento.inicio <= fim)
+            and (
+                profissional_id is None
+                or agendamento.profissional_id == profissional_id
+            )
+            and (cliente_id is None or agendamento.cliente_id == cliente_id)
+            and (status is None or agendamento.status == status)
+        ]
+
     def existe_conflito_profissional(
         self,
         profissional_id: int,

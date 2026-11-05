@@ -35,6 +35,30 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
         self._db.refresh(model)
         return _para_entidade(model)
 
+    def listar(
+        self,
+        *,
+        inicio: datetime | None = None,
+        fim: datetime | None = None,
+        profissional_id: int | None = None,
+        cliente_id: int | None = None,
+        status: StatusAgendamento | None = None,
+    ) -> list[Agendamento]:
+        query = select(AgendamentoModel).order_by(AgendamentoModel.inicio)
+
+        if inicio is not None:
+            query = query.where(AgendamentoModel.inicio >= inicio)
+        if fim is not None:
+            query = query.where(AgendamentoModel.inicio <= fim)
+        if profissional_id is not None:
+            query = query.where(AgendamentoModel.profissional_id == profissional_id)
+        if cliente_id is not None:
+            query = query.where(AgendamentoModel.cliente_id == cliente_id)
+        if status is not None:
+            query = query.where(AgendamentoModel.status == status)
+
+        return [_para_entidade(model) for model in self._db.scalars(query).all()]
+
     def existe_conflito_profissional(
         self,
         profissional_id: int,
