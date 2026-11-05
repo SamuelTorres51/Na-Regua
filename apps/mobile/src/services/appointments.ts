@@ -12,6 +12,12 @@ export async function listAppointments() {
   );
 }
 
+export function getBarberAppointments(barberId: string) {
+  return appointments.filter(
+    (appointment) => appointment.barber.id === barberId
+  );
+}
+
 // PROVISÓRIO: troca o item no "banco" em memória por uma cópia cancelada, sem
 // mutar objetos que a tela já tem em estado. Na API, o cancelamento também
 // registra o autor (RN13).
