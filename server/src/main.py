@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from api.routes import auth, health, profissionais, servicos
+from api.routes import agendamentos, auth, health, profissionais, servicos
 
 
 app = FastAPI(
@@ -13,3 +13,4 @@ app.include_router(auth.router)
 app.include_router(health.router)
 app.include_router(servicos.router)
 app.include_router(profissionais.router)
+app.include_router(agendamentos.router)

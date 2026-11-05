@@ -32,3 +32,15 @@ class ServicoNomeDuplicadoError(ApplicationError):
 
 class ProfissionalNaoEncontradoError(ApplicationError):
     """Lançada quando um profissional solicitado não é encontrado."""
+
+
+class ClienteNaoEncontradoError(ApplicationError):
+    """Lançada quando um cliente solicitado não é encontrado."""
+
+
+class AgendamentoConflitanteError(ApplicationError):
+    """Lançada quando o horário solicitado já está ocupado."""
+
+
+class AgendamentoNaoPermitidoError(ApplicationError):
+    """Lançada quando o usuário não pode criar o agendamento solicitado."""
