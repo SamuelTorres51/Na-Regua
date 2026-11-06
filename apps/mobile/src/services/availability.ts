@@ -1,14 +1,16 @@
 import type {
   Appointment,
   AppointmentStatus,
+  Barber,
   BookingDay,
   BookingSelectionIds,
   BusyPeriod,
+  Service,
   TimeRange,
   Weekday,
   WeeklyHours,
 } from "@/types/models";
-import { addDays, startOfDay } from "@/utils/date";
+import { addDays, isValidDate, startOfDay } from "@/utils/date";
 import { getBarberAppointments } from "./appointments";
 import { simulateLatency } from "./fake-api";
 import {
@@ -141,26 +143,89 @@ function buildBookingDay(day: Date, schedule: BarberSchedule): BookingDay {
   return { date, slots, status: slots.length > 0 ? "available" : "full" };
 }
 
-function toAppointmentPeriod({ service, startsAt }: Appointment): Period {
+function toSlotPeriod(startsAt: string, durationMinutes: number): Period {
   const start = Date.parse(startsAt);
 
-  return { end: start + service.durationMinutes * MS_PER_MINUTE, start };
+  return { end: start + durationMinutes * MS_PER_MINUTE, start };
+}
+
+function toAppointmentPeriod({ service, startsAt }: Appointment) {
+  return toSlotPeriod(startsAt, service.durationMinutes);
 }
 
 function toBusyPeriod({ endsAt, startsAt }: BusyPeriod): Period {
   return { end: Date.parse(endsAt), start: Date.parse(startsAt) };
 }
 
-function getBarberBusyPeriods(barberId: string) {
-  const appointmentPeriods = getBarberAppointments(barberId)
+function listActivePeriods(appointments: Appointment[]) {
+  return appointments
     .filter((appointment) => BLOCKING_STATUSES.includes(appointment.status))
     .map(toAppointmentPeriod);
+}
 
+function getBarberBusyPeriods(barberId: string) {
   const blockedPeriods = busyPeriods
     .filter((period) => period.barberId === barberId)
     .map(toBusyPeriod);
 
-  return [...appointmentPeriods, ...blockedPeriods];
+  return [
+    ...listActivePeriods(getBarberAppointments(barberId)),
+    ...blockedPeriods,
+  ];
+}
+
+function createSchedule(
+  barber: Barber,
+  service: Service,
+  now: Date
+): BarberSchedule {
+  return {
+    busyPeriods: getBarberBusyPeriods(barber.id),
+    durationMs: service.durationMinutes * MS_PER_MINUTE,
+    earliestStart: now.getTime() + MIN_BOOKING_NOTICE_MINUTES * MS_PER_MINUTE,
+    workingHours: WORKING_HOURS[barber.id] ?? {},
+  };
+}
+
+function isWithinBookingWindow(day: Date, today: Date) {
+  const lastDay = addDays(today, MAX_BOOKING_DAYS_AHEAD);
+  const time = day.getTime();
+
+  return time >= today.getTime() && time <= lastDay.getTime();
+}
+
+export function isSlotAvailable(
+  barber: Barber,
+  service: Service,
+  startsAt: string
+) {
+  if (!(isValidDate(startsAt) && barber.serviceIds.includes(service.id))) {
+    return false;
+  }
+
+  const now = new Date();
+  const day = startOfDay(new Date(startsAt));
+
+  if (!isWithinBookingWindow(day, startOfDay(now))) {
+    return false;
+  }
+
+  const schedule = createSchedule(barber, service, now);
+  const slot = new Date(startsAt).toISOString();
+
+  return buildBookingDay(day, schedule).slots.includes(slot);
+}
+
+export function hasAppointmentAt(
+  appointments: Appointment[],
+  startsAt: string,
+  durationMinutes: number
+) {
+  const slot = toSlotPeriod(startsAt, durationMinutes);
+
+  return listActivePeriods(appointments).some((period) =>
+    overlaps(slot, period)
+  );
 }
 
 export async function listBookingDays({
@@ -178,12 +243,7 @@ export async function listBookingDays({
 
   const now = new Date();
   const today = startOfDay(now);
-  const schedule: BarberSchedule = {
-    busyPeriods: getBarberBusyPeriods(barber.id),
-    durationMs: service.durationMinutes * MS_PER_MINUTE,
-    earliestStart: now.getTime() + MIN_BOOKING_NOTICE_MINUTES * MS_PER_MINUTE,
-    workingHours: WORKING_HOURS[barber.id] ?? {},
-  };
+  const schedule = createSchedule(barber, service, now);
 
   return Array.from({ length: MAX_BOOKING_DAYS_AHEAD + 1 }, (_, index) =>
     buildBookingDay(addDays(today, index), schedule)

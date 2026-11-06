@@ -12,10 +12,18 @@ export async function listAppointments() {
   );
 }
 
+export function getStoredAppointments() {
+  return [...appointments];
+}
+
 export function getBarberAppointments(barberId: string) {
   return appointments.filter(
     (appointment) => appointment.barber.id === barberId
   );
+}
+
+export function addAppointment(appointment: Appointment) {
+  appointments.push(appointment);
 }
 
 // PROVISÓRIO: troca o item no "banco" em memória por uma cópia cancelada, sem

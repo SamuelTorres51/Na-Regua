@@ -45,6 +45,12 @@ export interface BookingSelectionIds {
   serviceId?: string;
 }
 
+export interface BookingRequest {
+  barberId: string;
+  serviceId: string;
+  startsAt: string;
+}
+
 export type Weekday =
   | "friday"
   | "monday"
