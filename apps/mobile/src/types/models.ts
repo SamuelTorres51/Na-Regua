@@ -45,6 +45,36 @@ export interface BookingSelectionIds {
   serviceId?: string;
 }
 
+export type Weekday =
+  | "friday"
+  | "monday"
+  | "saturday"
+  | "sunday"
+  | "thursday"
+  | "tuesday"
+  | "wednesday";
+
+export interface TimeRange {
+  end: string;
+  start: string;
+}
+
+export type WeeklyHours = Partial<Record<Weekday, TimeRange[]>>;
+
+export interface BusyPeriod {
+  barberId: string;
+  endsAt: string;
+  startsAt: string;
+}
+
+export type BookingDayStatus = "available" | "closed" | "dayOff" | "full";
+
+export interface BookingDay {
+  date: string;
+  slots: string[];
+  status: BookingDayStatus;
+}
+
 export interface Appointment {
   barber: Barber;
   cancelledAt?: string;

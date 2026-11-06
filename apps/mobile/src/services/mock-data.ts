@@ -1,4 +1,11 @@
-import type { Appointment, Barber, Service } from "@/types/models";
+import type {
+  Appointment,
+  Barber,
+  BusyPeriod,
+  Service,
+  TimeRange,
+  WeeklyHours,
+} from "@/types/models";
 
 const MORNING_HOUR = 10;
 const LATE_MORNING_HOUR = 11;
@@ -131,6 +138,58 @@ export const BARBERS: Barber[] = [
   },
 ];
 
+const WEEKDAY_OPENING: TimeRange[] = [{ end: "19:00", start: "09:00" }];
+const SATURDAY_OPENING: TimeRange[] = [{ end: "14:00", start: "08:00" }];
+
+export const BUSINESS_HOURS: WeeklyHours = {
+  friday: WEEKDAY_OPENING,
+  monday: WEEKDAY_OPENING,
+  saturday: SATURDAY_OPENING,
+  thursday: WEEKDAY_OPENING,
+  tuesday: WEEKDAY_OPENING,
+  wednesday: WEEKDAY_OPENING,
+};
+
+const RAFAEL_SHIFT: TimeRange[] = [
+  { end: "12:00", start: "09:00" },
+  { end: "19:00", start: "13:00" },
+];
+
+const LUCAS_SHIFT: TimeRange[] = [
+  { end: "14:00", start: "10:00" },
+  { end: "19:00", start: "15:00" },
+];
+
+const BRUNO_SHIFT: TimeRange[] = [
+  { end: "13:00", start: "09:00" },
+  { end: "18:00", start: "14:00" },
+];
+
+export const WORKING_HOURS: Record<string, WeeklyHours> = {
+  "brb-bruno": {
+    friday: BRUNO_SHIFT,
+    monday: BRUNO_SHIFT,
+    saturday: [{ end: "12:00", start: "08:00" }],
+    thursday: BRUNO_SHIFT,
+    tuesday: BRUNO_SHIFT,
+    wednesday: BRUNO_SHIFT,
+  },
+  "brb-lucas": {
+    friday: LUCAS_SHIFT,
+    monday: LUCAS_SHIFT,
+    thursday: LUCAS_SHIFT,
+    tuesday: LUCAS_SHIFT,
+    wednesday: LUCAS_SHIFT,
+  },
+  "brb-rafael": {
+    friday: RAFAEL_SHIFT,
+    saturday: SATURDAY_OPENING,
+    thursday: RAFAEL_SHIFT,
+    tuesday: RAFAEL_SHIFT,
+    wednesday: RAFAEL_SHIFT,
+  },
+};
+
 function findById<T extends { id: string }>(items: T[], id: string): T {
   const item = items.find((current) => current.id === id);
 
@@ -217,6 +276,40 @@ export function createMockAppointments(): Appointment[] {
       service: findById(SERVICES, "svc-lavagem-escova"),
       startsAt: atDaysFromNow(-26, AFTERNOON_HOUR),
       status: "noShow",
+    },
+  ];
+}
+
+export function createMockClosedDates() {
+  return [atDaysFromNow(5, 0)];
+}
+
+export function createMockBusyPeriods(): BusyPeriod[] {
+  return [
+    {
+      barberId: "brb-rafael",
+      endsAt: atDaysFromNow(1, 10, HALF_HOUR),
+      startsAt: atDaysFromNow(1, 9),
+    },
+    {
+      barberId: "brb-rafael",
+      endsAt: atDaysFromNow(1, 16),
+      startsAt: atDaysFromNow(1, AFTERNOON_HOUR, HALF_HOUR),
+    },
+    {
+      barberId: "brb-lucas",
+      endsAt: atDaysFromNow(1, 12),
+      startsAt: atDaysFromNow(1, MORNING_HOUR),
+    },
+    {
+      barberId: "brb-bruno",
+      endsAt: atDaysFromNow(1, LATE_MORNING_HOUR),
+      startsAt: atDaysFromNow(1, 9, HALF_HOUR),
+    },
+    {
+      barberId: "brb-bruno",
+      endsAt: atDaysFromNow(3, 0),
+      startsAt: atDaysFromNow(2, 0),
     },
   ];
 }

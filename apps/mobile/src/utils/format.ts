@@ -1,9 +1,12 @@
+import { startOfDay } from "./date";
+
 const CENTS_PER_UNIT = 100;
 const MINUTES_PER_HOUR = 60;
 const AFTERNOON_START_HOUR = 12;
 const EVENING_START_HOUR = 18;
 const MS_PER_DAY = 86_400_000;
 const WHITESPACE_PATTERN = /\s+/;
+const TRAILING_DOT_PATTERN = /\.$/;
 
 const currencyFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
@@ -15,6 +18,18 @@ const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   month: "short",
   weekday: "short",
 });
+
+const longDateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "long",
+  weekday: "long",
+});
+
+const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
+  weekday: "short",
+});
+
+const monthFormatter = new Intl.DateTimeFormat("pt-BR", { month: "short" });
 
 const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
   hour: "2-digit",
@@ -44,19 +59,32 @@ function capitalize(value: string) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function startOfDay(date: Date) {
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  ).getTime();
+function removeTrailingDot(value: string) {
+  return value.replace(TRAILING_DOT_PATTERN, "");
+}
+
+export function formatLongDate(isoDate: string) {
+  return capitalize(longDateFormatter.format(new Date(isoDate)));
+}
+
+export function formatWeekday(isoDate: string) {
+  return removeTrailingDot(weekdayFormatter.format(new Date(isoDate)));
+}
+
+export function formatMonth(isoDate: string) {
+  return removeTrailingDot(monthFormatter.format(new Date(isoDate)));
+}
+
+export function formatDayOfMonth(isoDate: string) {
+  return String(new Date(isoDate).getDate()).padStart(2, "0");
 }
 
 // "Hoje", "Amanhã" e "Ontem" no lugar da data; o resto cai em formatDate.
 // O arredondamento absorve dias de 23 ou 25 horas no horário de verão.
 export function formatRelativeDate(isoDate: string, now = new Date()) {
   const dayDifference = Math.round(
-    (startOfDay(new Date(isoDate)) - startOfDay(now)) / MS_PER_DAY
+    (startOfDay(new Date(isoDate)).getTime() - startOfDay(now).getTime()) /
+      MS_PER_DAY
   );
 
   switch (dayDifference) {

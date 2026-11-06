@@ -22,6 +22,7 @@ interface BookingStepScreenProps
     PropsWithChildren {
   isRefreshing?: boolean;
   onRefresh?: () => void;
+  startsAt?: string;
   step: BookingStep;
   subtitle: string;
 }
@@ -32,6 +33,7 @@ export function BookingStepScreen({
   isRefreshing,
   onRefresh,
   serviceId,
+  startsAt,
   step,
   subtitle,
 }: BookingStepScreenProps) {
@@ -53,7 +55,11 @@ export function BookingStepScreen({
           <StepDots activeIndex={stepIndex} steps={BOOKING_STEPS} />
         </View>
 
-        <BookingSummary barber={selection.barber} service={selection.service} />
+        <BookingSummary
+          barber={selection.barber}
+          service={selection.service}
+          startsAt={startsAt}
+        />
 
         <Animated.View
           className="mt-8"
