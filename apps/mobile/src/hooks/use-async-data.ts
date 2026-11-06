@@ -28,5 +28,12 @@ export function useAsyncData<TData>(
     setIsRefreshing(false);
   }, [loadData]);
 
-  return { data, hasLoadError, isLoading, isRefreshing, refresh };
+  return {
+    data,
+    hasLoadError,
+    isLoading,
+    isRefreshing,
+    refresh,
+    reload: loadData,
+  };
 }
