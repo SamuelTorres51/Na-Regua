@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { AppointmentList } from "@/components/appointments/appointment-list";
@@ -47,6 +48,7 @@ function describeCancellation({ barber, service, startsAt }: Appointment) {
 }
 
 export default function Appointments() {
+  const router = useRouter();
   const {
     appointments,
     cancelAppointment,
@@ -69,6 +71,15 @@ export default function Appointments() {
   const { history, upcoming } = useMemo(
     () => splitAppointments(appointments),
     [appointments]
+  );
+
+  const handleRequestReschedule = useCallback(
+    (appointment: Appointment) =>
+      router.push({
+        params: { id: appointment.id },
+        pathname: "/reschedule/[id]",
+      }),
+    [router]
   );
 
   return (
@@ -94,6 +105,7 @@ export default function Appointments() {
               hasLoadError={hasLoadError}
               isLoading={isLoading}
               onRequestCancel={handleRequestCancel}
+              onRequestReschedule={handleRequestReschedule}
             />
           </View>
         </View>

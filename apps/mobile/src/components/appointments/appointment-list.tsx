@@ -14,6 +14,7 @@ interface AppointmentListProps {
   hasLoadError: boolean;
   isLoading: boolean;
   onRequestCancel: (appointment: Appointment) => void;
+  onRequestReschedule: (appointment: Appointment) => void;
 }
 
 export function AppointmentList({
@@ -22,6 +23,7 @@ export function AppointmentList({
   hasLoadError,
   isLoading,
   onRequestCancel,
+  onRequestReschedule,
 }: AppointmentListProps) {
   if (isLoading) {
     return <LoadingState />;
@@ -42,6 +44,7 @@ export function AppointmentList({
           appointment={appointment}
           key={appointment.id}
           onRequestCancel={onRequestCancel}
+          onRequestReschedule={onRequestReschedule}
         />
       ))}
     </View>

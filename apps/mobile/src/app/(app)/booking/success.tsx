@@ -9,7 +9,7 @@ import { InfoNote } from "@/components/ui/info-note";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SecondaryButton } from "@/components/ui/secondary-button";
-import { CANCELLATION_POLICY_MESSAGE } from "@/features/appointments/cancellation";
+import { CHANGE_POLICY_MESSAGE } from "@/features/appointments/cancellation";
 import { useBookingSelection } from "@/features/booking/use-booking-selection";
 import { layout } from "@/theme/styles";
 
@@ -64,7 +64,7 @@ export default function BookingSuccess() {
           entering={FadeInDown.delay(ACTIONS_DELAY).duration(ACTIONS_DURATION)}
           style={layout.actionGroup}
         >
-          <InfoNote message={CANCELLATION_POLICY_MESSAGE} />
+          <InfoNote message={CHANGE_POLICY_MESSAGE} />
 
           <View className="mt-4" style={layout.actionGroup}>
             <PrimaryButton

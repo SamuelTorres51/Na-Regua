@@ -7,6 +7,11 @@ export const BOOKING_STEPS = [
 
 export type BookingStep = (typeof BOOKING_STEPS)[number];
 
+export const RESCHEDULE_STEPS: readonly BookingStep[] = [
+  "schedule",
+  "confirmation",
+];
+
 export const BOOKING_STEP_LABELS: Record<BookingStep, string> = {
   barber: "Profissional",
   confirmation: "Confirmação",

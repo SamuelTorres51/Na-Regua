@@ -5,7 +5,7 @@ const MS_PER_MINUTE = 60_000;
 
 export const MIN_CANCEL_NOTICE_MINUTES = 60;
 
-export const CANCELLATION_POLICY_MESSAGE = `Você pode cancelar pelo app até ${formatDuration(MIN_CANCEL_NOTICE_MINUTES)} antes do horário.`;
+export const CHANGE_POLICY_MESSAGE = `Você pode reagendar ou cancelar pelo app até ${formatDuration(MIN_CANCEL_NOTICE_MINUTES)} antes do horário.`;
 
 const CANCELLABLE_STATUSES: readonly AppointmentStatus[] = [
   "confirmed",
@@ -26,4 +26,11 @@ export function getCancellationState(
     (Date.parse(appointment.startsAt) - now) / MS_PER_MINUTE;
 
   return minutesUntilStart >= MIN_CANCEL_NOTICE_MINUTES ? "allowed" : "tooLate";
+}
+
+export function canRescheduleAppointment(
+  appointment: Appointment,
+  now = Date.now()
+) {
+  return getCancellationState(appointment, now) === "allowed";
 }

@@ -1,3 +1,4 @@
+import { canRescheduleAppointment } from "@/features/appointments/cancellation";
 import type {
   Appointment,
   AppointmentStatus,
@@ -11,7 +12,7 @@ import type {
   WeeklyHours,
 } from "@/types/models";
 import { addDays, isValidDate, startOfDay } from "@/utils/date";
-import { getBarberAppointments } from "./appointments";
+import { findStoredAppointment, getBarberAppointments } from "./appointments";
 import { simulateLatency } from "./fake-api";
 import {
   BARBERS,
@@ -163,24 +164,26 @@ function listActivePeriods(appointments: Appointment[]) {
     .map(toAppointmentPeriod);
 }
 
-function getBarberBusyPeriods(barberId: string) {
+function getBarberBusyPeriods(barberId: string, ignoredAppointmentId?: string) {
+  const barberAppointments = getBarberAppointments(barberId).filter(
+    (appointment) => appointment.id !== ignoredAppointmentId
+  );
+
   const blockedPeriods = busyPeriods
     .filter((period) => period.barberId === barberId)
     .map(toBusyPeriod);
 
-  return [
-    ...listActivePeriods(getBarberAppointments(barberId)),
-    ...blockedPeriods,
-  ];
+  return [...listActivePeriods(barberAppointments), ...blockedPeriods];
 }
 
 function createSchedule(
   barber: Barber,
   service: Service,
-  now: Date
+  now: Date,
+  ignoredAppointmentId?: string
 ): BarberSchedule {
   return {
-    busyPeriods: getBarberBusyPeriods(barber.id),
+    busyPeriods: getBarberBusyPeriods(barber.id, ignoredAppointmentId),
     durationMs: service.durationMinutes * MS_PER_MINUTE,
     earliestStart: now.getTime() + MIN_BOOKING_NOTICE_MINUTES * MS_PER_MINUTE,
     workingHours: WORKING_HOURS[barber.id] ?? {},
@@ -197,7 +200,8 @@ function isWithinBookingWindow(day: Date, today: Date) {
 export function isSlotAvailable(
   barber: Barber,
   service: Service,
-  startsAt: string
+  startsAt: string,
+  ignoredAppointmentId?: string
 ) {
   if (!(isValidDate(startsAt) && barber.serviceIds.includes(service.id))) {
     return false;
@@ -210,7 +214,7 @@ export function isSlotAvailable(
     return false;
   }
 
-  const schedule = createSchedule(barber, service, now);
+  const schedule = createSchedule(barber, service, now, ignoredAppointmentId);
   const slot = new Date(startsAt).toISOString();
 
   return buildBookingDay(day, schedule).slots.includes(slot);
@@ -228,6 +232,30 @@ export function hasAppointmentAt(
   );
 }
 
+function buildBookingDays(
+  barber: Barber,
+  service: Service,
+  ignoredAppointmentId?: string
+) {
+  const now = new Date();
+  const today = startOfDay(now);
+  const schedule = createSchedule(barber, service, now, ignoredAppointmentId);
+
+  return Array.from({ length: MAX_BOOKING_DAYS_AHEAD + 1 }, (_, index) =>
+    buildBookingDay(addDays(today, index), schedule)
+  );
+}
+
+function removeSlot(day: BookingDay, startsAt: string): BookingDay {
+  if (day.status !== "available") {
+    return day;
+  }
+
+  const slots = day.slots.filter((slot) => slot !== startsAt);
+
+  return { ...day, slots, status: slots.length > 0 ? "available" : "full" };
+}
+
 export async function listBookingDays({
   barberId,
   serviceId,
@@ -241,11 +269,23 @@ export async function listBookingDays({
     return [];
   }
 
-  const now = new Date();
-  const today = startOfDay(now);
-  const schedule = createSchedule(barber, service, now);
+  return buildBookingDays(barber, service);
+}
 
-  return Array.from({ length: MAX_BOOKING_DAYS_AHEAD + 1 }, (_, index) =>
-    buildBookingDay(addDays(today, index), schedule)
+export async function listRescheduleDays(
+  appointmentId?: string
+): Promise<BookingDay[]> {
+  await simulateLatency();
+
+  const appointment = findStoredAppointment(appointmentId);
+
+  if (!(appointment && canRescheduleAppointment(appointment))) {
+    return [];
+  }
+
+  const { barber, id, service, startsAt } = appointment;
+
+  return buildBookingDays(barber, service, id).map((day) =>
+    removeSlot(day, startsAt)
   );
 }
