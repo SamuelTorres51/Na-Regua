@@ -146,11 +146,16 @@ def get_criar_agendamento_use_case(
         ServicoRepository,
         Depends(get_servico_repository),
     ],
+    profissional_servico_repository: Annotated[
+        ProfissionalServicoRepository,
+        Depends(get_profissional_servico_repository),
+    ],
 ) -> CriarAgendamentoUseCase:
     return CriarAgendamentoUseCase(
         agendamento_repository,
         usuario_repository,
         servico_repository,
+        profissional_servico_repository,
     )
 
 

@@ -17,6 +17,7 @@ from application.common.exceptions import (
     AgendamentoNaoPermitidoError,
     ClienteNaoEncontradoError,
     ProfissionalNaoEncontradoError,
+    ProfissionalServicoNaoEncontradoError,
     ServicoNaoEncontradoError,
     ValidationError,
 )
@@ -135,6 +136,11 @@ def criar_agendamento(
     ) as error:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except ProfissionalServicoNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
             detail=str(error),
         ) from error
     except AgendamentoConflitanteError as error:

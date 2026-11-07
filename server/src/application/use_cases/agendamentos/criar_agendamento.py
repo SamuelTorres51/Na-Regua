@@ -7,6 +7,7 @@ from application.common.exceptions import (
     AgendamentoNaoPermitidoError,
     ClienteNaoEncontradoError,
     ProfissionalNaoEncontradoError,
+    ProfissionalServicoNaoEncontradoError,
     ServicoNaoEncontradoError,
     ValidationError,
 )
@@ -16,6 +17,9 @@ from domain.enums.perfil_acesso import PerfilAcesso
 from domain.enums.status_agendamento import StatusAgendamento
 from domain.repositories.agendamento_repository import AgendamentoRepository
 from domain.repositories.servico_repository import ServicoRepository
+from domain.repositories.profissional_servico_repository import (
+    ProfissionalServicoRepository,
+)
 from domain.repositories.usuario_repository import UsuarioRepository
 
 FORTALEZA_TZ = ZoneInfo("America/Fortaleza")
@@ -37,10 +41,12 @@ class CriarAgendamentoUseCase:
         agendamento_repository: AgendamentoRepository,
         usuario_repository: UsuarioRepository,
         servico_repository: ServicoRepository,
+        profissional_servico_repository: ProfissionalServicoRepository,
     ) -> None:
         self.agendamento_repository = agendamento_repository
         self.usuario_repository = usuario_repository
         self.servico_repository = servico_repository
+        self.profissional_servico_repository = profissional_servico_repository
 
     def execute(
         self,
@@ -64,6 +70,14 @@ class CriarAgendamentoUseCase:
         if servico is None or not servico.ativo:
             raise ServicoNaoEncontradoError(
                 f"Serviço com ID {dados.servico_id} não encontrado ou inativo."
+            )
+
+        if not self.profissional_servico_repository.existe(
+            dados.profissional_id,
+            dados.servico_id,
+        ):
+            raise ProfissionalServicoNaoEncontradoError(
+                "O profissional selecionado não oferece o serviço informado."
             )
 
         fim = inicio + timedelta(minutes=servico.duracao_minutos)
