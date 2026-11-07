@@ -8,6 +8,13 @@ import {
   useState,
 } from "react";
 import {
+  ApiError,
+  HTTP_STATUS,
+  isApiEnabled,
+  setAccessToken,
+} from "@/services/api-client";
+import {
+  getCurrentUser,
   signIn as requestSignIn,
   signUp as requestSignUp,
   updateProfile as requestUpdateProfile,
@@ -15,6 +22,7 @@ import {
   type SignUpInput,
   type UpdateProfileInput,
 } from "@/services/auth";
+import { queryClient } from "@/services/query-client";
 import {
   clearSession,
   loadSession,
@@ -33,12 +41,52 @@ interface SessionContextValue {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
+function isExpiredSession(error: unknown) {
+  return error instanceof ApiError && error.status === HTTP_STATUS.unauthorized;
+}
+
+async function endStoredSession() {
+  setAccessToken(null);
+  queryClient.clear();
+  await clearSession();
+}
+
+async function restoreSession(): Promise<AuthSession | null> {
+  const storedSession = await loadSession();
+
+  if (!storedSession) {
+    return null;
+  }
+
+  setAccessToken(storedSession.token);
+
+  if (!isApiEnabled) {
+    return storedSession;
+  }
+
+  try {
+    const refreshedSession = {
+      ...storedSession,
+      user: await getCurrentUser(),
+    };
+    await saveSession(refreshedSession);
+    return refreshedSession;
+  } catch (error) {
+    if (isExpiredSession(error)) {
+      await endStoredSession();
+      return null;
+    }
+
+    return storedSession;
+  }
+}
+
 export function SessionProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadSession()
+    restoreSession()
       .then(setSession)
       .catch(() => setSession(null))
       .finally(() => setIsLoading(false));
@@ -46,6 +94,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const startSession = useCallback(async (nextSession: AuthSession) => {
     await saveSession(nextSession);
+    setAccessToken(nextSession.token);
     setSession(nextSession);
   }, []);
 
@@ -72,7 +121,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   );
 
   const signOut = useCallback(async () => {
-    await clearSession();
+    await endStoredSession();
     setSession(null);
   }, []);
 
