@@ -22,8 +22,28 @@ export function getBarberAppointments(barberId: string) {
   );
 }
 
+export function findStoredAppointment(appointmentId?: string) {
+  return appointments.find((appointment) => appointment.id === appointmentId);
+}
+
 export function addAppointment(appointment: Appointment) {
   appointments.push(appointment);
+}
+
+export function replaceAppointment(updated: Appointment) {
+  const index = appointments.findIndex(
+    (appointment) => appointment.id === updated.id
+  );
+
+  if (index !== -1) {
+    appointments[index] = updated;
+  }
+}
+
+export async function getAppointment(appointmentId?: string) {
+  await simulateLatency();
+
+  return findStoredAppointment(appointmentId) ?? null;
 }
 
 // PROVISÓRIO: troca o item no "banco" em memória por uma cópia cancelada, sem

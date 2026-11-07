@@ -1,34 +1,15 @@
 import { NotificationFeedbackType, notificationAsync } from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import {
-  BookingConflictError,
-  type BookingConflictReason,
-  createAppointment,
-} from "@/services/booking";
+import { createAppointment } from "@/services/booking";
 import type { BookingRequest } from "@/types/models";
+import {
+  type ConfirmationError,
+  toConfirmationError,
+} from "./confirmation-errors";
 
 const CONFIRM_ERROR_MESSAGE =
   "Não foi possível confirmar o agendamento. Tente novamente.";
-
-const CONFLICT_MESSAGES: Record<BookingConflictReason, string> = {
-  clientBusy:
-    "Você já tem um agendamento nesse horário. Escolha outro horário.",
-  unavailable: "Este horário não está mais disponível. Escolha outro horário.",
-};
-
-interface ConfirmationError {
-  hasConflict: boolean;
-  message: string;
-}
-
-function toConfirmationError(error: unknown): ConfirmationError {
-  if (error instanceof BookingConflictError) {
-    return { hasConflict: true, message: CONFLICT_MESSAGES[error.reason] };
-  }
-
-  return { hasConflict: false, message: CONFIRM_ERROR_MESSAGE };
-}
 
 export function useBookingConfirmation({
   barberId,
@@ -63,17 +44,23 @@ export function useBookingConfirmation({
         pathname: "/booking/success",
       });
     } catch (error) {
-      setConfirmError(toConfirmationError(error));
+      setConfirmError(toConfirmationError(error, CONFIRM_ERROR_MESSAGE));
       setIsConfirming(false);
     }
   }, [barberId, router, serviceId, startsAt]);
 
   const handleChooseAnotherTime = useCallback(() => router.back(), [router]);
 
+  const handleGoToAppointments = useCallback(() => {
+    router.dismissAll();
+    router.navigate("/appointments");
+  }, [router]);
+
   return {
     confirmError,
     handleChooseAnotherTime,
     handleConfirm,
+    handleGoToAppointments,
     isConfirming,
   };
 }

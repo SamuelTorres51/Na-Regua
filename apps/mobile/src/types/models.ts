@@ -51,6 +51,11 @@ export interface BookingRequest {
   startsAt: string;
 }
 
+export interface RescheduleRequest {
+  appointmentId: string;
+  startsAt: string;
+}
+
 export type Weekday =
   | "friday"
   | "monday"
