@@ -3,6 +3,8 @@ import { MIN_PHONE_DIGITS, onlyDigits } from "@/utils/phone";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+export const MAX_FULL_NAME_LENGTH = 150;
+
 export const validationMessages = {
   email: "Informe um e-mail válido.",
   emailInUse: "Este e-mail já está em uso por outra conta.",

@@ -1,15 +1,22 @@
 import { useCallback, useRef, useState } from "react";
 import type { TextInput } from "react-native";
+import { useToast } from "@/components/feedback/toast-provider";
 import { useAsyncAction } from "@/hooks/use-async-action";
+import { EmailInUseError } from "@/services/auth";
 import { formatPhone } from "@/utils/phone";
 import { useSession } from "./session-provider";
-import { type RegisterErrors, validateRegister } from "./validation";
+import { describeSubmitError, submitErrorMessages } from "./submit-errors";
+import {
+  type RegisterErrors,
+  validateRegister,
+  validationMessages,
+} from "./validation";
 
-const SIGN_UP_ERROR_MESSAGE =
-  "Não foi possível criar sua conta. Tente novamente.";
+const SIGN_UP_SUCCESS_MESSAGE = "Conta criada. Boas-vindas ao Na Régua!";
 
 export function useRegisterForm() {
   const { signUp } = useSession();
+  const { showToast } = useToast();
 
   const emailRef = useRef<TextInput>(null);
   const phoneRef = useRef<TextInput>(null);
@@ -25,8 +32,31 @@ export function useRegisterForm() {
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [shakeTrigger, setShakeTrigger] = useState(0);
 
-  const { error, isRunning: isSubmitting, run } = useAsyncAction(signUp);
-  const submitError = error ? SIGN_UP_ERROR_MESSAGE : null;
+  const handleSignUpSuccess = useCallback(
+    () => showToast({ message: SIGN_UP_SUCCESS_MESSAGE, tone: "success" }),
+    [showToast]
+  );
+
+  const handleSignUpError = useCallback((cause: Error) => {
+    if (cause instanceof EmailInUseError) {
+      setErrors({ email: validationMessages.emailInUse });
+      setShakeTrigger((current) => current + 1);
+    }
+  }, []);
+
+  const {
+    error,
+    isRunning: isSubmitting,
+    run,
+  } = useAsyncAction(signUp, {
+    onError: handleSignUpError,
+    onSuccess: handleSignUpSuccess,
+  });
+
+  const submitError =
+    error && !(error instanceof EmailInUseError)
+      ? describeSubmitError(error, submitErrorMessages.signUp)
+      : null;
 
   const handleChangePhone = useCallback(
     (value: string) => setPhone(formatPhone(value)),

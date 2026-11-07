@@ -12,6 +12,7 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { TextLink } from "@/components/ui/text-link";
 import { useLoginForm } from "@/features/auth/use-login-form";
 import { layout } from "@/theme/styles";
+import { MAX_PASSWORD_LENGTH } from "@/utils/password";
 
 export default function Login() {
   const router = useRouter();
@@ -70,6 +71,7 @@ export default function Login() {
             inputRef={passwordRef}
             isSecure
             label="Senha"
+            maxLength={MAX_PASSWORD_LENGTH}
             onChangeText={setPassword}
             onSubmit={handleSubmit}
             placeholder="••••••••"

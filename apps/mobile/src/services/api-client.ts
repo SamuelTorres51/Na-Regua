@@ -36,6 +36,14 @@ export class ApiError extends Error {
   }
 }
 
+export function hasApiStatus(error: unknown, status: number) {
+  return error instanceof ApiError && error.status === status;
+}
+
+export function isNetworkError(error: unknown) {
+  return hasApiStatus(error, HTTP_STATUS.network);
+}
+
 type HttpMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
 
 interface RequestOptions {
