@@ -15,6 +15,9 @@ from infrastructure.database.models.servico_model import ServicoModel as _Servic
 from infrastructure.database.models.agendamento_model import (
     AgendamentoModel as _AgendamentoModel,
 )
+from infrastructure.database.models.profissional_servico_model import (
+    ProfissionalServicoModel as _ProfissionalServicoModel,
+)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
