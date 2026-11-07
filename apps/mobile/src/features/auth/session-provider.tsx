@@ -8,8 +8,8 @@ import {
   useState,
 } from "react";
 import {
-  ApiError,
   HTTP_STATUS,
+  hasApiStatus,
   isApiEnabled,
   setAccessToken,
 } from "@/services/api-client";
@@ -42,7 +42,7 @@ interface SessionContextValue {
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 function isExpiredSession(error: unknown) {
-  return error instanceof ApiError && error.status === HTTP_STATUS.unauthorized;
+  return hasApiStatus(error, HTTP_STATUS.unauthorized);
 }
 
 async function endStoredSession() {

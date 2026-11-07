@@ -1,12 +1,13 @@
 import { useCallback, useState } from "react";
 
 interface AsyncActionOptions {
+  onError?: (error: Error) => void;
   onSuccess?: () => void;
 }
 
 export function useAsyncAction<TInput>(
   action: (input: TInput) => Promise<void>,
-  { onSuccess }: AsyncActionOptions = {}
+  { onError, onSuccess }: AsyncActionOptions = {}
 ) {
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -18,10 +19,13 @@ export function useAsyncAction<TInput>(
 
       action(input)
         .then(() => onSuccess?.())
-        .catch((cause: Error) => setError(cause))
+        .catch((cause: Error) => {
+          setError(cause);
+          onError?.(cause);
+        })
         .finally(() => setIsRunning(false));
     },
-    [action, onSuccess]
+    [action, onError, onSuccess]
   );
 
   return { error, isRunning, run };

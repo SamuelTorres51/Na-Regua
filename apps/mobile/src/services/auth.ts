@@ -1,6 +1,6 @@
 import type { AuthSession, User } from "@/types/models";
 import { formatPhone, onlyDigits } from "@/utils/phone";
-import { ApiError, api, HTTP_STATUS, isApiEnabled } from "./api-client";
+import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
 import { simulateLatency } from "./fake-api";
 
 const MOCK_TOKEN = "mock-token";
@@ -33,6 +33,13 @@ export class EmailInUseError extends Error {
   }
 }
 
+export class InvalidCredentialsError extends Error {
+  constructor() {
+    super("E-mail ou senha inválidos.");
+    this.name = "InvalidCredentialsError";
+  }
+}
+
 interface UserResponse {
   email: string;
   id: number;
@@ -59,11 +66,28 @@ function toSession({ access_token, usuario }: AuthResponse): AuthSession {
 }
 
 function rethrowEmailInUse(error: unknown): never {
-  if (error instanceof ApiError && error.status === HTTP_STATUS.conflict) {
+  if (hasApiStatus(error, HTTP_STATUS.conflict)) {
     throw new EmailInUseError();
   }
 
   throw error;
+}
+
+function rethrowInvalidCredentials(error: unknown): never {
+  if (hasApiStatus(error, HTTP_STATUS.unauthorized)) {
+    throw new InvalidCredentialsError();
+  }
+
+  throw error;
+}
+
+function isEmailTaken(email: string, currentEmail = "") {
+  const normalizedEmail = email.toLowerCase();
+
+  return (
+    normalizedEmail !== currentEmail.toLowerCase() &&
+    TAKEN_EMAILS.includes(normalizedEmail)
+  );
 }
 
 async function signInWithMock({ email }: SignInInput): Promise<AuthSession> {
@@ -87,6 +111,10 @@ async function signUpWithMock({
 }: SignUpInput): Promise<AuthSession> {
   await simulateLatency();
 
+  if (isEmailTaken(email)) {
+    throw new EmailInUseError();
+  }
+
   return {
     token: MOCK_TOKEN,
     user: { email, fullName, id: MOCK_USER_ID, phone },
@@ -99,11 +127,7 @@ async function updateProfileWithMock(
 ): Promise<User> {
   await simulateLatency();
 
-  const email = changes.email.toLowerCase();
-  const isEmailTaken =
-    email !== currentUser.email.toLowerCase() && TAKEN_EMAILS.includes(email);
-
-  if (isEmailTaken) {
+  if (isEmailTaken(changes.email, currentUser.email)) {
     throw new EmailInUseError();
   }
 
@@ -114,12 +138,16 @@ async function signInWithApi({
   email,
   password,
 }: SignInInput): Promise<AuthSession> {
-  const response = await api.post<AuthResponse>("/auth/login", {
-    email,
-    senha: password,
-  });
+  try {
+    const response = await api.post<AuthResponse>("/auth/login", {
+      email,
+      senha: password,
+    });
 
-  return toSession(response);
+    return toSession(response);
+  } catch (error) {
+    return rethrowInvalidCredentials(error);
+  }
 }
 
 async function signUpWithApi({
