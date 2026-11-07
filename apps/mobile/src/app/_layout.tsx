@@ -1,5 +1,6 @@
 import "../global.css";
 
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import { StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -7,6 +8,7 @@ import { ToastProvider } from "@/components/feedback/toast-provider";
 import { SessionProvider, useSession } from "@/features/auth/session-provider";
 import { useAppFonts } from "@/hooks/use-app-fonts";
 import { useSplashScreen } from "@/hooks/use-splash-screen";
+import { queryClient } from "@/services/query-client";
 
 function RootNavigator() {
   const { isLoading, session } = useSession();
@@ -40,11 +42,13 @@ export default function RootLayout() {
         barStyle="light-content"
         translucent
       />
-      <SessionProvider>
-        <ToastProvider>
-          <RootNavigator />
-        </ToastProvider>
-      </SessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <SessionProvider>
+          <ToastProvider>
+            <RootNavigator />
+          </ToastProvider>
+        </SessionProvider>
+      </QueryClientProvider>
     </SafeAreaProvider>
   );
 }
