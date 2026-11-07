@@ -44,3 +44,11 @@ class AgendamentoConflitanteError(ApplicationError):
 
 class AgendamentoNaoPermitidoError(ApplicationError):
     """Lançada quando o usuário não pode criar o agendamento solicitado."""
+
+
+class ProfissionalServicoDuplicadoError(ApplicationError):
+    """Lançada quando a associação já existe."""
+
+
+class ProfissionalServicoNaoEncontradoError(ApplicationError):
+    """Lançada quando a associação não existe."""

@@ -39,12 +39,27 @@ from application.use_cases.profissionais.listar_profissionais import (
 from application.use_cases.profissionais.reativar_profissional import (
     ReativarProfissionalUseCase,
 )
+from application.use_cases.profissional_servico.associar_profissional_servico import (
+    AssociarProfissionalServicoUseCase,
+)
+from application.use_cases.profissional_servico.remover_profissional_servico import (
+    RemoverProfissionalServicoUseCase,
+)
+from application.use_cases.profissional_servico.listar_servicos_do_profissional import (
+    ListarServicosDoProfissionalUseCase,
+)
+from application.use_cases.profissional_servico.listar_profissionais_do_servico import (
+    ListarProfissionaisDoServicoUseCase,
+)
 from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
 from domain.repositories.profissional_repository import ProfissionalRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
 from domain.repositories.agendamento_repository import AgendamentoRepository
+from domain.repositories.profissional_servico_repository import (
+    ProfissionalServicoRepository,
+)
 from infrastructure.database.connection import get_db as get_database_session
 from infrastructure.database.repositories.profissional_repository import (
     SqlAlchemyProfissionalRepository,
@@ -57,6 +72,9 @@ from infrastructure.database.repositories.usuario_repository import (
 )
 from infrastructure.database.repositories.agendamento_repository import (
     SqlAlchemyAgendamentoRepository,
+)
+from infrastructure.database.repositories.profissional_servico_repository import (
+    SqlAlchemyProfissionalServicoRepository,
 )
 
 
@@ -109,6 +127,12 @@ def get_agendamento_repository(
     return SqlAlchemyAgendamentoRepository(db)
 
 
+def get_profissional_servico_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> ProfissionalServicoRepository:
+    return SqlAlchemyProfissionalServicoRepository(db)
+
+
 def get_criar_agendamento_use_case(
     agendamento_repository: Annotated[
         AgendamentoRepository,
@@ -122,11 +146,16 @@ def get_criar_agendamento_use_case(
         ServicoRepository,
         Depends(get_servico_repository),
     ],
+    profissional_servico_repository: Annotated[
+        ProfissionalServicoRepository,
+        Depends(get_profissional_servico_repository),
+    ],
 ) -> CriarAgendamentoUseCase:
     return CriarAgendamentoUseCase(
         agendamento_repository,
         usuario_repository,
         servico_repository,
+        profissional_servico_repository,
     )
 
 
@@ -143,6 +172,63 @@ def get_criar_servico_use_case(
     repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
 ) -> CriarServicoUseCase:
     return CriarServicoUseCase(repository)
+
+
+def get_profissional_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> ProfissionalRepository:
+    return SqlAlchemyProfissionalRepository(db)
+
+
+def get_associar_profissional_servico_use_case(
+    associacao_repository: Annotated[
+        ProfissionalServicoRepository,
+        Depends(get_profissional_servico_repository),
+    ],
+    usuario_repository: Annotated[
+        UsuarioRepository,
+        Depends(get_usuario_repository),
+    ],
+    servico_repository: Annotated[
+        ServicoRepository,
+        Depends(get_servico_repository),
+    ],
+) -> AssociarProfissionalServicoUseCase:
+    return AssociarProfissionalServicoUseCase(
+        associacao_repository,
+        usuario_repository,
+        servico_repository,
+    )
+
+
+def get_remover_profissional_servico_use_case(
+    associacao_repository: Annotated[
+        ProfissionalServicoRepository,
+        Depends(get_profissional_servico_repository),
+    ],
+) -> RemoverProfissionalServicoUseCase:
+    return RemoverProfissionalServicoUseCase(associacao_repository)
+
+
+def get_listar_servicos_do_profissional_use_case(
+    associacao_repository: Annotated[
+        ProfissionalServicoRepository,
+        Depends(get_profissional_servico_repository),
+    ],
+    servico_repository: Annotated[
+        ServicoRepository,
+        Depends(get_servico_repository),
+    ],
+    profissional_repository: Annotated[
+        ProfissionalRepository,
+        Depends(get_profissional_repository),
+    ],
+) -> ListarServicosDoProfissionalUseCase:
+    return ListarServicosDoProfissionalUseCase(
+        associacao_repository,
+        servico_repository,
+        profissional_repository,
+    )
 
 
 def get_listar_servicos_use_case(
@@ -169,10 +255,25 @@ def get_deletar_servico_use_case(
     return DeletarServicoUseCase(repository)
 
 
-def get_profissional_repository(
-    db: Annotated[Session, Depends(get_db)],
-) -> ProfissionalRepository:
-    return SqlAlchemyProfissionalRepository(db)
+def get_listar_profissionais_do_servico_use_case(
+    associacao_repository: Annotated[
+        ProfissionalServicoRepository,
+        Depends(get_profissional_servico_repository),
+    ],
+    profissional_repository: Annotated[
+        ProfissionalRepository,
+        Depends(get_profissional_repository),
+    ],
+    servico_repository: Annotated[
+        ServicoRepository,
+        Depends(get_servico_repository),
+    ],
+) -> ListarProfissionaisDoServicoUseCase:
+    return ListarProfissionaisDoServicoUseCase(
+        associacao_repository,
+        profissional_repository,
+        servico_repository,
+    )
 
 
 def get_cadastrar_profissional_use_case(

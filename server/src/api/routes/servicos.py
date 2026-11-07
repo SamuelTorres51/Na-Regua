@@ -8,6 +8,7 @@ from api.dependencies import (
     get_criar_servico_use_case,
     get_current_admin,
     get_deletar_servico_use_case,
+    get_listar_profissionais_do_servico_use_case,
     get_listar_servicos_use_case,
 )
 from api.schemas.servico import (
@@ -15,6 +16,7 @@ from api.schemas.servico import (
     CriarServicoRequest,
     ServicoResponse,
 )
+from api.schemas.profissional import ProfissionalResponse
 from application.common.exceptions import (
     ServicoNaoEncontradoError,
     ServicoNomeDuplicadoError,
@@ -36,6 +38,9 @@ from application.use_cases.servicos.deletar_servico import (
 )
 from application.use_cases.servicos.listar_servicos import (
     ListarServicosUseCase,
+)
+from application.use_cases.profissional_servico.listar_profissionais_do_servico import (
+    ListarProfissionaisDoServicoUseCase,
 )
 from domain.entities.usuario import Usuario
 
@@ -90,6 +95,31 @@ def listar_servicos(
 ) -> list[ServicoResponse]:
     servicos = use_case.execute(apenas_ativos=apenas_ativos)
     return [ServicoResponse.model_validate(s) for s in servicos]
+
+
+@router.get(
+    "/{servico_id}/profissionais",
+    response_model=list[ProfissionalResponse],
+    summary="Listar profissionais de um serviço",
+)
+def listar_profissionais_do_servico(
+    servico_id: int,
+    use_case: Annotated[
+        ListarProfissionaisDoServicoUseCase,
+        Depends(get_listar_profissionais_do_servico_use_case),
+    ],
+) -> list[ProfissionalResponse]:
+    try:
+        profissionais = use_case.execute(servico_id)
+        return [
+            ProfissionalResponse.model_validate(profissional)
+            for profissional in profissionais
+        ]
+    except ServicoNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
 
 
 @router.get(

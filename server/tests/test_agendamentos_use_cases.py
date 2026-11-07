@@ -6,6 +6,7 @@ from application.common.exceptions import (
     AgendamentoConflitanteError,
     AgendamentoNaoPermitidoError,
     ClienteNaoEncontradoError,
+    ProfissionalServicoNaoEncontradoError,
     ValidationError,
 )
 from application.use_cases.agendamentos.criar_agendamento import (
@@ -19,6 +20,9 @@ from domain.enums.perfil_acesso import PerfilAcesso
 from domain.enums.status_agendamento import StatusAgendamento
 from domain.repositories.agendamento_repository import AgendamentoRepository
 from domain.repositories.servico_repository import ServicoRepository
+from domain.repositories.profissional_servico_repository import (
+    ProfissionalServicoRepository,
+)
 from domain.repositories.usuario_repository import UsuarioRepository
 
 
@@ -150,6 +154,41 @@ class InMemoryServicoRepository(ServicoRepository):
         return self.servico.id == servico_id
 
 
+class InMemoryProfissionalServicoRepository(ProfissionalServicoRepository):
+    def __init__(self, associacoes: set[tuple[int, int]]) -> None:
+        self.associacoes = associacoes
+
+    def associar(self, profissional_servico):
+        self.associacoes.add(
+            (profissional_servico.profissional_id, profissional_servico.servico_id)
+        )
+        return profissional_servico
+
+    def remover(self, profissional_id: int, servico_id: int) -> bool:
+        associacao = (profissional_id, servico_id)
+        if associacao not in self.associacoes:
+            return False
+        self.associacoes.remove(associacao)
+        return True
+
+    def existe(self, profissional_id: int, servico_id: int) -> bool:
+        return (profissional_id, servico_id) in self.associacoes
+
+    def listar_servicos_por_profissional(self, profissional_id: int) -> list[int]:
+        return [
+            servico_id
+            for profissional, servico_id in self.associacoes
+            if profissional == profissional_id
+        ]
+
+    def listar_profissionais_por_servico(self, servico_id: int) -> list[int]:
+        return [
+            profissional_id
+            for profissional_id, servico in self.associacoes
+            if servico == servico_id
+        ]
+
+
 def _usuario(
     id: int,
     perfil: PerfilAcesso,
@@ -194,6 +233,7 @@ def _criar_caso(
         InMemoryAgendamentoRepository(),
         repositorio_usuarios,
         repositorio_servicos,
+        InMemoryProfissionalServicoRepository({(profissional.id, 10)}),
     )
     return caso, cliente, profissional, admin
 
@@ -224,6 +264,24 @@ def test_cliente_nao_pode_criar_para_outro_cliente() -> None:
         caso.execute(
             CriarAgendamentoInput(
                 cliente_id=4,
+                profissional_id=profissional.id,
+                servico_id=10,
+                inicio=datetime.now(timezone.utc) + timedelta(hours=1),
+            ),
+            cliente,
+        )
+
+
+def test_rejeita_profissional_sem_associacao_com_servico() -> None:
+    caso, cliente, profissional, _ = _criar_caso()
+    caso.profissional_servico_repository = InMemoryProfissionalServicoRepository(
+        set()
+    )
+
+    with pytest.raises(ProfissionalServicoNaoEncontradoError):
+        caso.execute(
+            CriarAgendamentoInput(
+                cliente_id=cliente.id,
                 profissional_id=profissional.id,
                 servico_id=10,
                 inicio=datetime.now(timezone.utc) + timedelta(hours=1),

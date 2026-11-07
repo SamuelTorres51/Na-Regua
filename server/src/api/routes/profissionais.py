@@ -8,17 +8,25 @@ from api.dependencies import (
     get_cadastrar_profissional_use_case,
     get_current_admin,
     get_inativar_profissional_use_case,
+    get_associar_profissional_servico_use_case,
+    get_remover_profissional_servico_use_case,
+    get_listar_servicos_do_profissional_use_case,
     get_listar_profissionais_use_case,
     get_reativar_profissional_use_case,
 )
 from api.schemas.profissional import (
     AtualizarProfissionalRequest,
     CadastrarProfissionalRequest,
+    ProfissionalServicoResponse,
     ProfissionalResponse,
 )
+from api.schemas.servico import ServicoResponse
 from application.common.exceptions import (
     EmailJaCadastradoError,
+    ProfissionalServicoDuplicadoError,
+    ProfissionalServicoNaoEncontradoError,
     ProfissionalNaoEncontradoError,
+    ServicoNaoEncontradoError,
     ValidationError,
 )
 from application.use_cases.profissionais.atualizar_profissional import (
@@ -41,9 +49,93 @@ from application.use_cases.profissionais.listar_profissionais import (
 from application.use_cases.profissionais.reativar_profissional import (
     ReativarProfissionalUseCase,
 )
+from application.use_cases.profissional_servico.associar_profissional_servico import (
+    AssociarProfissionalServicoUseCase,
+)
+from application.use_cases.profissional_servico.remover_profissional_servico import (
+    RemoverProfissionalServicoUseCase,
+)
+from application.use_cases.profissional_servico.listar_servicos_do_profissional import (
+    ListarServicosDoProfissionalUseCase,
+)
 from domain.entities.usuario import Usuario
 
 router = APIRouter(prefix="/profissionais", tags=["Profissionais"])
+
+
+@router.post(
+    "/{profissional_id}/servicos/{servico_id}",
+    response_model=ProfissionalServicoResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Associar serviço a profissional (Apenas Administrador)",
+)
+def associar_servico(
+    profissional_id: int,
+    servico_id: int,
+    _admin: Annotated[Usuario, Depends(get_current_admin)],
+    use_case: Annotated[
+        AssociarProfissionalServicoUseCase,
+        Depends(get_associar_profissional_servico_use_case),
+    ],
+) -> ProfissionalServicoResponse:
+    try:
+        associacao = use_case.execute(profissional_id, servico_id)
+        return ProfissionalServicoResponse.model_validate(associacao)
+    except ProfissionalServicoDuplicadoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
+    except (ProfissionalNaoEncontradoError, ServicoNaoEncontradoError) as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+
+
+@router.delete(
+    "/{profissional_id}/servicos/{servico_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Remover serviço de profissional (Apenas Administrador)",
+)
+def remover_servico(
+    profissional_id: int,
+    servico_id: int,
+    _admin: Annotated[Usuario, Depends(get_current_admin)],
+    use_case: Annotated[
+        RemoverProfissionalServicoUseCase,
+        Depends(get_remover_profissional_servico_use_case),
+    ],
+) -> None:
+    try:
+        use_case.execute(profissional_id, servico_id)
+    except ProfissionalServicoNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+
+
+@router.get(
+    "/{profissional_id}/servicos",
+    response_model=list[ServicoResponse],
+    summary="Listar serviços de um profissional",
+)
+def listar_servicos_do_profissional(
+    profissional_id: int,
+    use_case: Annotated[
+        ListarServicosDoProfissionalUseCase,
+        Depends(get_listar_servicos_do_profissional_use_case),
+    ],
+) -> list[ServicoResponse]:
+    try:
+        servicos = use_case.execute(profissional_id)
+        return [ServicoResponse.model_validate(servico) for servico in servicos]
+    except ProfissionalNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
 
 
 @router.post(
