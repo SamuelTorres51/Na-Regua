@@ -12,8 +12,13 @@ import { FooterPrompt } from "@/components/ui/footer-prompt";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { useRegisterForm } from "@/features/auth/use-register-form";
+import { MAX_FULL_NAME_LENGTH } from "@/features/auth/validation";
 import { layout } from "@/theme/styles";
-import { getPasswordScore, MIN_PASSWORD_LENGTH } from "@/utils/password";
+import {
+  getPasswordScore,
+  MAX_PASSWORD_LENGTH,
+  MIN_PASSWORD_LENGTH,
+} from "@/utils/password";
 import { PHONE_MASK_LENGTH } from "@/utils/phone";
 
 export default function Register() {
@@ -65,6 +70,7 @@ export default function Register() {
             delay={220}
             error={errors.fullName}
             label="Nome completo"
+            maxLength={MAX_FULL_NAME_LENGTH}
             onChangeText={setFullName}
             onSubmit={handleFocusEmail}
             placeholder="Seu nome e sobrenome"
@@ -112,6 +118,7 @@ export default function Register() {
               inputRef={passwordRef}
               isSecure
               label="Senha"
+              maxLength={MAX_PASSWORD_LENGTH}
               onChangeText={setPassword}
               onSubmit={handleFocusConfirmPassword}
               placeholder={`Mínimo de ${MIN_PASSWORD_LENGTH} caracteres`}
@@ -132,6 +139,7 @@ export default function Register() {
             inputRef={confirmPasswordRef}
             isSecure
             label="Confirmar senha"
+            maxLength={MAX_PASSWORD_LENGTH}
             onChangeText={setConfirmPassword}
             onSubmit={handleSubmit}
             placeholder="Repita a senha"

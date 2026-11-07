@@ -8,6 +8,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { useProfileForm } from "@/features/auth/use-profile-form";
+import { MAX_FULL_NAME_LENGTH } from "@/features/auth/validation";
 import { layout } from "@/theme/styles";
 import { PHONE_MASK_LENGTH } from "@/utils/phone";
 
@@ -55,6 +56,7 @@ export default function EditProfile() {
               delay={220}
               error={errors.fullName}
               label="Nome completo"
+              maxLength={MAX_FULL_NAME_LENGTH}
               onChangeText={setFullName}
               onSubmit={handleFocusEmail}
               placeholder="Seu nome e sobrenome"

@@ -3,9 +3,7 @@ import type { TextInput } from "react-native";
 import { useSession } from "@/features/auth/session-provider";
 import { type LoginErrors, validateLogin } from "@/features/auth/validation";
 import { useAsyncAction } from "@/hooks/use-async-action";
-
-const SIGN_IN_ERROR_MESSAGE =
-  "Não foi possível entrar. Confira seus dados e tente novamente.";
+import { describeSubmitError, submitErrorMessages } from "./submit-errors";
 
 export function useLoginForm() {
   const { signIn } = useSession();
@@ -17,7 +15,9 @@ export function useLoginForm() {
   const [shakeTrigger, setShakeTrigger] = useState(0);
 
   const { error, isRunning: isSubmitting, run } = useAsyncAction(signIn);
-  const submitError = error ? SIGN_IN_ERROR_MESSAGE : null;
+  const submitError = error
+    ? describeSubmitError(error, submitErrorMessages.signIn)
+    : null;
 
   const handleFocusPassword = useCallback(
     () => passwordRef.current?.focus(),

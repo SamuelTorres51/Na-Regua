@@ -7,6 +7,7 @@ import { EmailInUseError } from "@/services/auth";
 import type { User } from "@/types/models";
 import { formatPhone } from "@/utils/phone";
 import { useSession } from "./session-provider";
+import { describeSubmitError, submitErrorMessages } from "./submit-errors";
 import {
   type ProfileErrors,
   type ProfileValues,
@@ -15,8 +16,6 @@ import {
 } from "./validation";
 
 const UPDATE_SUCCESS_MESSAGE = "Dados atualizados.";
-const UPDATE_ERROR_MESSAGE =
-  "Não foi possível salvar seus dados. Tente novamente.";
 
 const EMPTY_PROFILE: ProfileValues = { email: "", fullName: "", phone: "" };
 
@@ -93,7 +92,9 @@ export function useProfileForm() {
         setErrors({ email: validationMessages.emailInUse });
         setShakeTrigger((current) => current + 1);
       } else {
-        setSubmitError(UPDATE_ERROR_MESSAGE);
+        setSubmitError(
+          describeSubmitError(error, submitErrorMessages.updateProfile)
+        );
       }
     } finally {
       setIsSubmitting(false);
