@@ -45,14 +45,36 @@ function describeTimeRange(startsAt: string, service?: Service) {
 }
 
 interface BookingSummaryProps extends BookingSelection {
+  previousStartsAt?: string;
   startsAt?: string;
+}
+
+interface ScheduleDetailsProps {
+  service?: Service;
+  startsAt: string;
+}
+
+function ScheduleDetails({ service, startsAt }: ScheduleDetailsProps) {
+  return (
+    <>
+      <Text className="font-roboto-semibold text-lg text-white">
+        {formatRelativeDate(startsAt)}
+      </Text>
+      <Text className="mt-1 font-roboto text-sm text-zinc-400">
+        {describeTimeRange(startsAt, service)}
+      </Text>
+    </>
+  );
 }
 
 export function BookingSummary({
   barber,
+  previousStartsAt,
   service,
   startsAt,
 }: BookingSummaryProps) {
+  const isRescheduling = isValidDate(previousStartsAt);
+
   return (
     <>
       {service ? (
@@ -72,14 +94,17 @@ export function BookingSummary({
         </SummarySection>
       ) : null}
 
+      {isValidDate(previousStartsAt) ? (
+        <SummarySection label="Horário atual">
+          <ScheduleDetails service={service} startsAt={previousStartsAt} />
+        </SummarySection>
+      ) : null}
+
       {isValidDate(startsAt) ? (
-        <SummarySection label="Data e horário">
-          <Text className="font-roboto-semibold text-lg text-white">
-            {formatRelativeDate(startsAt)}
-          </Text>
-          <Text className="mt-1 font-roboto text-sm text-zinc-400">
-            {describeTimeRange(startsAt, service)}
-          </Text>
+        <SummarySection
+          label={isRescheduling ? "Novo horário" : "Data e horário"}
+        >
+          <ScheduleDetails service={service} startsAt={startsAt} />
         </SummarySection>
       ) : null}
     </>

@@ -4,13 +4,21 @@ import { LoadingState } from "@/components/feedback/loading-state";
 import {
   LOAD_ERROR_MESSAGE,
   StateMessage,
+  type StateMessageContent,
 } from "@/components/feedback/state-message";
 import type { BookingDay } from "@/types/models";
 import { DateStrip } from "./date-strip";
 import { TimeSlotGrid } from "./time-slot-grid";
 
+const NO_SCHEDULE_MESSAGE: StateMessageContent = {
+  description: "Volte e escolha outro serviço ou profissional.",
+  icon: "calendar-outline",
+  title: "Agenda indisponível",
+};
+
 interface SchedulePickerProps {
   days: BookingDay[];
+  emptyMessage?: StateMessageContent;
   hasLoadError: boolean;
   isLoading: boolean;
   onSelectSlot: (startsAt: string) => void;
@@ -18,6 +26,7 @@ interface SchedulePickerProps {
 
 export function SchedulePicker({
   days,
+  emptyMessage = NO_SCHEDULE_MESSAGE,
   hasLoadError,
   isLoading,
   onSelectSlot,
@@ -38,13 +47,7 @@ export function SchedulePicker({
     days.at(0);
 
   if (!selectedDay) {
-    return (
-      <StateMessage
-        description="Volte e escolha outro serviço ou profissional."
-        icon="calendar-outline"
-        title="Agenda indisponível"
-      />
-    );
+    return <StateMessage {...emptyMessage} />;
   }
 
   return (
