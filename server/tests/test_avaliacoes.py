@@ -6,6 +6,7 @@ from fastapi.testclient import TestClient
 from api.dependencies import (
     get_criar_avaliacao_use_case,
     get_current_user,
+    get_listar_avaliacoes_do_cliente_use_case,
 )
 from application.common.exceptions import (
     AvaliacaoAgendamentoNaoConcluidoError,
@@ -16,6 +17,9 @@ from application.common.exceptions import (
 from application.use_cases.avaliacoes.criar_avaliacao import (
     CriarAvaliacaoInput,
     CriarAvaliacaoUseCase,
+)
+from application.use_cases.avaliacoes.listar_avaliacoes_do_cliente import (
+    ListarAvaliacoesDoClienteUseCase,
 )
 from domain.entities.agendamento import Agendamento
 from domain.entities.avaliacao import Avaliacao
@@ -96,7 +100,7 @@ class InMemoryAvaliacaoRepository(AvaliacaoRepository):
         cliente_id: int | None = None,
         profissional_id: int | None = None,
     ) -> list[Avaliacao]:
-        return [
+        avaliacoes = [
             avaliacao
             for avaliacao in self.avaliacoes
             if (cliente_id is None or avaliacao.cliente_id == cliente_id)
@@ -105,6 +109,7 @@ class InMemoryAvaliacaoRepository(AvaliacaoRepository):
                 or avaliacao.profissional_id == profissional_id
             )
         ]
+        return sorted(avaliacoes, key=lambda avaliacao: avaliacao.criada_em, reverse=True)
 
     def calcular_media_por_profissional(
         self,
@@ -228,3 +233,85 @@ def test_endpoint_cria_avaliacao_e_valida_nota() -> None:
     assert response.json()["profissionalId"] == 2
     assert response.json()["nota"] == 5
     assert nota_invalida.status_code == 422
+
+
+def test_cliente_consulta_apenas_o_proprio_historico_de_avaliacoes() -> None:
+    repository = InMemoryAvaliacaoRepository()
+    cliente = _usuario(1, PerfilAcesso.CLIENTE)
+    repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=10,
+            cliente_id=1,
+            profissional_id=2,
+            nota=4,
+            criada_em=datetime(2026, 11, 1, tzinfo=timezone.utc),
+        )
+    )
+    repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=11,
+            cliente_id=1,
+            profissional_id=3,
+            nota=5,
+            criada_em=datetime(2026, 11, 2, tzinfo=timezone.utc),
+        )
+    )
+    repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=12,
+            cliente_id=99,
+            profissional_id=2,
+            nota=1,
+            criada_em=datetime(2026, 11, 3, tzinfo=timezone.utc),
+        )
+    )
+
+    avaliacoes = ListarAvaliacoesDoClienteUseCase(repository).execute(cliente)
+
+    assert [avaliacao.agendamento_id for avaliacao in avaliacoes] == [11, 10]
+    assert all(avaliacao.cliente_id == cliente.id for avaliacao in avaliacoes)
+
+
+def test_endpoint_lista_historico_do_cliente_e_bloqueia_profissional() -> None:
+    repository = InMemoryAvaliacaoRepository()
+    repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=10,
+            cliente_id=1,
+            profissional_id=2,
+            nota=5,
+            comentario="Otimo atendimento",
+        )
+    )
+    use_case = ListarAvaliacoesDoClienteUseCase(repository)
+    client = TestClient(app)
+
+    app.dependency_overrides[get_current_user] = lambda: _usuario(
+        1,
+        PerfilAcesso.CLIENTE,
+    )
+    app.dependency_overrides[get_listar_avaliacoes_do_cliente_use_case] = lambda: use_case
+    try:
+        response = client.get("/avaliacoes/minhas")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json()[0]["agendamentoId"] == 10
+    assert response.json()[0]["nota"] == 5
+
+    app.dependency_overrides[get_current_user] = lambda: _usuario(
+        2,
+        PerfilAcesso.PROFISSIONAL,
+    )
+    app.dependency_overrides[get_listar_avaliacoes_do_cliente_use_case] = lambda: use_case
+    try:
+        sem_permissao = client.get("/avaliacoes/minhas")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert sem_permissao.status_code == 403

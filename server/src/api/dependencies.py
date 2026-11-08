@@ -39,6 +39,9 @@ from application.use_cases.agendamentos.cancelar_agendamento import (
 from application.use_cases.avaliacoes.criar_avaliacao import (
     CriarAvaliacaoUseCase,
 )
+from application.use_cases.avaliacoes.listar_avaliacoes_do_cliente import (
+    ListarAvaliacoesDoClienteUseCase,
+)
 from application.use_cases.profissionais.atualizar_profissional import (
     AtualizarProfissionalUseCase,
 )
@@ -309,6 +312,15 @@ def get_criar_avaliacao_use_case(
         agendamento_repository,
         avaliacao_repository,
     )
+
+
+def get_listar_avaliacoes_do_cliente_use_case(
+    repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> ListarAvaliacoesDoClienteUseCase:
+    return ListarAvaliacoesDoClienteUseCase(repository)
 
 
 def get_criar_servico_use_case(
