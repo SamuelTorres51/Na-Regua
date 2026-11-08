@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.dependencies import (
     get_cancelar_agendamento_use_case,
+    get_criar_avaliacao_use_case,
     get_current_user,
     get_criar_agendamento_use_case,
     get_listar_agendamentos_use_case,
@@ -13,6 +14,7 @@ from api.schemas.agendamento import (
     AgendamentoResponse,
     CriarAgendamentoRequest,
 )
+from api.schemas.avaliacao import AvaliacaoResponse, CriarAvaliacaoRequest
 from api.schemas.cancelamento import (
     CancelamentoResponse,
     CancelarAgendamentoRequest,
@@ -22,6 +24,9 @@ from application.common.exceptions import (
     AgendamentoNaoEncontradoError,
     AgendamentoNaoPodeSerCanceladoError,
     AgendamentoNaoPermitidoError,
+    AvaliacaoAgendamentoNaoConcluidoError,
+    AvaliacaoJaRegistradaError,
+    AvaliacaoNaoPermitidaError,
     ClienteNaoEncontradoError,
     ProfissionalNaoEncontradoError,
     ProfissionalServicoNaoEncontradoError,
@@ -40,10 +45,64 @@ from application.use_cases.agendamentos.cancelar_agendamento import (
     CancelarAgendamentoInput,
     CancelarAgendamentoUseCase,
 )
+from application.use_cases.avaliacoes.criar_avaliacao import (
+    CriarAvaliacaoInput,
+    CriarAvaliacaoUseCase,
+)
 from domain.entities.usuario import Usuario
 from domain.enums.status_agendamento import StatusAgendamento
 
 router = APIRouter(prefix="/agendamentos", tags=["Agendamentos"])
+
+
+@router.post(
+    "/{agendamento_id}/avaliacao",
+    response_model=AvaliacaoResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Avaliar um atendimento concluÃ­do",
+)
+def criar_avaliacao(
+    agendamento_id: int,
+    request: CriarAvaliacaoRequest,
+    usuario_atual: Annotated[Usuario, Depends(get_current_user)],
+    use_case: Annotated[
+        CriarAvaliacaoUseCase,
+        Depends(get_criar_avaliacao_use_case),
+    ],
+) -> AvaliacaoResponse:
+    try:
+        avaliacao = use_case.execute(
+            CriarAvaliacaoInput(
+                agendamento_id=agendamento_id,
+                nota=request.nota,
+                comentario=request.comentario,
+            ),
+            usuario_atual,
+        )
+        return AvaliacaoResponse.model_validate(avaliacao)
+    except ValidationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
+    except AgendamentoNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except AvaliacaoNaoPermitidaError as error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(error),
+        ) from error
+    except (
+        AvaliacaoAgendamentoNaoConcluidoError,
+        AvaliacaoJaRegistradaError,
+    ) as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
 
 
 @router.post(

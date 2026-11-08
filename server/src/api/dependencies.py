@@ -36,6 +36,9 @@ from application.use_cases.agendamentos.listar_agendamentos import (
 from application.use_cases.agendamentos.cancelar_agendamento import (
     CancelarAgendamentoUseCase,
 )
+from application.use_cases.avaliacoes.criar_avaliacao import (
+    CriarAvaliacaoUseCase,
+)
 from application.use_cases.profissionais.atualizar_profissional import (
     AtualizarProfissionalUseCase,
 )
@@ -72,6 +75,7 @@ from domain.repositories.profissional_repository import ProfissionalRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
 from domain.repositories.agendamento_repository import AgendamentoRepository
+from domain.repositories.avaliacao_repository import AvaliacaoRepository
 from domain.repositories.profissional_servico_repository import (
     ProfissionalServicoRepository,
 )
@@ -89,6 +93,9 @@ from infrastructure.database.repositories.usuario_repository import (
 )
 from infrastructure.database.repositories.agendamento_repository import (
     SqlAlchemyAgendamentoRepository,
+)
+from infrastructure.database.repositories.avaliacao_repository import (
+    SqlAlchemyAvaliacaoRepository,
 )
 from infrastructure.database.repositories.profissional_servico_repository import (
     SqlAlchemyProfissionalServicoRepository,
@@ -148,6 +155,12 @@ def get_agendamento_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> AgendamentoRepository:
     return SqlAlchemyAgendamentoRepository(db)
+
+
+def get_avaliacao_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> AvaliacaoRepository:
+    return SqlAlchemyAvaliacaoRepository(db)
 
 
 def get_notificacao_repository(
@@ -280,6 +293,22 @@ def get_listar_agendamentos_use_case(
     ],
 ) -> ListarAgendamentosUseCase:
     return ListarAgendamentosUseCase(repository)
+
+
+def get_criar_avaliacao_use_case(
+    agendamento_repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+    avaliacao_repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> CriarAvaliacaoUseCase:
+    return CriarAvaliacaoUseCase(
+        agendamento_repository,
+        avaliacao_repository,
+    )
 
 
 def get_criar_servico_use_case(
