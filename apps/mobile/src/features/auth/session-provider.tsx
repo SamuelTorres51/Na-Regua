@@ -14,6 +14,7 @@ import {
   setAccessToken,
 } from "@/services/api-client";
 import {
+  ClientAccessDeniedError,
   getCurrentUser,
   signIn as requestSignIn,
   signUp as requestSignUp,
@@ -41,8 +42,11 @@ interface SessionContextValue {
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 
-function isExpiredSession(error: unknown) {
-  return hasApiStatus(error, HTTP_STATUS.unauthorized);
+function isRevokedSession(error: unknown) {
+  return (
+    hasApiStatus(error, HTTP_STATUS.unauthorized) ||
+    error instanceof ClientAccessDeniedError
+  );
 }
 
 async function endStoredSession() {
@@ -72,7 +76,7 @@ async function restoreSession(): Promise<AuthSession | null> {
     await saveSession(refreshedSession);
     return refreshedSession;
   } catch (error) {
-    if (isExpiredSession(error)) {
+    if (isRevokedSession(error)) {
       await endStoredSession();
       return null;
     }
