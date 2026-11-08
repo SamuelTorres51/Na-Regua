@@ -10,6 +10,16 @@ class AgendamentoRepository(ABC):
     def criar(self, agendamento: Agendamento) -> Agendamento: ...
 
     @abstractmethod
+    def buscar_por_id(self, agendamento_id: int) -> Agendamento | None: ...
+
+    @abstractmethod
+    def atualizar_status(
+        self,
+        agendamento_id: int,
+        status: StatusAgendamento,
+    ) -> Agendamento | None: ...
+
+    @abstractmethod
     def listar(
         self,
         *,

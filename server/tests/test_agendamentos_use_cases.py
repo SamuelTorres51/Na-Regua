@@ -44,6 +44,24 @@ class InMemoryAgendamentoRepository(AgendamentoRepository):
         self.agendamentos.append(criado)
         return criado
 
+    def buscar_por_id(self, agendamento_id: int) -> Agendamento | None:
+        return next(
+            (agendamento for agendamento in self.agendamentos
+             if agendamento.id == agendamento_id),
+            None,
+        )
+
+    def atualizar_status(
+        self,
+        agendamento_id: int,
+        status: StatusAgendamento,
+    ) -> Agendamento | None:
+        agendamento = self.buscar_por_id(agendamento_id)
+        if agendamento is None:
+            return None
+        agendamento.status = status
+        return agendamento
+
     def listar(
         self,
         *,

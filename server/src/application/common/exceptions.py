@@ -46,6 +46,14 @@ class AgendamentoNaoPermitidoError(ApplicationError):
     """Lançada quando o usuário não pode criar o agendamento solicitado."""
 
 
+class AgendamentoNaoEncontradoError(ApplicationError):
+    """Lançada quando um agendamento solicitado não é encontrado."""
+
+
+class AgendamentoNaoPodeSerCanceladoError(ApplicationError):
+    """Lançada quando um agendamento não atende às regras de cancelamento."""
+
+
 class ProfissionalServicoDuplicadoError(ApplicationError):
     """Lançada quando a associação já existe."""
 

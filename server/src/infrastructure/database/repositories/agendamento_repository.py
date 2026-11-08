@@ -35,6 +35,23 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
         self._db.refresh(model)
         return _para_entidade(model)
 
+    def buscar_por_id(self, agendamento_id: int) -> Agendamento | None:
+        model = self._db.get(AgendamentoModel, agendamento_id)
+        return _para_entidade(model) if model is not None else None
+
+    def atualizar_status(
+        self,
+        agendamento_id: int,
+        status: StatusAgendamento,
+    ) -> Agendamento | None:
+        model = self._db.get(AgendamentoModel, agendamento_id)
+        if model is None:
+            return None
+        model.status = status
+        self._db.commit()
+        self._db.refresh(model)
+        return _para_entidade(model)
+
     def listar(
         self,
         *,
