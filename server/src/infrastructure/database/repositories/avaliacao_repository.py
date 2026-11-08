@@ -64,6 +64,12 @@ class SqlAlchemyAvaliacaoRepository(AvaliacaoRepository):
         media = self._db.scalar(query)
         return float(media) if media is not None else None
 
+    def contar_por_profissional(self, profissional_id: int) -> int:
+        query = select(func.count(AvaliacaoModel.id)).where(
+            AvaliacaoModel.profissional_id == profissional_id
+        )
+        return self._db.scalar(query) or 0
+
 
 def _para_entidade(model: AvaliacaoModel) -> Avaliacao:
     return Avaliacao(

@@ -42,6 +42,9 @@ from application.use_cases.avaliacoes.criar_avaliacao import (
 from application.use_cases.avaliacoes.listar_avaliacoes_do_cliente import (
     ListarAvaliacoesDoClienteUseCase,
 )
+from application.use_cases.avaliacoes.consultar_media_avaliacoes_profissional import (
+    ConsultarMediaAvaliacoesProfissionalUseCase,
+)
 from application.use_cases.profissionais.atualizar_profissional import (
     AtualizarProfissionalUseCase,
 )
@@ -333,6 +336,22 @@ def get_profissional_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> ProfissionalRepository:
     return SqlAlchemyProfissionalRepository(db)
+
+
+def get_consultar_media_avaliacoes_profissional_use_case(
+    profissional_repository: Annotated[
+        ProfissionalRepository,
+        Depends(get_profissional_repository),
+    ],
+    avaliacao_repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> ConsultarMediaAvaliacoesProfissionalUseCase:
+    return ConsultarMediaAvaliacoesProfissionalUseCase(
+        profissional_repository,
+        avaliacao_repository,
+    )
 
 
 def get_associar_profissional_servico_use_case(

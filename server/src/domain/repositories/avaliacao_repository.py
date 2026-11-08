@@ -26,3 +26,6 @@ class AvaliacaoRepository(ABC):
         self,
         profissional_id: int,
     ) -> float | None: ...
+
+    @abstractmethod
+    def contar_por_profissional(self, profissional_id: int) -> int: ...

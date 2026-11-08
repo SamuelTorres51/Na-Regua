@@ -33,3 +33,23 @@ class AvaliacaoResponse(BaseModel):
         populate_by_name=True,
         from_attributes=True,
     )
+
+
+class MediaAvaliacoesProfissionalResponse(BaseModel):
+    profissional_id: int = Field(
+        validation_alias=AliasChoices("profissionalId", "profissional_id"),
+        serialization_alias="profissionalId",
+    )
+    media_nota: float | None = Field(
+        validation_alias=AliasChoices("mediaNota", "media_nota"),
+        serialization_alias="mediaNota",
+    )
+    total_avaliacoes: int = Field(
+        validation_alias=AliasChoices("totalAvaliacoes", "total_avaliacoes"),
+        serialization_alias="totalAvaliacoes",
+    )
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        from_attributes=True,
+    )

@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from api.dependencies import (
     get_criar_avaliacao_use_case,
+    get_consultar_media_avaliacoes_profissional_use_case,
     get_current_user,
     get_listar_avaliacoes_do_cliente_use_case,
 )
@@ -12,6 +13,7 @@ from application.common.exceptions import (
     AvaliacaoAgendamentoNaoConcluidoError,
     AvaliacaoJaRegistradaError,
     AvaliacaoNaoPermitidaError,
+    ProfissionalNaoEncontradoError,
     ValidationError,
 )
 from application.use_cases.avaliacoes.criar_avaliacao import (
@@ -21,14 +23,19 @@ from application.use_cases.avaliacoes.criar_avaliacao import (
 from application.use_cases.avaliacoes.listar_avaliacoes_do_cliente import (
     ListarAvaliacoesDoClienteUseCase,
 )
+from application.use_cases.avaliacoes.consultar_media_avaliacoes_profissional import (
+    ConsultarMediaAvaliacoesProfissionalUseCase,
+)
 from domain.entities.agendamento import Agendamento
 from domain.entities.avaliacao import Avaliacao
+from domain.entities.profissional import Profissional
 from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
 from domain.enums.status_agendamento import StatusAgendamento
 from domain.repositories.agendamento_repository import AgendamentoRepository
 from domain.repositories.avaliacao_repository import AvaliacaoRepository
 from main import app
+from tests.test_profissionais_use_cases import InMemoryProfissionalRepository
 
 
 class InMemoryAgendamentoRepository(AgendamentoRepository):
@@ -121,6 +128,13 @@ class InMemoryAvaliacaoRepository(AvaliacaoRepository):
             if avaliacao.profissional_id == profissional_id
         ]
         return sum(notas) / len(notas) if notas else None
+
+    def contar_por_profissional(self, profissional_id: int) -> int:
+        return sum(
+            1
+            for avaliacao in self.avaliacoes
+            if avaliacao.profissional_id == profissional_id
+        )
 
 
 def _usuario(usuario_id: int, perfil: PerfilAcesso) -> Usuario:
@@ -315,3 +329,101 @@ def test_endpoint_lista_historico_do_cliente_e_bloqueia_profissional() -> None:
         app.dependency_overrides.clear()
 
     assert sem_permissao.status_code == 403
+
+
+def _profissional(profissional_id: int = 2) -> Profissional:
+    return Profissional(
+        id=profissional_id,
+        nome="Profissional Teste",
+        email=f"profissional{profissional_id}@example.com",
+        telefone="86999999998",
+        senha_hash="hash",
+        perfil=PerfilAcesso.PROFISSIONAL,
+        ativo=True,
+        criado_em=datetime.now(timezone.utc),
+    )
+
+
+def test_calcula_media_e_quantidade_de_avaliacoes_do_profissional() -> None:
+    avaliacao_repository = InMemoryAvaliacaoRepository()
+    profissional_repository = InMemoryProfissionalRepository()
+    profissional_repository.profissionais.append(_profissional())
+    profissional_repository.profissionais.append(_profissional(3))
+    avaliacao_repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=20,
+            cliente_id=1,
+            profissional_id=2,
+            nota=4,
+        )
+    )
+    avaliacao_repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=21,
+            cliente_id=3,
+            profissional_id=2,
+            nota=5,
+        )
+    )
+    avaliacao_repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=22,
+            cliente_id=4,
+            profissional_id=99,
+            nota=1,
+        )
+    )
+    use_case = ConsultarMediaAvaliacoesProfissionalUseCase(
+        profissional_repository,
+        avaliacao_repository,
+    )
+
+    media = use_case.execute(2)
+
+    assert media.profissional_id == 2
+    assert media.media_nota == 4.5
+    assert media.total_avaliacoes == 2
+
+    sem_avaliacoes = use_case.execute(3)
+    assert sem_avaliacoes.media_nota is None
+    assert sem_avaliacoes.total_avaliacoes == 0
+
+    with pytest.raises(ProfissionalNaoEncontradoError):
+        use_case.execute(999)
+
+
+def test_endpoint_consulta_media_de_avaliacoes_do_profissional() -> None:
+    avaliacao_repository = InMemoryAvaliacaoRepository()
+    profissional_repository = InMemoryProfissionalRepository()
+    profissional_repository.profissionais.append(_profissional())
+    avaliacao_repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=20,
+            cliente_id=1,
+            profissional_id=2,
+            nota=3,
+        )
+    )
+    use_case = ConsultarMediaAvaliacoesProfissionalUseCase(
+        profissional_repository,
+        avaliacao_repository,
+    )
+    app.dependency_overrides[
+        get_consultar_media_avaliacoes_profissional_use_case
+    ] = lambda: use_case
+
+    try:
+        response = TestClient(app).get("/profissionais/2/avaliacoes/media")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "profissionalId": 2,
+        "mediaNota": 3.0,
+        "totalAvaliacoes": 1,
+    }
