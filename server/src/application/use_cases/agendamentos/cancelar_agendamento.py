@@ -9,11 +9,15 @@ from application.common.exceptions import (
     ValidationError,
 )
 from domain.entities.cancelamento import Cancelamento
+from domain.entities.notificacao import Notificacao
 from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
 from domain.enums.status_agendamento import StatusAgendamento
+from domain.enums.tipo_notificacao import TipoNotificacao
 from domain.repositories.agendamento_repository import AgendamentoRepository
 from domain.repositories.cancelamento_repository import CancelamentoRepository
+from domain.repositories.notificacao_repository import NotificacaoRepository
+from domain.repositories.servico_repository import ServicoRepository
 
 FORTALEZA_TZ = ZoneInfo("America/Fortaleza")
 ANTECEDENCIA_MINIMA_CANCELAMENTO = timedelta(minutes=60)
@@ -34,9 +38,13 @@ class CancelarAgendamentoUseCase:
         self,
         agendamento_repository: AgendamentoRepository,
         cancelamento_repository: CancelamentoRepository,
+        notificacao_repository: NotificacaoRepository | None = None,
+        servico_repository: ServicoRepository | None = None,
     ) -> None:
         self.agendamento_repository = agendamento_repository
         self.cancelamento_repository = cancelamento_repository
+        self.notificacao_repository = notificacao_repository
+        self.servico_repository = servico_repository
 
     def execute(
         self,
@@ -80,7 +88,35 @@ class CancelarAgendamentoUseCase:
             agendamento.id,
             StatusAgendamento.CANCELADO,
         )
-        return self.cancelamento_repository.criar(cancelamento)
+        cancelamento_criado = self.cancelamento_repository.criar(cancelamento)
+
+        # RF64: Notificação ao cliente em caso de cancelamento pela barbearia
+        if (
+            self.notificacao_repository is not None
+            and usuario_atual.id != agendamento.cliente_id
+        ):
+            servico_nome = "Serviço"
+            if self.servico_repository is not None:
+                servico = self.servico_repository.buscar_por_id(agendamento.servico_id)
+                if servico is not None:
+                    servico_nome = servico.nome
+
+            inicio_fmt = inicio.strftime("%d/%m/%Y às %H:%M")
+            self.notificacao_repository.criar(
+                Notificacao(
+                    id=None,
+                    usuario_id=agendamento.cliente_id,
+                    tipo=TipoNotificacao.CANCELAMENTO_AGENDAMENTO,
+                    mensagem=(
+                        f"Seu agendamento para {servico_nome} em {inicio_fmt} "
+                        f"foi cancelado pela barbearia. Motivo: {motivo}."
+                    ),
+                    enviada_em=cancelado_em,
+                    agendamento_id=agendamento.id,
+                )
+            )
+
+        return cancelamento_criado
 
     @staticmethod
     def _validar_permissao(agendamento, usuario_atual: Usuario) -> None:
