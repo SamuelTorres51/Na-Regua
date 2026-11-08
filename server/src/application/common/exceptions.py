@@ -54,6 +54,10 @@ class AgendamentoNaoPodeSerCanceladoError(ApplicationError):
     """Lançada quando um agendamento não atende às regras de cancelamento."""
 
 
+class AgendamentoStatusInvalidoError(ApplicationError):
+    """Lançada quando uma transição de status não é permitida."""
+
+
 class ProfissionalServicoDuplicadoError(ApplicationError):
     """Lançada quando a associação já existe."""
 
