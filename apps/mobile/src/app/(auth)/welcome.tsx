@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { Text, View } from "react-native";
 import Animated, {
   FadeInDown,
@@ -11,6 +11,8 @@ import { GradientBackground } from "@/components/layout/gradient-background";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { SecondaryButton } from "@/components/ui/secondary-button";
 import { StepDots } from "@/components/ui/step-dots";
+import { SESSION_EXPIRED_REASON } from "@/features/auth/session-expiry";
+import { useSession } from "@/features/auth/session-provider";
 import { useRotatingIndex } from "@/hooks/use-rotating-index";
 import { layout } from "@/theme/styles";
 
@@ -27,10 +29,23 @@ const TOP_SPACING = 40;
 export default function Welcome() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { dismissSessionExpired, hasSessionExpired } = useSession();
   const activeIndex = useRotatingIndex(
     HIGHLIGHTS.length,
     HIGHLIGHT_INTERVAL_MS
   );
+
+  useEffect(() => {
+    if (!hasSessionExpired) {
+      return;
+    }
+
+    dismissSessionExpired();
+    router.push({
+      params: { reason: SESSION_EXPIRED_REASON },
+      pathname: "/login",
+    });
+  }, [dismissSessionExpired, hasSessionExpired, router]);
 
   const handleGoToRegister = useCallback(
     () => router.push("/register"),

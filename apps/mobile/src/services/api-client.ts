@@ -17,9 +17,20 @@ const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(
 export const isApiEnabled = API_URL.length > 0;
 
 let accessToken: string | null = null;
+let unauthorizedHandler: (() => void) | null = null;
 
 export function setAccessToken(token: string | null) {
   accessToken = token;
+}
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  unauthorizedHandler = handler;
+}
+
+function notifyUnauthorized(sentToken: string | null) {
+  if (sentToken && sentToken === accessToken) {
+    unauthorizedHandler?.();
+  }
 }
 
 interface ApiErrorOptions extends ErrorOptions {
@@ -89,15 +100,15 @@ async function readPayload(response: Response): Promise<unknown> {
   }
 }
 
-function buildHeaders(hasBody: boolean) {
+function buildHeaders(hasBody: boolean, token: string | null) {
   const headers: Record<string, string> = { Accept: "application/json" };
 
   if (hasBody) {
     headers["Content-Type"] = "application/json";
   }
 
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
   return headers;
@@ -110,15 +121,20 @@ export async function request<TResponse>(
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   const hasBody = body !== undefined;
+  const sentToken = accessToken;
 
   try {
     const response = await fetch(`${API_URL}${path}`, {
       body: hasBody ? JSON.stringify(body) : undefined,
-      headers: buildHeaders(hasBody),
+      headers: buildHeaders(hasBody, sentToken),
       method,
       signal: controller.signal,
     });
     const payload = await readPayload(response);
+
+    if (response.status === HTTP_STATUS.unauthorized) {
+      notifyUnauthorized(sentToken);
+    }
 
     if (!response.ok) {
       throw new ApiError(readErrorMessage(payload), {

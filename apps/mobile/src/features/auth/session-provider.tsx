@@ -12,6 +12,7 @@ import {
   hasApiStatus,
   isApiEnabled,
   setAccessToken,
+  setUnauthorizedHandler,
 } from "@/services/api-client";
 import {
   ClientAccessDeniedError,
@@ -32,6 +33,8 @@ import {
 import type { AuthSession } from "@/types/models";
 
 interface SessionContextValue {
+  dismissSessionExpired: () => void;
+  hasSessionExpired: boolean;
   isLoading: boolean;
   session: AuthSession | null;
   signIn: (input: SignInInput) => Promise<void>;
@@ -88,6 +91,18 @@ async function restoreSession(): Promise<AuthSession | null> {
 export function SessionProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasSessionExpired, setHasSessionExpired] = useState(false);
+
+  const expireSession = useCallback(() => {
+    setHasSessionExpired(true);
+    setSession(null);
+    return endStoredSession();
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(expireSession);
+    return () => setUnauthorizedHandler(null);
+  }, [expireSession]);
 
   useEffect(() => {
     restoreSession()
@@ -99,8 +114,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const startSession = useCallback(async (nextSession: AuthSession) => {
     await saveSession(nextSession);
     setAccessToken(nextSession.token);
+    setHasSessionExpired(false);
     setSession(nextSession);
   }, []);
+
+  const dismissSessionExpired = useCallback(
+    () => setHasSessionExpired(false),
+    []
+  );
 
   const signIn = useCallback(
     async (input: SignInInput) => startSession(await requestSignIn(input)),
@@ -130,8 +151,26 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const value = useMemo(
-    () => ({ isLoading, session, signIn, signOut, signUp, updateProfile }),
-    [isLoading, session, signIn, signOut, signUp, updateProfile]
+    () => ({
+      dismissSessionExpired,
+      hasSessionExpired,
+      isLoading,
+      session,
+      signIn,
+      signOut,
+      signUp,
+      updateProfile,
+    }),
+    [
+      dismissSessionExpired,
+      hasSessionExpired,
+      isLoading,
+      session,
+      signIn,
+      signOut,
+      signUp,
+      updateProfile,
+    ]
   );
 
   return <SessionContext value={value}>{children}</SessionContext>;
