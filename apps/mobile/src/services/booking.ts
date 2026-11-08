@@ -10,9 +10,12 @@ import {
   getStoredAppointments,
   replaceAppointment,
 } from "./appointments";
-import { hasAppointmentAt, isSlotAvailable } from "./availability";
+import {
+  findBookableSelection,
+  hasAppointmentAt,
+  isSlotAvailable,
+} from "./availability";
 import { simulateLatency } from "./fake-api";
-import { BARBERS, SERVICES } from "./mock-data";
 
 export type BookingConflictReason = "clientBusy" | "notAllowed" | "unavailable";
 
@@ -33,10 +36,15 @@ export async function createAppointment({
 }: BookingRequest): Promise<Appointment> {
   await simulateLatency();
 
-  const barber = BARBERS.find((current) => current.id === barberId);
-  const service = SERVICES.find((current) => current.id === serviceId);
+  const selection = await findBookableSelection({ barberId, serviceId });
 
-  if (!(barber && service && isSlotAvailable(barber, service, startsAt))) {
+  if (!selection) {
+    throw new BookingConflictError("unavailable");
+  }
+
+  const { barber, service } = selection;
+
+  if (!isSlotAvailable(barber, service, startsAt)) {
     throw new BookingConflictError("unavailable");
   }
 

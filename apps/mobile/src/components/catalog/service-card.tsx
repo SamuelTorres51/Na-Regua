@@ -40,9 +40,11 @@ export function ServiceCard({
         </Text>
       </View>
 
-      <Text className="mt-1.5 font-roboto text-sm text-zinc-400 leading-5">
-        {service.description}
-      </Text>
+      {service.description ? (
+        <Text className="mt-1.5 font-roboto text-sm text-zinc-400 leading-5">
+          {service.description}
+        </Text>
+      ) : null}
 
       <View className="mt-4 flex-row items-center justify-between">
         <View className="flex-row items-center">
