@@ -21,6 +21,9 @@ from infrastructure.database.models.profissional_servico_model import (
 from infrastructure.database.models.cancelamento_model import (
     CancelamentoModel as _CancelamentoModel,
 )
+from infrastructure.database.models.notificacao_model import (
+    NotificacaoModel as _NotificacaoModel,
+)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

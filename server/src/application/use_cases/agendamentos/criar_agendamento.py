@@ -12,10 +12,13 @@ from application.common.exceptions import (
     ValidationError,
 )
 from domain.entities.agendamento import Agendamento
+from domain.entities.notificacao import Notificacao
 from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
 from domain.enums.status_agendamento import StatusAgendamento
+from domain.enums.tipo_notificacao import TipoNotificacao
 from domain.repositories.agendamento_repository import AgendamentoRepository
+from domain.repositories.notificacao_repository import NotificacaoRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.profissional_servico_repository import (
     ProfissionalServicoRepository,
@@ -42,11 +45,13 @@ class CriarAgendamentoUseCase:
         usuario_repository: UsuarioRepository,
         servico_repository: ServicoRepository,
         profissional_servico_repository: ProfissionalServicoRepository,
+        notificacao_repository: NotificacaoRepository | None = None,
     ) -> None:
         self.agendamento_repository = agendamento_repository
         self.usuario_repository = usuario_repository
         self.servico_repository = servico_repository
         self.profissional_servico_repository = profissional_servico_repository
+        self.notificacao_repository = notificacao_repository
 
     def execute(
         self,
@@ -99,7 +104,7 @@ class CriarAgendamentoUseCase:
                 "O cliente já possui um agendamento nesse horário."
             )
 
-        return self.agendamento_repository.criar(
+        criado = self.agendamento_repository.criar(
             Agendamento(
                 id=None,
                 cliente_id=dados.cliente_id,
@@ -110,6 +115,40 @@ class CriarAgendamentoUseCase:
                 status=StatusAgendamento.AGENDADO,
             )
         )
+
+        if self.notificacao_repository is not None:
+            inicio_fmt = inicio.strftime("%d/%m/%Y às %H:%M")
+            # RF62: Notificação ao cliente confirmando agendamento realizado
+            self.notificacao_repository.criar(
+                Notificacao(
+                    id=None,
+                    usuario_id=dados.cliente_id,
+                    tipo=TipoNotificacao.CONFIRMACAO_AGENDAMENTO,
+                    mensagem=(
+                        f"Seu agendamento para {servico.nome} em {inicio_fmt} "
+                        "foi realizado com sucesso."
+                    ),
+                    enviada_em=agora,
+                    agendamento_id=criado.id,
+                )
+            )
+            # RF63: Notificação ao profissional sobre novo agendamento
+            cliente_nome = cliente.nome if cliente is not None else "Cliente"
+            self.notificacao_repository.criar(
+                Notificacao(
+                    id=None,
+                    usuario_id=dados.profissional_id,
+                    tipo=TipoNotificacao.NOVO_AGENDAMENTO,
+                    mensagem=(
+                        f"Novo agendamento recebido: {servico.nome} com {cliente_nome} "
+                        f"em {inicio_fmt}."
+                    ),
+                    enviada_em=agora,
+                    agendamento_id=criado.id,
+                )
+            )
+
+        return criado
 
     @staticmethod
     def _validar_data(inicio: datetime, agora: datetime) -> None:

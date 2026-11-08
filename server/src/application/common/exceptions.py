@@ -60,3 +60,12 @@ class ProfissionalServicoDuplicadoError(ApplicationError):
 
 class ProfissionalServicoNaoEncontradoError(ApplicationError):
     """Lançada quando a associação não existe."""
+
+
+class NotificacaoNaoEncontradaError(ApplicationError):
+    """Lançada quando uma notificação solicitada não é encontrada."""
+
+
+class NotificacaoNaoPermitidaError(ApplicationError):
+    """Lançada quando o usuário tenta acessar ou modificar uma notificação de outro usuário."""
+
