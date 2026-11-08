@@ -21,6 +21,9 @@ from application.use_cases.agendamentos.criar_agendamento import (
 from application.use_cases.agendamentos.listar_agendamentos import (
     ListarAgendamentosUseCase,
 )
+from application.use_cases.agendamentos.cancelar_agendamento import (
+    CancelarAgendamentoUseCase,
+)
 from application.use_cases.profissionais.atualizar_profissional import (
     AtualizarProfissionalUseCase,
 )
@@ -60,6 +63,7 @@ from domain.repositories.agendamento_repository import AgendamentoRepository
 from domain.repositories.profissional_servico_repository import (
     ProfissionalServicoRepository,
 )
+from domain.repositories.cancelamento_repository import CancelamentoRepository
 from infrastructure.database.connection import get_db as get_database_session
 from infrastructure.database.repositories.profissional_repository import (
     SqlAlchemyProfissionalRepository,
@@ -75,6 +79,9 @@ from infrastructure.database.repositories.agendamento_repository import (
 )
 from infrastructure.database.repositories.profissional_servico_repository import (
     SqlAlchemyProfissionalServicoRepository,
+)
+from infrastructure.database.repositories.cancelamento_repository import (
+    SqlAlchemyCancelamentoRepository,
 )
 
 
@@ -125,6 +132,28 @@ def get_agendamento_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> AgendamentoRepository:
     return SqlAlchemyAgendamentoRepository(db)
+
+
+def get_cancelamento_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> CancelamentoRepository:
+    return SqlAlchemyCancelamentoRepository(db)
+
+
+def get_cancelar_agendamento_use_case(
+    agendamento_repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+    cancelamento_repository: Annotated[
+        CancelamentoRepository,
+        Depends(get_cancelamento_repository),
+    ],
+) -> CancelarAgendamentoUseCase:
+    return CancelarAgendamentoUseCase(
+        agendamento_repository,
+        cancelamento_repository,
+    )
 
 
 def get_profissional_servico_repository(

@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.dependencies import (
+    get_cancelar_agendamento_use_case,
     get_current_user,
     get_criar_agendamento_use_case,
     get_listar_agendamentos_use_case,
@@ -12,8 +13,14 @@ from api.schemas.agendamento import (
     AgendamentoResponse,
     CriarAgendamentoRequest,
 )
+from api.schemas.cancelamento import (
+    CancelamentoResponse,
+    CancelarAgendamentoRequest,
+)
 from application.common.exceptions import (
     AgendamentoConflitanteError,
+    AgendamentoNaoEncontradoError,
+    AgendamentoNaoPodeSerCanceladoError,
     AgendamentoNaoPermitidoError,
     ClienteNaoEncontradoError,
     ProfissionalNaoEncontradoError,
@@ -29,10 +36,60 @@ from application.use_cases.agendamentos.listar_agendamentos import (
     ListarAgendamentosInput,
     ListarAgendamentosUseCase,
 )
+from application.use_cases.agendamentos.cancelar_agendamento import (
+    CancelarAgendamentoInput,
+    CancelarAgendamentoUseCase,
+)
 from domain.entities.usuario import Usuario
 from domain.enums.status_agendamento import StatusAgendamento
 
 router = APIRouter(prefix="/agendamentos", tags=["Agendamentos"])
+
+
+@router.post(
+    "/{agendamento_id}/cancelar",
+    response_model=CancelamentoResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Cancelar um agendamento",
+)
+def cancelar_agendamento(
+    agendamento_id: int,
+    request: CancelarAgendamentoRequest,
+    usuario_atual: Annotated[Usuario, Depends(get_current_user)],
+    use_case: Annotated[
+        CancelarAgendamentoUseCase,
+        Depends(get_cancelar_agendamento_use_case),
+    ],
+) -> CancelamentoResponse:
+    try:
+        cancelamento = use_case.execute(
+            CancelarAgendamentoInput(
+                agendamento_id=agendamento_id,
+                motivo=request.motivo,
+            ),
+            usuario_atual,
+        )
+        return CancelamentoResponse.model_validate(cancelamento)
+    except ValidationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
+    except AgendamentoNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except AgendamentoNaoPermitidoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(error),
+        ) from error
+    except AgendamentoNaoPodeSerCanceladoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
 
 
 @router.get(
