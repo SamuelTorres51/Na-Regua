@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
@@ -7,15 +7,22 @@ import { FormField } from "@/components/form/form-field";
 import { FormScreen } from "@/components/layout/form-screen";
 import { BackButton } from "@/components/ui/back-button";
 import { FooterPrompt } from "@/components/ui/footer-prompt";
+import { InfoNote } from "@/components/ui/info-note";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { TextLink } from "@/components/ui/text-link";
+import {
+  SESSION_EXPIRED_MESSAGE,
+  SESSION_EXPIRED_REASON,
+} from "@/features/auth/session-expiry";
 import { useLoginForm } from "@/features/auth/use-login-form";
 import { layout } from "@/theme/styles";
 import { MAX_PASSWORD_LENGTH } from "@/utils/password";
 
 export default function Login() {
   const router = useRouter();
+  const { reason } = useLocalSearchParams<{ reason?: string }>();
+  const hasSessionExpired = reason === SESSION_EXPIRED_REASON;
   const {
     email,
     errors,
@@ -48,6 +55,12 @@ export default function Login() {
           subtitle="Entre para ver seus agendamentos."
           title={"Bem-vindo\nde volta"}
         />
+
+        {hasSessionExpired ? (
+          <View className="mt-8">
+            <InfoNote message={SESSION_EXPIRED_MESSAGE} />
+          </View>
+        ) : null}
 
         <View className="mt-10" style={layout.fieldGroup}>
           <FormField
