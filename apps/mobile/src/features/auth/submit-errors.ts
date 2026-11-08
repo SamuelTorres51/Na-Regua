@@ -2,6 +2,7 @@ import { isNetworkError } from "@/services/api-client";
 import { InvalidCredentialsError } from "@/services/auth";
 
 export const submitErrorMessages = {
+  changePassword: "Não foi possível alterar sua senha. Tente novamente.",
   invalidCredentials: "E-mail ou senha incorretos.",
   network:
     "Sem conexão com o servidor. Verifique sua internet e tente novamente.",
