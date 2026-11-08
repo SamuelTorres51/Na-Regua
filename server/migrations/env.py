@@ -24,6 +24,9 @@ from infrastructure.database.models.cancelamento_model import (
 from infrastructure.database.models.notificacao_model import (
     NotificacaoModel as _NotificacaoModel,
 )
+from infrastructure.database.models.avaliacao_model import (
+    AvaliacaoModel as _AvaliacaoModel,
+)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)
