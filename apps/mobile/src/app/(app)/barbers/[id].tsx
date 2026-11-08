@@ -38,7 +38,7 @@ export default function BarberDetails() {
         <BackButton />
 
         <ScreenHeader
-          subtitle="Especialidades e serviços atendidos."
+          subtitle="Serviços atendidos pelo profissional."
           title={"Perfil do\nprofissional"}
         />
 

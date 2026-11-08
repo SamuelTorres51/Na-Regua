@@ -6,6 +6,7 @@ const NETWORK_ERROR_MESSAGE = "Não foi possível conectar ao servidor.";
 export const HTTP_STATUS = {
   conflict: 409,
   network: 0,
+  notFound: 404,
   unauthorized: 401,
 } as const;
 

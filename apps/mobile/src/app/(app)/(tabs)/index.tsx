@@ -92,7 +92,7 @@ export default function Home() {
             title="Serviços e preços"
           />
           <ShortcutCard
-            description="Conheça a equipe e as especialidades."
+            description="Conheça a equipe da barbearia."
             icon="people-outline"
             onPress={handleGoToBarbers}
             title="Profissionais"

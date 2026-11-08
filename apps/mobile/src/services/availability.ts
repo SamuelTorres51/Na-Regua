@@ -13,13 +13,12 @@ import type {
 } from "@/types/models";
 import { addDays, isValidDate, startOfDay } from "@/utils/date";
 import { findStoredAppointment, getBarberAppointments } from "./appointments";
+import { canBarberPerformService, findBarber, findService } from "./catalog";
 import { simulateLatency } from "./fake-api";
 import {
-  BARBERS,
   BUSINESS_HOURS,
   createMockBusyPeriods,
   createMockClosedDates,
-  SERVICES,
   WORKING_HOURS,
 } from "./mock-data";
 
@@ -186,7 +185,7 @@ function createSchedule(
     busyPeriods: getBarberBusyPeriods(barber.id, ignoredAppointmentId),
     durationMs: service.durationMinutes * MS_PER_MINUTE,
     earliestStart: now.getTime() + MIN_BOOKING_NOTICE_MINUTES * MS_PER_MINUTE,
-    workingHours: WORKING_HOURS[barber.id] ?? {},
+    workingHours: WORKING_HOURS[barber.id] ?? BUSINESS_HOURS,
   };
 }
 
@@ -203,7 +202,7 @@ export function isSlotAvailable(
   startsAt: string,
   ignoredAppointmentId?: string
 ) {
-  if (!(isValidDate(startsAt) && barber.serviceIds.includes(service.id))) {
+  if (!isValidDate(startsAt)) {
     return false;
   }
 
@@ -256,20 +255,31 @@ function removeSlot(day: BookingDay, startsAt: string): BookingDay {
   return { ...day, slots, status: slots.length > 0 ? "available" : "full" };
 }
 
-export async function listBookingDays({
+export async function findBookableSelection({
   barberId,
   serviceId,
-}: BookingSelectionIds): Promise<BookingDay[]> {
-  await simulateLatency();
-
-  const barber = BARBERS.find((current) => current.id === barberId);
-  const service = SERVICES.find((current) => current.id === serviceId);
-
-  if (!(barber && service && barber.serviceIds.includes(service.id))) {
-    return [];
+}: BookingSelectionIds) {
+  if (!(barberId && serviceId)) {
+    return null;
   }
 
-  return buildBookingDays(barber, service);
+  const [barber, service, isAllowed] = await Promise.all([
+    findBarber(barberId),
+    findService(serviceId),
+    canBarberPerformService(barberId, serviceId),
+  ]);
+
+  return barber && service && isAllowed ? { barber, service } : null;
+}
+
+export async function listBookingDays(
+  ids: BookingSelectionIds
+): Promise<BookingDay[]> {
+  await simulateLatency();
+
+  const selection = await findBookableSelection(ids);
+
+  return selection ? buildBookingDays(selection.barber, selection.service) : [];
 }
 
 export async function listRescheduleDays(

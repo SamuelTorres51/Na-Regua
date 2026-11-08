@@ -17,7 +17,6 @@ const MS_PER_MINUTE = 60_000;
 
 export const SERVICES: Service[] = [
   {
-    category: "hair",
     description: "Degradê na máquina com acabamento na tesoura.",
     durationMinutes: 45,
     id: "svc-corte-degrade",
@@ -25,7 +24,6 @@ export const SERVICES: Service[] = [
     priceInCents: 3500,
   },
   {
-    category: "hair",
     description: "Corte clássico na tesoura, com acabamento no pezinho.",
     durationMinutes: 40,
     id: "svc-corte-social",
@@ -33,7 +31,6 @@ export const SERVICES: Service[] = [
     priceInCents: 3000,
   },
   {
-    category: "hair",
     description: "Lavagem com shampoo e finalização com escova.",
     durationMinutes: 30,
     id: "svc-lavagem-escova",
@@ -41,7 +38,6 @@ export const SERVICES: Service[] = [
     priceInCents: 2500,
   },
   {
-    category: "beard",
     description: "Barba modelada com toalha quente e navalha.",
     durationMinutes: 30,
     id: "svc-barba",
@@ -49,7 +45,6 @@ export const SERVICES: Service[] = [
     priceInCents: 2500,
   },
   {
-    category: "beard",
     description: "Limpeza e alinhamento da sobrancelha na navalha.",
     durationMinutes: 20,
     id: "svc-sobrancelha",
@@ -57,7 +52,6 @@ export const SERVICES: Service[] = [
     priceInCents: 1500,
   },
   {
-    category: "manicure",
     description: "Corte, lixa e cutilagem das unhas das mãos.",
     durationMinutes: 45,
     id: "svc-manicure",
@@ -65,7 +59,6 @@ export const SERVICES: Service[] = [
     priceInCents: 3000,
   },
   {
-    category: "manicure",
     description: "Corte, lixa, cutilagem e hidratação dos pés.",
     durationMinutes: 60,
     id: "svc-pedicure",
@@ -73,7 +66,6 @@ export const SERVICES: Service[] = [
     priceInCents: 4000,
   },
   {
-    category: "aesthetics",
     description: "Design com pinça e linha, de acordo com o formato do rosto.",
     durationMinutes: 50,
     id: "svc-design-sobrancelha",
@@ -81,7 +73,6 @@ export const SERVICES: Service[] = [
     priceInCents: 3500,
   },
   {
-    category: "wigs",
     description: "Aplicação e ajuste da peruca ao formato da cabeça.",
     durationMinutes: 90,
     id: "svc-aplicacao-peruca",
@@ -89,7 +80,6 @@ export const SERVICES: Service[] = [
     priceInCents: 8000,
   },
   {
-    category: "wigs",
     description: "Higienização, hidratação e reajuste da peruca.",
     durationMinutes: 60,
     id: "svc-manutencao-peruca",
@@ -99,44 +89,32 @@ export const SERVICES: Service[] = [
 ];
 
 export const BARBERS: Barber[] = [
-  {
-    id: "brb-rafael",
-    name: "Rafael Costa",
-    role: "Barbeiro especialista",
-    serviceIds: [
-      "svc-corte-degrade",
-      "svc-corte-social",
-      "svc-barba",
-      "svc-sobrancelha",
-      "svc-design-sobrancelha",
-    ],
-    specialities: ["Degradê", "Barba", "Sobrancelha"],
-  },
-  {
-    id: "brb-lucas",
-    name: "Lucas Mendes",
-    role: "Cabeleireiro",
-    serviceIds: [
-      "svc-corte-social",
-      "svc-lavagem-escova",
-      "svc-aplicacao-peruca",
-      "svc-manutencao-peruca",
-    ],
-    specialities: ["Corte social", "Lavagem e escova", "Perucas"],
-  },
-  {
-    id: "brb-bruno",
-    name: "Bruno Santos",
-    role: "Barbeiro",
-    serviceIds: [
-      "svc-corte-degrade",
-      "svc-barba",
-      "svc-manicure",
-      "svc-pedicure",
-    ],
-    specialities: ["Degradê", "Barba", "Manicure e pedicure"],
-  },
+  { id: "brb-rafael", name: "Rafael Costa" },
+  { id: "brb-lucas", name: "Lucas Mendes" },
+  { id: "brb-bruno", name: "Bruno Santos" },
 ];
+
+export const BARBER_SERVICE_IDS: Record<string, string[]> = {
+  "brb-bruno": [
+    "svc-corte-degrade",
+    "svc-barba",
+    "svc-manicure",
+    "svc-pedicure",
+  ],
+  "brb-lucas": [
+    "svc-corte-social",
+    "svc-lavagem-escova",
+    "svc-aplicacao-peruca",
+    "svc-manutencao-peruca",
+  ],
+  "brb-rafael": [
+    "svc-corte-degrade",
+    "svc-corte-social",
+    "svc-barba",
+    "svc-sobrancelha",
+    "svc-design-sobrancelha",
+  ],
+};
 
 const WEEKDAY_OPENING: TimeRange[] = [{ end: "19:00", start: "09:00" }];
 const SATURDAY_OPENING: TimeRange[] = [{ end: "14:00", start: "08:00" }];
