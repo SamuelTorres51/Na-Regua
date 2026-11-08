@@ -27,6 +27,11 @@ export interface UpdateProfileInput {
   phone: string;
 }
 
+export interface ChangePasswordInput {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export class EmailInUseError extends Error {
   constructor() {
     super("E-mail já cadastrado.");
@@ -38,6 +43,13 @@ export class InvalidCredentialsError extends Error {
   constructor() {
     super("E-mail ou senha inválidos.");
     this.name = "InvalidCredentialsError";
+  }
+}
+
+export class IncorrectPasswordError extends Error {
+  constructor() {
+    super("A senha atual está incorreta.");
+    this.name = "IncorrectPasswordError";
   }
 }
 
@@ -93,6 +105,14 @@ function rethrowEmailInUse(error: unknown): never {
 function rethrowInvalidCredentials(error: unknown): never {
   if (hasApiStatus(error, HTTP_STATUS.unauthorized)) {
     throw new InvalidCredentialsError();
+  }
+
+  throw error;
+}
+
+function rethrowIncorrectPassword(error: unknown): never {
+  if (hasApiStatus(error, HTTP_STATUS.badRequest)) {
+    throw new IncorrectPasswordError();
   }
 
   throw error;
@@ -213,6 +233,27 @@ async function updateProfileWithApi(
   }
 }
 
+async function changePasswordWithMock(_input: ChangePasswordInput) {
+  await simulateLatency();
+}
+
+async function changePasswordWithApi({
+  currentPassword,
+  newPassword,
+}: ChangePasswordInput) {
+  try {
+    await api.put("/auth/alterar-senha", {
+      nova_senha: newPassword,
+      senha_atual: currentPassword,
+    });
+  } catch (error) {
+    rethrowIncorrectPassword(error);
+  }
+}
+
+export const changePassword = isApiEnabled
+  ? changePasswordWithApi
+  : changePasswordWithMock;
 export const signIn = isApiEnabled ? signInWithApi : signInWithMock;
 export const signUp = isApiEnabled ? signUpWithApi : signUpWithMock;
 export const updateProfile = isApiEnabled

@@ -6,12 +6,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const MAX_FULL_NAME_LENGTH = 150;
 
 export const validationMessages = {
+  currentPassword: "Informe sua senha atual.",
+  currentPasswordIncorrect: "A senha atual está incorreta.",
   email: "Informe um e-mail válido.",
   emailInUse: "Este e-mail já está em uso por outra conta.",
   fullName: "Informe seu nome e sobrenome.",
   password: `A senha precisa de ao menos ${MIN_PASSWORD_LENGTH} caracteres.`,
   passwordMismatch: "As senhas não conferem.",
   phone: "Informe um telefone com DDD.",
+  samePassword: "A nova senha precisa ser diferente da atual.",
   terms: "É preciso aceitar os termos para continuar.",
 } as const;
 
@@ -102,6 +105,42 @@ export function validateRegister({
     [
       "hasAcceptedTerms",
       hasAcceptedTerms ? undefined : validationMessages.terms,
+    ],
+  ]);
+}
+
+export interface PasswordChangeValues {
+  confirmPassword: string;
+  currentPassword: string;
+  newPassword: string;
+}
+
+export type PasswordChangeErrors = FieldErrors<keyof PasswordChangeValues>;
+
+function validateNewPassword(newPassword: string, currentPassword: string) {
+  if (currentPassword && newPassword === currentPassword) {
+    return validationMessages.samePassword;
+  }
+
+  return validatePassword(newPassword);
+}
+
+export function validatePasswordChange({
+  confirmPassword,
+  currentPassword,
+  newPassword,
+}: PasswordChangeValues): PasswordChangeErrors {
+  return collectErrors<keyof PasswordChangeValues>([
+    [
+      "currentPassword",
+      currentPassword ? undefined : validationMessages.currentPassword,
+    ],
+    ["newPassword", validateNewPassword(newPassword, currentPassword)],
+    [
+      "confirmPassword",
+      confirmPassword === newPassword
+        ? undefined
+        : validationMessages.passwordMismatch,
     ],
   ]);
 }
