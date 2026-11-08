@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
+from domain.enums.status_agendamento import StatusAgendamento
+
 
 class CriarAgendamentoRequest(BaseModel):
     cliente_id: int = Field(
@@ -19,6 +21,10 @@ class CriarAgendamentoRequest(BaseModel):
     inicio: datetime
 
     model_config = ConfigDict(populate_by_name=True)
+
+
+class AtualizarStatusAgendamentoRequest(BaseModel):
+    status: StatusAgendamento
 
 
 class AgendamentoResponse(BaseModel):
