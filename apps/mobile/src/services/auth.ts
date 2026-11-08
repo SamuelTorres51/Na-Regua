@@ -5,8 +5,9 @@ import { simulateLatency } from "./fake-api";
 
 const MOCK_TOKEN = "mock-token";
 const MOCK_USER_ID = "usr-1";
-const TAKEN_EMAILS = ["barbearia@naregua.com"];
+const STAFF_EMAILS = ["barbearia@naregua.com"];
 const SESSION_CHECK_TIMEOUT_MS = 5000;
+const CLIENT_ROLE = "cliente";
 
 export interface SignInInput {
   email: string;
@@ -40,10 +41,18 @@ export class InvalidCredentialsError extends Error {
   }
 }
 
+export class ClientAccessDeniedError extends Error {
+  constructor() {
+    super("A conta não é de cliente.");
+    this.name = "ClientAccessDeniedError";
+  }
+}
+
 interface UserResponse {
   email: string;
   id: number;
   nome: string;
+  perfil: string;
   telefone: string;
 }
 
@@ -65,6 +74,14 @@ function toSession({ access_token, usuario }: AuthResponse): AuthSession {
   return { token: access_token, user: toUser(usuario) };
 }
 
+function isClientAccount({ perfil }: UserResponse) {
+  return perfil === CLIENT_ROLE;
+}
+
+function isStaffEmail(email: string) {
+  return STAFF_EMAILS.includes(email.toLowerCase());
+}
+
 function rethrowEmailInUse(error: unknown): never {
   if (hasApiStatus(error, HTTP_STATUS.conflict)) {
     throw new EmailInUseError();
@@ -82,16 +99,17 @@ function rethrowInvalidCredentials(error: unknown): never {
 }
 
 function isEmailTaken(email: string, currentEmail = "") {
-  const normalizedEmail = email.toLowerCase();
-
   return (
-    normalizedEmail !== currentEmail.toLowerCase() &&
-    TAKEN_EMAILS.includes(normalizedEmail)
+    email.toLowerCase() !== currentEmail.toLowerCase() && isStaffEmail(email)
   );
 }
 
 async function signInWithMock({ email }: SignInInput): Promise<AuthSession> {
   await simulateLatency();
+
+  if (isStaffEmail(email)) {
+    throw new InvalidCredentialsError();
+  }
 
   return {
     token: MOCK_TOKEN,
@@ -134,20 +152,28 @@ async function updateProfileWithMock(
   return { ...currentUser, ...changes };
 }
 
+async function requestSignIn(email: string, password: string) {
+  try {
+    return await api.post<AuthResponse>("/auth/login", {
+      email,
+      senha: password,
+    });
+  } catch (error) {
+    return rethrowInvalidCredentials(error);
+  }
+}
+
 async function signInWithApi({
   email,
   password,
 }: SignInInput): Promise<AuthSession> {
-  try {
-    const response = await api.post<AuthResponse>("/auth/login", {
-      email,
-      senha: password,
-    });
+  const response = await requestSignIn(email, password);
 
-    return toSession(response);
-  } catch (error) {
-    return rethrowInvalidCredentials(error);
+  if (!isClientAccount(response.usuario)) {
+    throw new InvalidCredentialsError();
   }
+
+  return toSession(response);
 }
 
 async function signUpWithApi({
@@ -197,6 +223,10 @@ export async function getCurrentUser() {
   const response = await api.get<UserResponse>("/auth/me", {
     timeoutMs: SESSION_CHECK_TIMEOUT_MS,
   });
+
+  if (!isClientAccount(response)) {
+    throw new ClientAccessDeniedError();
+  }
 
   return toUser(response);
 }
