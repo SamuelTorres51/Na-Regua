@@ -1,19 +1,14 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
 import type { AppPage } from "@/components/layout/app-sidebar";
+import { LoadingScreen } from "@/components/layout/loading-screen";
+import { useSession } from "@/features/auth/session-provider";
 import { AgendaPage } from "@/pages/agenda-page";
 import { ClientsPage } from "@/pages/clients-page";
 import { LoginPage } from "@/pages/login-page";
 import { ProfessionalsPage } from "@/pages/professionals-page";
 import { ServicesPage } from "@/pages/services-page";
-
-// PROVISÓRIO: substituir pelos dados do usuário autenticado quando a
-// autenticação real estiver integrada.
-const CURRENT_USER = {
-  name: "Administrador",
-  role: "administrador",
-};
 
 function getPageContent(page: AppPage) {
   if (page === "clientes") {
@@ -32,23 +27,24 @@ function getPageContent(page: AppPage) {
 }
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isLoading, session, signOut } = useSession();
   const [page, setPage] = useState<AppPage>("agenda");
 
-  const handleAuthenticated = useCallback(() => setIsAuthenticated(true), []);
-  const handleSignOut = useCallback(() => setIsAuthenticated(false), []);
+  if (isLoading) {
+    return <LoadingScreen label="Carregando sua sessão..." />;
+  }
 
-  if (!isAuthenticated) {
-    return <LoginPage onAuthenticated={handleAuthenticated} />;
+  if (!session) {
+    return <LoginPage />;
   }
 
   return (
     <AppShell
       onNavigate={setPage}
-      onSignOut={handleSignOut}
+      onSignOut={signOut}
       page={page}
-      userName={CURRENT_USER.name}
-      userRole={CURRENT_USER.role}
+      userName={session.usuario.nome}
+      userRole={session.usuario.perfil}
     >
       {getPageContent(page)}
     </AppShell>

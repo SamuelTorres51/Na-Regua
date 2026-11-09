@@ -16,12 +16,9 @@ const HIGHLIGHTS = [
   "Histórico de atendimentos em um só lugar.",
 ];
 
-interface LoginPageProps {
-  onAuthenticated?: () => void;
-}
-
-export function LoginPage({ onAuthenticated }: LoginPageProps) {
+export function LoginPage() {
   const {
+    alertMessage,
     email,
     errors,
     handleRecoverPassword,
@@ -30,8 +27,7 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
     password,
     setEmail,
     setPassword,
-    submitError,
-  } = useLoginForm({ onSuccess: onAuthenticated });
+  } = useLoginForm();
 
   const handleFormSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -113,7 +109,7 @@ export function LoginPage({ onAuthenticated }: LoginPageProps) {
               />
             </div>
 
-            {submitError ? <FormAlert message={submitError} /> : null}
+            {alertMessage ? <FormAlert message={alertMessage} /> : null}
 
             <PrimaryButton isLoading={isSubmitting} label="Entrar" />
           </form>
