@@ -13,6 +13,7 @@ class PessoaAgendamentoResponse(BaseModel):
 class ServicoAgendamentoResponse(BaseModel):
     id: int
     nome: str
+    preco: float
 
 
 class CriarAgendamentoRequest(BaseModel):
