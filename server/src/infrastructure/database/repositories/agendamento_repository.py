@@ -157,7 +157,11 @@ def _para_entidade(model: AgendamentoModel, db: Session) -> Agendamento:
             else None
         ),
         servico=(
-            ServicoAgendamento(id=servico.id, nome=servico.nome)
+            ServicoAgendamento(
+                id=servico.id,
+                nome=servico.nome,
+                preco=servico.preco,
+            )
             if servico is not None
             else None
         ),

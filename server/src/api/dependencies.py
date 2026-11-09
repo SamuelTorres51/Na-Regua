@@ -70,6 +70,8 @@ from application.use_cases.profissionais.reativar_profissional import (
     ReativarProfissionalUseCase,
 )
 from application.use_cases.clientes.listar_clientes import ListarClientesUseCase
+from application.use_cases.clientes.cadastrar_cliente import CadastrarClienteUseCase
+from application.use_cases.clientes.reativar_cliente import ReativarClienteUseCase
 from application.use_cases.clientes.buscar_cliente_por_id import (
     BuscarClientePorIdUseCase,
 )
@@ -534,6 +536,12 @@ def get_listar_clientes_use_case(
     return ListarClientesUseCase(repository)
 
 
+def get_cadastrar_cliente_use_case(
+    repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
+) -> CadastrarClienteUseCase:
+    return CadastrarClienteUseCase(repository)
+
+
 def get_buscar_cliente_por_id_use_case(
     repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
 ) -> BuscarClientePorIdUseCase:
@@ -550,6 +558,12 @@ def get_inativar_cliente_use_case(
     repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
 ) -> InativarClienteUseCase:
     return InativarClienteUseCase(repository)
+
+
+def get_reativar_cliente_use_case(
+    repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
+) -> ReativarClienteUseCase:
+    return ReativarClienteUseCase(repository)
 
 
 def get_current_user(

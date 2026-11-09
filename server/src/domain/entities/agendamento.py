@@ -14,6 +14,7 @@ class PessoaAgendamento:
 class ServicoAgendamento:
     id: int
     nome: str
+    preco: float
 
 
 @dataclass
