@@ -4,6 +4,7 @@ from api.routes import (
     agendamentos,
     auth,
     avaliacoes,
+    clientes,
     health,
     notificacoes,
     profissionais,
@@ -24,3 +25,4 @@ app.include_router(profissionais.router)
 app.include_router(agendamentos.router)
 app.include_router(avaliacoes.router)
 app.include_router(notificacoes.router)
+app.include_router(clientes.router)
