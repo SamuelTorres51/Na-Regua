@@ -10,6 +10,7 @@ export const HTTP_STATUS = {
   network: 0,
   notFound: 404,
   unauthorized: 401,
+  unprocessableEntity: 422,
 } as const;
 
 const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(
@@ -56,6 +57,25 @@ export function hasApiStatus(error: unknown, status: number) {
 
 export function isNetworkError(error: unknown) {
   return hasApiStatus(error, HTTP_STATUS.network);
+}
+
+const USER_FACING_STATUSES = new Set<number>([
+  HTTP_STATUS.network,
+  HTTP_STATUS.badRequest,
+  HTTP_STATUS.forbidden,
+  HTTP_STATUS.notFound,
+  HTTP_STATUS.conflict,
+  HTTP_STATUS.unprocessableEntity,
+]);
+
+// Mostra a mensagem da API quando ela explica o problema ao usuário (ex.:
+// e-mail já cadastrado); nos demais casos, usa a mensagem da tela.
+export function getApiErrorMessage(error: unknown, fallbackMessage: string) {
+  if (error instanceof ApiError && USER_FACING_STATUSES.has(error.status)) {
+    return error.message;
+  }
+
+  return fallbackMessage;
 }
 
 type HttpMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";

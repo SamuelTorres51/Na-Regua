@@ -1,4 +1,4 @@
-import type { ChangeEvent, RefObject } from "react";
+import type { ChangeEvent, HTMLAttributes, RefObject } from "react";
 import { useCallback, useId, useState } from "react";
 
 const BORDER_IDLE = "border-zinc-700";
@@ -27,6 +27,7 @@ function getInputType(
 interface TextFieldProps {
   autoComplete: string;
   error?: string;
+  inputMode?: HTMLAttributes<HTMLInputElement>["inputMode"];
   inputRef?: RefObject<HTMLInputElement | null>;
   label: string;
   name: string;
@@ -39,6 +40,7 @@ interface TextFieldProps {
 export function TextField({
   autoComplete,
   error,
+  inputMode,
   inputRef,
   label,
   name,
@@ -84,6 +86,7 @@ export function TextField({
           autoComplete={autoComplete}
           className="h-14 flex-1 bg-transparent font-roboto text-base text-white outline-none placeholder:text-zinc-600"
           id={fieldId}
+          inputMode={inputMode}
           name={name}
           onBlur={handleBlur}
           onChange={handleChange}

@@ -1,8 +1,8 @@
 import { canAccessPanel } from "@/features/auth/permissions";
 import type { AuthSession, Usuario } from "@/features/auth/types";
 import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
+import { simulateLatency } from "./fake-api";
 
-const FAKE_LATENCY_MS = 900;
 const SESSION_CHECK_TIMEOUT_MS = 5000;
 const MOCK_TOKEN = "mock-token";
 
@@ -38,15 +38,9 @@ interface AuthResponse {
   usuario: Usuario;
 }
 
-function delay(ms: number) {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
 // PROVISÓRIO: usado enquanto VITE_API_URL não estiver configurada.
 async function signInWithMock({ email }: SignInInput): Promise<AuthSession> {
-  await delay(FAKE_LATENCY_MS);
+  await simulateLatency();
 
   return {
     token: MOCK_TOKEN,
