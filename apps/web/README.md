@@ -10,6 +10,20 @@ funcionários da barbearia (RF49–RF51).
 - TypeScript
 - [Biome](https://biomejs.dev/) + [Ultracite](https://github.com/haydenbleasel/ultracite) para lint/format
 
+## Configuração
+
+Copie o arquivo de exemplo e informe a URL da API:
+
+```bash
+cp .env.example .env
+```
+
+```env
+VITE_API_URL=http://127.0.0.1:8000
+```
+
+Sem `VITE_API_URL`, o painel continua usando os dados provisórios.
+
 ## Scripts
 
 ```bash
