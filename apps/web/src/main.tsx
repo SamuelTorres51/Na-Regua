@@ -7,6 +7,7 @@ import "@fontsource/roboto/600.css";
 import "@fontsource/roboto/700.css";
 
 import App from "@/app";
+import { SessionProvider } from "@/features/auth/session-provider";
 import "@/index.css";
 
 const rootElement = document.getElementById("root");
@@ -17,6 +18,8 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <SessionProvider>
+      <App />
+    </SessionProvider>
   </StrictMode>
 );

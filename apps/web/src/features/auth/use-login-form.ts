@@ -1,16 +1,34 @@
 import { useCallback, useState } from "react";
 
-import { signIn } from "@/services/auth";
+import { isNetworkError } from "@/services/api-client";
+import { InvalidCredentialsError } from "@/services/auth";
+import { useSession } from "./session-provider";
 import { type LoginErrors, validateLogin } from "./validation";
 
-const INVALID_CREDENTIALS_MESSAGE =
-  "Não foi possível entrar. Confira seu e-mail e senha.";
+const signInErrorMessages = {
+  invalidCredentials: "E-mail ou senha incorretos.",
+  network:
+    "Não foi possível conectar ao servidor. Tente novamente em instantes.",
+  unknown: "Não foi possível entrar. Tente novamente.",
+} as const;
 
-interface UseLoginFormOptions {
-  onSuccess?: () => void;
+const SESSION_EXPIRED_MESSAGE = "Sua sessão expirou. Entre novamente.";
+
+function describeSignInError(error: unknown) {
+  if (error instanceof InvalidCredentialsError) {
+    return signInErrorMessages.invalidCredentials;
+  }
+
+  if (isNetworkError(error)) {
+    return signInErrorMessages.network;
+  }
+
+  return signInErrorMessages.unknown;
 }
 
-export function useLoginForm({ onSuccess }: UseLoginFormOptions = {}) {
+export function useLoginForm() {
+  const { hasSessionExpired, signIn } = useSession();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<LoginErrors>({});
@@ -30,20 +48,21 @@ export function useLoginForm({ onSuccess }: UseLoginFormOptions = {}) {
 
     try {
       await signIn({ email: email.trim(), password });
-      // PROVISÓRIO: trocar por navegação quando as rotas existirem.
-      onSuccess?.();
-    } catch {
-      setSubmitError(INVALID_CREDENTIALS_MESSAGE);
+    } catch (error) {
+      setSubmitError(describeSignInError(error));
     } finally {
       setIsSubmitting(false);
     }
-  }, [email, onSuccess, password]);
+  }, [email, password, signIn]);
 
   const handleRecoverPassword = useCallback(() => {
     // PROVISÓRIO: abrir o fluxo de recuperação de senha.
   }, []);
 
+  const sessionNotice = hasSessionExpired ? SESSION_EXPIRED_MESSAGE : null;
+
   return {
+    alertMessage: submitError ?? sessionNotice,
     email,
     errors,
     handleRecoverPassword,
@@ -52,6 +71,5 @@ export function useLoginForm({ onSuccess }: UseLoginFormOptions = {}) {
     password,
     setEmail,
     setPassword,
-    submitError,
   };
 }
