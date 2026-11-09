@@ -69,6 +69,14 @@ from application.use_cases.profissionais.listar_profissionais import (
 from application.use_cases.profissionais.reativar_profissional import (
     ReativarProfissionalUseCase,
 )
+from application.use_cases.clientes.listar_clientes import ListarClientesUseCase
+from application.use_cases.clientes.buscar_cliente_por_id import (
+    BuscarClientePorIdUseCase,
+)
+from application.use_cases.clientes.atualizar_cliente import (
+    AtualizarClienteUseCase,
+)
+from application.use_cases.clientes.inativar_cliente import InativarClienteUseCase
 from application.use_cases.profissional_servico.associar_profissional_servico import (
     AssociarProfissionalServicoUseCase,
 )
@@ -86,6 +94,7 @@ from domain.enums.perfil_acesso import PerfilAcesso
 from domain.repositories.profissional_repository import ProfissionalRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
+from domain.repositories.cliente_repository import ClienteRepository
 from domain.repositories.agendamento_repository import AgendamentoRepository
 from domain.repositories.avaliacao_repository import AvaliacaoRepository
 from domain.repositories.profissional_servico_repository import (
@@ -102,6 +111,9 @@ from infrastructure.database.repositories.servico_repository import (
 )
 from infrastructure.database.repositories.usuario_repository import (
     SqlAlchemyUsuarioRepository,
+)
+from infrastructure.database.repositories.cliente_repository import (
+    SqlAlchemyClienteRepository,
 )
 from infrastructure.database.repositories.agendamento_repository import (
     SqlAlchemyAgendamentoRepository,
@@ -131,6 +143,12 @@ def get_usuario_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> UsuarioRepository:
     return SqlAlchemyUsuarioRepository(db)
+
+
+def get_cliente_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> ClienteRepository:
+    return SqlAlchemyClienteRepository(db)
 
 
 def get_registrar_usuario_use_case(
@@ -508,6 +526,30 @@ def get_reativar_profissional_use_case(
     repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
 ) -> ReativarProfissionalUseCase:
     return ReativarProfissionalUseCase(repository)
+
+
+def get_listar_clientes_use_case(
+    repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
+) -> ListarClientesUseCase:
+    return ListarClientesUseCase(repository)
+
+
+def get_buscar_cliente_por_id_use_case(
+    repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
+) -> BuscarClientePorIdUseCase:
+    return BuscarClientePorIdUseCase(repository)
+
+
+def get_atualizar_cliente_use_case(
+    repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
+) -> AtualizarClienteUseCase:
+    return AtualizarClienteUseCase(repository)
+
+
+def get_inativar_cliente_use_case(
+    repository: Annotated[ClienteRepository, Depends(get_cliente_repository)],
+) -> InativarClienteUseCase:
+    return InativarClienteUseCase(repository)
 
 
 def get_current_user(
