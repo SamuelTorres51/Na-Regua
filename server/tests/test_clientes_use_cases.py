@@ -30,6 +30,11 @@ class InMemoryClienteRepository(ClienteRepository):
     def buscar_por_id(self, cliente_id: int) -> Cliente | None:
         return next((cliente for cliente in self.clientes if cliente.id == cliente_id), None)
 
+    def criar(self, cliente: Cliente) -> Cliente:
+        cliente.id = len(self.clientes) + 1
+        self.clientes.append(cliente)
+        return cliente
+
     def buscar_por_email(self, email: str) -> Cliente | None:
         return next(
             (cliente for cliente in self.clientes if cliente.email == email),

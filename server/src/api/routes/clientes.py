@@ -5,11 +5,17 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from api.dependencies import (
     get_atualizar_cliente_use_case,
     get_buscar_cliente_por_id_use_case,
+    get_cadastrar_cliente_use_case,
     get_current_admin,
     get_inativar_cliente_use_case,
     get_listar_clientes_use_case,
+    get_reativar_cliente_use_case,
 )
-from api.schemas.cliente import AtualizarClienteRequest, ClienteResponse
+from api.schemas.cliente import (
+    AtualizarClienteRequest,
+    CadastrarClienteRequest,
+    ClienteResponse,
+)
 from application.common.exceptions import (
     ClienteNaoEncontradoError,
     EmailJaCadastradoError,
@@ -22,11 +28,52 @@ from application.use_cases.clientes.atualizar_cliente import (
 from application.use_cases.clientes.buscar_cliente_por_id import (
     BuscarClientePorIdUseCase,
 )
+from application.use_cases.clientes.cadastrar_cliente import (
+    CadastrarClienteInput,
+    CadastrarClienteUseCase,
+)
 from application.use_cases.clientes.inativar_cliente import InativarClienteUseCase
 from application.use_cases.clientes.listar_clientes import ListarClientesUseCase
+from application.use_cases.clientes.reativar_cliente import ReativarClienteUseCase
 from domain.entities.usuario import Usuario
 
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
+
+
+@router.post(
+    "",
+    response_model=ClienteResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Cadastrar cliente (Apenas Administrador)",
+)
+def cadastrar_cliente(
+    request: CadastrarClienteRequest,
+    _admin: Annotated[Usuario, Depends(get_current_admin)],
+    use_case: Annotated[
+        CadastrarClienteUseCase,
+        Depends(get_cadastrar_cliente_use_case),
+    ],
+) -> ClienteResponse:
+    try:
+        cliente = use_case.execute(
+            CadastrarClienteInput(
+                nome=request.nome,
+                email=request.email,
+                telefone=request.telefone,
+                senha=request.senha,
+            )
+        )
+        return ClienteResponse.model_validate(cliente)
+    except ValidationError as error:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(error),
+        ) from error
+    except EmailJaCadastradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
 
 
 @router.get(
@@ -124,6 +171,29 @@ def inativar_cliente(
     use_case: Annotated[
         InativarClienteUseCase,
         Depends(get_inativar_cliente_use_case),
+    ],
+) -> ClienteResponse:
+    try:
+        cliente = use_case.execute(cliente_id)
+        return ClienteResponse.model_validate(cliente)
+    except ClienteNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+
+
+@router.patch(
+    "/{cliente_id}/reativar",
+    response_model=ClienteResponse,
+    summary="Reativar cliente (Apenas Administrador)",
+)
+def reativar_cliente(
+    cliente_id: int,
+    _admin: Annotated[Usuario, Depends(get_current_admin)],
+    use_case: Annotated[
+        ReativarClienteUseCase,
+        Depends(get_reativar_cliente_use_case),
     ],
 ) -> ClienteResponse:
     try:

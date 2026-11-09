@@ -21,6 +21,24 @@ class SqlAlchemyClienteRepository(ClienteRepository):
         )
         return _para_entidade(model) if model is not None else None
 
+    def criar(self, cliente: Cliente) -> Cliente:
+        model = UsuarioModel(
+            nome=cliente.nome,
+            email=cliente.email,
+            telefone=cliente.telefone,
+            senha_hash=cliente.senha_hash,
+            perfil=PerfilAcesso.CLIENTE,
+            ativo=cliente.ativo,
+        )
+        try:
+            self._db.add(model)
+            self._db.commit()
+            self._db.refresh(model)
+            return _para_entidade(model)
+        except IntegrityError:
+            self._db.rollback()
+            raise
+
     def buscar_por_email(self, email: str) -> Cliente | None:
         model = self._db.scalar(
             select(UsuarioModel).where(

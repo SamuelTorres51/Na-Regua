@@ -5,16 +5,20 @@ from fastapi.testclient import TestClient
 from api.dependencies import (
     get_atualizar_cliente_use_case,
     get_buscar_cliente_por_id_use_case,
+    get_cadastrar_cliente_use_case,
     get_current_user,
     get_inativar_cliente_use_case,
     get_listar_clientes_use_case,
+    get_reativar_cliente_use_case,
 )
 from application.use_cases.clientes.atualizar_cliente import AtualizarClienteUseCase
 from application.use_cases.clientes.buscar_cliente_por_id import (
     BuscarClientePorIdUseCase,
 )
+from application.use_cases.clientes.cadastrar_cliente import CadastrarClienteUseCase
 from application.use_cases.clientes.inativar_cliente import InativarClienteUseCase
 from application.use_cases.clientes.listar_clientes import ListarClientesUseCase
+from application.use_cases.clientes.reativar_cliente import ReativarClienteUseCase
 from domain.entities.administrador import Administrador
 from domain.entities.cliente import Cliente
 from domain.enums.perfil_acesso import PerfilAcesso
@@ -60,6 +64,9 @@ def _configurar(repository: InMemoryClienteRepository) -> None:
     app.dependency_overrides[get_listar_clientes_use_case] = (
         lambda: ListarClientesUseCase(repository)
     )
+    app.dependency_overrides[get_cadastrar_cliente_use_case] = (
+        lambda: CadastrarClienteUseCase(repository)
+    )
     app.dependency_overrides[get_buscar_cliente_por_id_use_case] = (
         lambda: BuscarClientePorIdUseCase(repository)
     )
@@ -69,6 +76,32 @@ def _configurar(repository: InMemoryClienteRepository) -> None:
     app.dependency_overrides[get_inativar_cliente_use_case] = (
         lambda: InativarClienteUseCase(repository)
     )
+    app.dependency_overrides[get_reativar_cliente_use_case] = (
+        lambda: ReativarClienteUseCase(repository)
+    )
+
+
+def test_admin_cadastra_cliente() -> None:
+    repository = InMemoryClienteRepository([])
+    _configurar(repository)
+
+    try:
+        response = client.post(
+            "/clientes",
+            json={
+                "nome": "Novo Cliente",
+                "email": "novo@example.com",
+                "telefone": "86999992222",
+                "senha": "senhaSegura123",
+            },
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 201
+    assert response.json()["id"] == 1
+    assert response.json()["perfil"] == "cliente"
+    assert repository.buscar_por_id(1).ativo is True
 
 
 def test_admin_lista_clientes_e_filtra_ativos() -> None:
@@ -167,3 +200,17 @@ def test_inativacao_preserva_cliente_e_remove_da_lista_de_ativos() -> None:
     assert inativar_response.json()["ativo"] is False
     assert repository.buscar_por_id(1) is not None
     assert ativos_response.json() == []
+
+
+def test_reativacao_de_cliente() -> None:
+    repository = InMemoryClienteRepository([_cliente(1, ativo=False)])
+    _configurar(repository)
+
+    try:
+        response = client.patch("/clientes/1/reativar")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json()["ativo"] is True
+    assert repository.buscar_por_id(1).ativo is True

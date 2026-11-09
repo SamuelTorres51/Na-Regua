@@ -5,6 +5,9 @@ from domain.entities.cliente import Cliente
 
 class ClienteRepository(ABC):
     @abstractmethod
+    def criar(self, cliente: Cliente) -> Cliente: ...
+
+    @abstractmethod
     def buscar_por_id(self, cliente_id: int) -> Cliente | None: ...
 
     @abstractmethod
