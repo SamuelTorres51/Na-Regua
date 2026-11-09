@@ -42,6 +42,9 @@ from application.use_cases.avaliacoes.criar_avaliacao import (
 from application.use_cases.avaliacoes.listar_avaliacoes_do_cliente import (
     ListarAvaliacoesDoClienteUseCase,
 )
+from application.use_cases.avaliacoes.listar_avaliacoes_para_administrador import (
+    ListarAvaliacoesParaAdministradorUseCase,
+)
 from application.use_cases.avaliacoes.consultar_media_avaliacoes_profissional import (
     ConsultarMediaAvaliacoesProfissionalUseCase,
 )
@@ -324,6 +327,15 @@ def get_listar_avaliacoes_do_cliente_use_case(
     ],
 ) -> ListarAvaliacoesDoClienteUseCase:
     return ListarAvaliacoesDoClienteUseCase(repository)
+
+
+def get_listar_avaliacoes_para_administrador_use_case(
+    repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> ListarAvaliacoesParaAdministradorUseCase:
+    return ListarAvaliacoesParaAdministradorUseCase(repository)
 
 
 def get_criar_servico_use_case(

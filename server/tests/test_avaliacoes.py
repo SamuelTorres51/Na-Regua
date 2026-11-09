@@ -8,6 +8,7 @@ from api.dependencies import (
     get_consultar_media_avaliacoes_profissional_use_case,
     get_current_user,
     get_listar_avaliacoes_do_cliente_use_case,
+    get_listar_avaliacoes_para_administrador_use_case,
 )
 from application.common.exceptions import (
     AvaliacaoAgendamentoNaoConcluidoError,
@@ -22,6 +23,9 @@ from application.use_cases.avaliacoes.criar_avaliacao import (
 )
 from application.use_cases.avaliacoes.listar_avaliacoes_do_cliente import (
     ListarAvaliacoesDoClienteUseCase,
+)
+from application.use_cases.avaliacoes.listar_avaliacoes_para_administrador import (
+    ListarAvaliacoesParaAdministradorUseCase,
 )
 from application.use_cases.avaliacoes.consultar_media_avaliacoes_profissional import (
     ConsultarMediaAvaliacoesProfissionalUseCase,
@@ -427,3 +431,61 @@ def test_endpoint_consulta_media_de_avaliacoes_do_profissional() -> None:
         "mediaNota": 3.0,
         "totalAvaliacoes": 1,
     }
+
+
+def test_administrador_lista_comentarios_e_notas_das_avaliacoes() -> None:
+    repository = InMemoryAvaliacaoRepository()
+    repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=30,
+            cliente_id=1,
+            profissional_id=2,
+            nota=5,
+            comentario="Atendimento excelente",
+            criada_em=datetime(2026, 11, 1, tzinfo=timezone.utc),
+        )
+    )
+    repository.criar(
+        Avaliacao(
+            id=None,
+            agendamento_id=31,
+            cliente_id=3,
+            profissional_id=2,
+            nota=2,
+            comentario="Precisou melhorar o atraso",
+            criada_em=datetime(2026, 11, 2, tzinfo=timezone.utc),
+        )
+    )
+    use_case = ListarAvaliacoesParaAdministradorUseCase(repository)
+    app.dependency_overrides[get_current_user] = lambda: _usuario(
+        99,
+        PerfilAcesso.ADMINISTRADOR,
+    )
+    app.dependency_overrides[
+        get_listar_avaliacoes_para_administrador_use_case
+    ] = lambda: use_case
+
+    try:
+        response = TestClient(app).get("/avaliacoes")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+    assert response.json()[0]["nota"] == 2
+    assert response.json()[0]["comentario"] == "Precisou melhorar o atraso"
+
+
+def test_cliente_nao_pode_listar_avaliacoes_administrativas() -> None:
+    app.dependency_overrides[get_current_user] = lambda: _usuario(
+        1,
+        PerfilAcesso.CLIENTE,
+    )
+
+    try:
+        response = TestClient(app).get("/avaliacoes")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 403
