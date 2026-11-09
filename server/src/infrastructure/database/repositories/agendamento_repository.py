@@ -3,10 +3,16 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from domain.entities.agendamento import Agendamento
+from domain.entities.agendamento import (
+    Agendamento,
+    PessoaAgendamento,
+    ServicoAgendamento,
+)
 from domain.enums.status_agendamento import StatusAgendamento
 from domain.repositories.agendamento_repository import AgendamentoRepository
 from infrastructure.database.models.agendamento_model import AgendamentoModel
+from infrastructure.database.models.servico_model import ServicoModel
+from infrastructure.database.models.usuario_model import UsuarioModel
 
 
 _STATUS_ATIVOS = (
@@ -33,11 +39,11 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
         self._db.add(model)
         self._db.commit()
         self._db.refresh(model)
-        return _para_entidade(model)
+        return _para_entidade(model, self._db)
 
     def buscar_por_id(self, agendamento_id: int) -> Agendamento | None:
         model = self._db.get(AgendamentoModel, agendamento_id)
-        return _para_entidade(model) if model is not None else None
+        return _para_entidade(model, self._db) if model is not None else None
 
     def atualizar_status(
         self,
@@ -50,7 +56,7 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
         model.status = status
         self._db.commit()
         self._db.refresh(model)
-        return _para_entidade(model)
+        return _para_entidade(model, self._db)
 
     def listar(
         self,
@@ -74,7 +80,10 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
         if status is not None:
             query = query.where(AgendamentoModel.status == status)
 
-        return [_para_entidade(model) for model in self._db.scalars(query).all()]
+        return [
+            _para_entidade(model, self._db)
+            for model in self._db.scalars(query).all()
+        ]
 
     def existe_conflito_profissional(
         self,
@@ -124,7 +133,10 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
         return self._db.scalar(query) is not None
 
 
-def _para_entidade(model: AgendamentoModel) -> Agendamento:
+def _para_entidade(model: AgendamentoModel, db: Session) -> Agendamento:
+    cliente = db.get(UsuarioModel, model.cliente_id)
+    profissional = db.get(UsuarioModel, model.profissional_id)
+    servico = db.get(ServicoModel, model.servico_id)
     return Agendamento(
         id=model.id,
         cliente_id=model.cliente_id,
@@ -134,4 +146,19 @@ def _para_entidade(model: AgendamentoModel) -> Agendamento:
         duracao_minutos=model.duracao_minutos,
         status=model.status,
         criado_em=model.criado_em,
+        cliente=(
+            PessoaAgendamento(id=cliente.id, nome=cliente.nome)
+            if cliente is not None
+            else None
+        ),
+        profissional=(
+            PessoaAgendamento(id=profissional.id, nome=profissional.nome)
+            if profissional is not None
+            else None
+        ),
+        servico=(
+            ServicoAgendamento(id=servico.id, nome=servico.nome)
+            if servico is not None
+            else None
+        ),
     )
