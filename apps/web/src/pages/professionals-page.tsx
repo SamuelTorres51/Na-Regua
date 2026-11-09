@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 
 import { ProfessionalFormDialog } from "@/components/professionals/professional-form-dialog";
+import { ProfessionalServicesCard } from "@/components/professionals/professional-services-card";
 import { ActiveBadge } from "@/components/ui/active-badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -13,6 +14,7 @@ import type {
   Profissional,
 } from "@/features/professionals/types";
 import { useProfessionals } from "@/features/professionals/use-professionals";
+import { useServices } from "@/features/services/use-services";
 import { getApiErrorMessage } from "@/services/api-client";
 import { formatPhone, onlyDigits } from "@/utils/phone";
 
@@ -46,6 +48,11 @@ export function ProfessionalsPage() {
     profissionais,
     saveProfissional,
   } = useProfessionals();
+  const {
+    error: catalogError,
+    isLoading: isCatalogLoading,
+    servicos: catalogo,
+  } = useServices();
 
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -194,60 +201,70 @@ export function ProfessionalsPage() {
         </section>
 
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/30 p-6">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex min-w-0 items-center gap-4">
-                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-brand/15 font-roboto-bold text-2xl text-brand">
-                  {getInitials(selectedProfissional.nome)}
-                </span>
-                <div className="min-w-0">
-                  <h2 className="truncate font-roboto-bold text-white text-xl">
-                    {selectedProfissional.nome}
-                  </h2>
-                  <p className="mt-1 font-roboto text-sm text-zinc-400">
-                    {formatPhone(selectedProfissional.telefone)}
-                  </p>
-                  <p className="mt-1 truncate font-roboto text-xs text-zinc-500">
-                    {selectedProfissional.email}
-                  </p>
+          <div className="flex flex-col gap-6">
+            <div className="rounded-3xl border border-zinc-800 bg-zinc-900/30 p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 items-center gap-4">
+                  <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-3xl bg-brand/15 font-roboto-bold text-2xl text-brand">
+                    {getInitials(selectedProfissional.nome)}
+                  </span>
+                  <div className="min-w-0">
+                    <h2 className="truncate font-roboto-bold text-white text-xl">
+                      {selectedProfissional.nome}
+                    </h2>
+                    <p className="mt-1 font-roboto text-sm text-zinc-400">
+                      {formatPhone(selectedProfissional.telefone)}
+                    </p>
+                    <p className="mt-1 truncate font-roboto text-xs text-zinc-500">
+                      {selectedProfissional.email}
+                    </p>
+                  </div>
                 </div>
+                <ActiveBadge ativo={selectedProfissional.ativo} />
               </div>
-              <ActiveBadge ativo={selectedProfissional.ativo} />
-            </div>
 
-            {statusError && !profissionalToInactivate ? (
-              <div className="mt-5">
-                <FormAlert message={statusError} />
-              </div>
-            ) : null}
+              {statusError && !profissionalToInactivate ? (
+                <div className="mt-5">
+                  <FormAlert message={statusError} />
+                </div>
+              ) : null}
 
-            <div className="mt-6 flex flex-wrap gap-3 border-zinc-800 border-t pt-5">
-              <button
-                className="h-10 rounded-xl border border-zinc-700 px-4 font-roboto-medium text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-white"
-                onClick={() => openEditDialog(selectedProfissional)}
-                type="button"
-              >
-                Editar dados
-              </button>
-              {selectedProfissional.ativo ? (
+              <div className="mt-6 flex flex-wrap gap-3 border-zinc-800 border-t pt-5">
                 <button
-                  className="h-10 rounded-xl border border-danger/40 px-4 font-roboto-medium text-danger text-sm transition hover:bg-danger/10"
-                  onClick={() => openInactivateDialog(selectedProfissional)}
+                  className="h-10 rounded-xl border border-zinc-700 px-4 font-roboto-medium text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-white"
+                  onClick={() => openEditDialog(selectedProfissional)}
                   type="button"
                 >
-                  Inativar
+                  Editar dados
                 </button>
-              ) : (
-                <button
-                  className="h-10 rounded-xl border border-brand/40 px-4 font-roboto-medium text-brand text-sm transition hover:bg-brand/10 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={isChangingStatus}
-                  onClick={() => changeStatus(selectedProfissional, true)}
-                  type="button"
-                >
-                  {isChangingStatus ? "Reativando..." : "Reativar"}
-                </button>
-              )}
+                {selectedProfissional.ativo ? (
+                  <button
+                    className="h-10 rounded-xl border border-danger/40 px-4 font-roboto-medium text-danger text-sm transition hover:bg-danger/10"
+                    onClick={() => openInactivateDialog(selectedProfissional)}
+                    type="button"
+                  >
+                    Inativar
+                  </button>
+                ) : (
+                  <button
+                    className="h-10 rounded-xl border border-brand/40 px-4 font-roboto-medium text-brand text-sm transition hover:bg-brand/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={isChangingStatus}
+                    onClick={() => changeStatus(selectedProfissional, true)}
+                    type="button"
+                  >
+                    {isChangingStatus ? "Reativando..." : "Reativar"}
+                  </button>
+                )}
+              </div>
             </div>
+
+            <ProfessionalServicesCard
+              catalogError={catalogError}
+              catalogo={catalogo}
+              isCatalogLoading={isCatalogLoading}
+              key={selectedProfissional.id}
+              profissionalId={selectedProfissional.id}
+            />
           </div>
 
           <div className="rounded-3xl border border-zinc-800 bg-zinc-900/30 p-6">
