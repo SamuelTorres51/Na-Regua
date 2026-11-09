@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from api.dependencies import (
+    get_atualizar_status_agendamento_use_case,
     get_cancelar_agendamento_use_case,
     get_criar_avaliacao_use_case,
     get_current_user,
@@ -12,6 +13,7 @@ from api.dependencies import (
 )
 from api.schemas.agendamento import (
     AgendamentoResponse,
+    AtualizarStatusAgendamentoRequest,
     CriarAgendamentoRequest,
 )
 from api.schemas.avaliacao import AvaliacaoResponse, CriarAvaliacaoRequest
@@ -24,6 +26,7 @@ from application.common.exceptions import (
     AgendamentoNaoEncontradoError,
     AgendamentoNaoPodeSerCanceladoError,
     AgendamentoNaoPermitidoError,
+    AgendamentoStatusInvalidoError,
     AvaliacaoAgendamentoNaoConcluidoError,
     AvaliacaoJaRegistradaError,
     AvaliacaoNaoPermitidaError,
@@ -45,6 +48,10 @@ from application.use_cases.agendamentos.cancelar_agendamento import (
     CancelarAgendamentoInput,
     CancelarAgendamentoUseCase,
 )
+from application.use_cases.agendamentos.atualizar_status_agendamento import (
+    AtualizarStatusAgendamentoInput,
+    AtualizarStatusAgendamentoUseCase,
+)
 from application.use_cases.avaliacoes.criar_avaliacao import (
     CriarAvaliacaoInput,
     CriarAvaliacaoUseCase,
@@ -53,6 +60,46 @@ from domain.entities.usuario import Usuario
 from domain.enums.status_agendamento import StatusAgendamento
 
 router = APIRouter(prefix="/agendamentos", tags=["Agendamentos"])
+
+
+@router.patch(
+    "/{agendamento_id}/status",
+    response_model=AgendamentoResponse,
+    summary="Atualizar o status de um agendamento",
+)
+def atualizar_status_agendamento(
+    agendamento_id: int,
+    request: AtualizarStatusAgendamentoRequest,
+    usuario_atual: Annotated[Usuario, Depends(get_current_user)],
+    use_case: Annotated[
+        AtualizarStatusAgendamentoUseCase,
+        Depends(get_atualizar_status_agendamento_use_case),
+    ],
+) -> AgendamentoResponse:
+    try:
+        agendamento = use_case.execute(
+            AtualizarStatusAgendamentoInput(
+                agendamento_id=agendamento_id,
+                status=request.status,
+            ),
+            usuario_atual,
+        )
+        return AgendamentoResponse.model_validate(agendamento)
+    except AgendamentoNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
+    except AgendamentoNaoPermitidoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(error),
+        ) from error
+    except AgendamentoStatusInvalidoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        ) from error
 
 
 @router.post(
