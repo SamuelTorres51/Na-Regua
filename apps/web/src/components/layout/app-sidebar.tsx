@@ -8,6 +8,8 @@ import {
   StoreIcon,
   UsersIcon,
 } from "@/components/ui/icons";
+import { canAccessPage, isAdministrador } from "@/features/auth/permissions";
+import type { PerfilAcesso } from "@/features/auth/types";
 
 interface NavItem {
   enabled: boolean;
@@ -31,6 +33,10 @@ const NAV_ITEMS: NavItem[] = [
   { enabled: false, icon: StoreIcon, label: "Barbearia" },
 ];
 
+function isNavItemVisible({ page }: NavItem, perfil: PerfilAcesso) {
+  return page ? canAccessPage(perfil, page) : isAdministrador(perfil);
+}
+
 function getNavItemClass(isActive: boolean, enabled: boolean) {
   if (isActive) {
     return "flex w-full items-center gap-3 rounded-xl bg-brand/10 px-3 py-2.5 text-left font-roboto-medium text-brand text-sm";
@@ -46,16 +52,19 @@ function getNavItemClass(isActive: boolean, enabled: boolean) {
 interface AppSidebarProps {
   onNavigate: (page: AppPage) => void;
   page: AppPage;
+  perfil: PerfilAcesso;
 }
 
-export function AppSidebar({ onNavigate, page }: AppSidebarProps) {
+export function AppSidebar({ onNavigate, page, perfil }: AppSidebarProps) {
+  const navItems = NAV_ITEMS.filter((item) => isNavItemVisible(item, perfil));
+
   return (
     <div className="flex h-full flex-col px-5 py-6">
       <BrandMark />
 
       <nav aria-label="Navegação principal" className="mt-10">
         <ul className="flex flex-col gap-1">
-          {NAV_ITEMS.map(
+          {navItems.map(
             ({ enabled, icon: IconComponent, label, page: itemPage }) => {
               const isActive = enabled && itemPage === page;
 

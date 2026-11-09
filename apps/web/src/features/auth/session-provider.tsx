@@ -17,6 +17,7 @@ import {
 } from "@/services/api-client";
 import {
   getCurrentUser,
+  PanelAccessDeniedError,
   signIn as requestSignIn,
   type SignInInput,
 } from "@/services/auth";
@@ -36,6 +37,13 @@ interface SessionContextValue {
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
+
+function isRevokedSession(error: unknown) {
+  return (
+    hasApiStatus(error, HTTP_STATUS.unauthorized) ||
+    error instanceof PanelAccessDeniedError
+  );
+}
 
 function endStoredSession() {
   setAccessToken(null);
@@ -63,7 +71,7 @@ async function restoreSession(): Promise<AuthSession | null> {
     saveSession(refreshedSession);
     return refreshedSession;
   } catch (error) {
-    if (hasApiStatus(error, HTTP_STATUS.unauthorized)) {
+    if (isRevokedSession(error)) {
       endStoredSession();
       return null;
     }
