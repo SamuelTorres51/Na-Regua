@@ -6,6 +6,7 @@ from api.dependencies import (
     get_atualizar_profissional_use_case,
     get_buscar_profissional_por_id_use_case,
     get_cadastrar_profissional_use_case,
+    get_consultar_media_avaliacoes_profissional_use_case,
     get_current_admin,
     get_inativar_profissional_use_case,
     get_associar_profissional_servico_use_case,
@@ -20,6 +21,7 @@ from api.schemas.profissional import (
     ProfissionalServicoResponse,
     ProfissionalResponse,
 )
+from api.schemas.avaliacao import MediaAvaliacoesProfissionalResponse
 from api.schemas.servico import ServicoResponse
 from application.common.exceptions import (
     EmailJaCadastradoError,
@@ -48,6 +50,9 @@ from application.use_cases.profissionais.listar_profissionais import (
 )
 from application.use_cases.profissionais.reativar_profissional import (
     ReativarProfissionalUseCase,
+)
+from application.use_cases.avaliacoes.consultar_media_avaliacoes_profissional import (
+    ConsultarMediaAvaliacoesProfissionalUseCase,
 )
 from application.use_cases.profissional_servico.associar_profissional_servico import (
     AssociarProfissionalServicoUseCase,
@@ -191,6 +196,28 @@ def listar_profissionais(
 ) -> list[ProfissionalResponse]:
     profissionais = use_case.execute(apenas_ativos=apenas_ativos)
     return [ProfissionalResponse.model_validate(p) for p in profissionais]
+
+
+@router.get(
+    "/{profissional_id}/avaliacoes/media",
+    response_model=MediaAvaliacoesProfissionalResponse,
+    summary="Consultar media de avaliacoes de um profissional",
+)
+def consultar_media_avaliacoes(
+    profissional_id: int,
+    use_case: Annotated[
+        ConsultarMediaAvaliacoesProfissionalUseCase,
+        Depends(get_consultar_media_avaliacoes_profissional_use_case),
+    ],
+) -> MediaAvaliacoesProfissionalResponse:
+    try:
+        media = use_case.execute(profissional_id)
+        return MediaAvaliacoesProfissionalResponse.model_validate(media)
+    except ProfissionalNaoEncontradoError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(error),
+        ) from error
 
 
 @router.get(

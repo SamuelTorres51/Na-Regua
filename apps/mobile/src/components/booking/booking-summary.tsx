@@ -90,7 +90,7 @@ export function BookingSummary({
 
       {barber ? (
         <SummarySection label="Profissional escolhido">
-          <PersonSummary description={barber.role} name={barber.name} />
+          <PersonSummary name={barber.name} />
         </SummarySection>
       ) : null}
 

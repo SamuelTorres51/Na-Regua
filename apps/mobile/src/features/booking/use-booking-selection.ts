@@ -1,5 +1,4 @@
-import { useCallback } from "react";
-import { useAsyncData } from "@/hooks/use-async-data";
+import { useQueryData } from "@/hooks/use-query-data";
 import { getBookingSelection } from "@/services/catalog";
 import type { BookingSelection, BookingSelectionIds } from "@/types/models";
 
@@ -9,11 +8,11 @@ export function useBookingSelection({
   barberId,
   serviceId,
 }: BookingSelectionIds) {
-  const loadSelection = useCallback(
+  const { data: selection } = useQueryData(
+    ["booking-selection", barberId ?? "", serviceId ?? ""],
     () => getBookingSelection({ barberId, serviceId }),
-    [barberId, serviceId]
+    NO_SELECTION
   );
-  const { data: selection } = useAsyncData(loadSelection, NO_SELECTION);
 
   return selection;
 }

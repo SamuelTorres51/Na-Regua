@@ -58,9 +58,30 @@ class AgendamentoStatusInvalidoError(ApplicationError):
     """Lançada quando uma transição de status não é permitida."""
 
 
+class AvaliacaoNaoPermitidaError(ApplicationError):
+    """Lançada quando o usuário não pode avaliar o agendamento informado."""
+
+
+class AvaliacaoAgendamentoNaoConcluidoError(ApplicationError):
+    """Lançada quando tentam avaliar um agendamento ainda não concluído."""
+
+
+class AvaliacaoJaRegistradaError(ApplicationError):
+    """Lançada quando um agendamento já possui uma avaliação."""
+
+
 class ProfissionalServicoDuplicadoError(ApplicationError):
     """Lançada quando a associação já existe."""
 
 
 class ProfissionalServicoNaoEncontradoError(ApplicationError):
     """Lançada quando a associação não existe."""
+
+
+class NotificacaoNaoEncontradaError(ApplicationError):
+    """Lançada quando uma notificação solicitada não é encontrada."""
+
+
+class NotificacaoNaoPermitidaError(ApplicationError):
+    """Lançada quando o usuário tenta acessar ou modificar uma notificação de outro usuário."""
+

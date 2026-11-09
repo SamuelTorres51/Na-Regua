@@ -15,6 +15,18 @@ from application.use_cases.servicos.buscar_servico_por_id import BuscarServicoPo
 from application.use_cases.servicos.criar_servico import CriarServicoUseCase
 from application.use_cases.servicos.deletar_servico import DeletarServicoUseCase
 from application.use_cases.servicos.listar_servicos import ListarServicosUseCase
+from application.use_cases.notificacoes.contar_notificacoes_nao_lidas import (
+    ContarNotificacoesNaoLidasUseCase,
+)
+from application.use_cases.notificacoes.listar_notificacoes import (
+    ListarNotificacoesUseCase,
+)
+from application.use_cases.notificacoes.marcar_notificacao_lida import (
+    MarcarNotificacaoLidaUseCase,
+)
+from application.use_cases.notificacoes.processar_lembretes import (
+    ProcessarLembretesUseCase,
+)
 from application.use_cases.agendamentos.criar_agendamento import (
     CriarAgendamentoUseCase,
 )
@@ -26,6 +38,18 @@ from application.use_cases.agendamentos.cancelar_agendamento import (
 )
 from application.use_cases.agendamentos.atualizar_status_agendamento import (
     AtualizarStatusAgendamentoUseCase,
+)
+from application.use_cases.avaliacoes.criar_avaliacao import (
+    CriarAvaliacaoUseCase,
+)
+from application.use_cases.avaliacoes.listar_avaliacoes_do_cliente import (
+    ListarAvaliacoesDoClienteUseCase,
+)
+from application.use_cases.avaliacoes.listar_avaliacoes_para_administrador import (
+    ListarAvaliacoesParaAdministradorUseCase,
+)
+from application.use_cases.avaliacoes.consultar_media_avaliacoes_profissional import (
+    ConsultarMediaAvaliacoesProfissionalUseCase,
 )
 from application.use_cases.profissionais.atualizar_profissional import (
     AtualizarProfissionalUseCase,
@@ -63,10 +87,12 @@ from domain.repositories.profissional_repository import ProfissionalRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.usuario_repository import UsuarioRepository
 from domain.repositories.agendamento_repository import AgendamentoRepository
+from domain.repositories.avaliacao_repository import AvaliacaoRepository
 from domain.repositories.profissional_servico_repository import (
     ProfissionalServicoRepository,
 )
 from domain.repositories.cancelamento_repository import CancelamentoRepository
+from domain.repositories.notificacao_repository import NotificacaoRepository
 from infrastructure.database.connection import get_db as get_database_session
 from infrastructure.database.repositories.profissional_repository import (
     SqlAlchemyProfissionalRepository,
@@ -80,11 +106,17 @@ from infrastructure.database.repositories.usuario_repository import (
 from infrastructure.database.repositories.agendamento_repository import (
     SqlAlchemyAgendamentoRepository,
 )
+from infrastructure.database.repositories.avaliacao_repository import (
+    SqlAlchemyAvaliacaoRepository,
+)
 from infrastructure.database.repositories.profissional_servico_repository import (
     SqlAlchemyProfissionalServicoRepository,
 )
 from infrastructure.database.repositories.cancelamento_repository import (
     SqlAlchemyCancelamentoRepository,
+)
+from infrastructure.database.repositories.notificacao_repository import (
+    SqlAlchemyNotificacaoRepository,
 )
 
 
@@ -137,6 +169,66 @@ def get_agendamento_repository(
     return SqlAlchemyAgendamentoRepository(db)
 
 
+def get_avaliacao_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> AvaliacaoRepository:
+    return SqlAlchemyAvaliacaoRepository(db)
+
+
+def get_notificacao_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> NotificacaoRepository:
+    return SqlAlchemyNotificacaoRepository(db)
+
+
+def get_listar_notificacoes_use_case(
+    repository: Annotated[
+        NotificacaoRepository,
+        Depends(get_notificacao_repository),
+    ],
+) -> ListarNotificacoesUseCase:
+    return ListarNotificacoesUseCase(repository)
+
+
+def get_marcar_notificacao_lida_use_case(
+    repository: Annotated[
+        NotificacaoRepository,
+        Depends(get_notificacao_repository),
+    ],
+) -> MarcarNotificacaoLidaUseCase:
+    return MarcarNotificacaoLidaUseCase(repository)
+
+
+def get_contar_notificacoes_nao_lidas_use_case(
+    repository: Annotated[
+        NotificacaoRepository,
+        Depends(get_notificacao_repository),
+    ],
+) -> ContarNotificacoesNaoLidasUseCase:
+    return ContarNotificacoesNaoLidasUseCase(repository)
+
+
+def get_processar_lembretes_use_case(
+    agendamento_repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+    servico_repository: Annotated[
+        ServicoRepository,
+        Depends(get_servico_repository),
+    ],
+    notificacao_repository: Annotated[
+        NotificacaoRepository,
+        Depends(get_notificacao_repository),
+    ],
+) -> ProcessarLembretesUseCase:
+    return ProcessarLembretesUseCase(
+        agendamento_repository,
+        servico_repository,
+        notificacao_repository,
+    )
+
+
 def get_cancelamento_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> CancelamentoRepository:
@@ -152,10 +244,20 @@ def get_cancelar_agendamento_use_case(
         CancelamentoRepository,
         Depends(get_cancelamento_repository),
     ],
+    notificacao_repository: Annotated[
+        NotificacaoRepository,
+        Depends(get_notificacao_repository),
+    ],
+    servico_repository: Annotated[
+        ServicoRepository,
+        Depends(get_servico_repository),
+    ],
 ) -> CancelarAgendamentoUseCase:
     return CancelarAgendamentoUseCase(
         agendamento_repository,
         cancelamento_repository,
+        notificacao_repository,
+        servico_repository,
     )
 
 
@@ -182,12 +284,17 @@ def get_criar_agendamento_use_case(
         ProfissionalServicoRepository,
         Depends(get_profissional_servico_repository),
     ],
+    notificacao_repository: Annotated[
+        NotificacaoRepository,
+        Depends(get_notificacao_repository),
+    ],
 ) -> CriarAgendamentoUseCase:
     return CriarAgendamentoUseCase(
         agendamento_repository,
         usuario_repository,
         servico_repository,
         profissional_servico_repository,
+        notificacao_repository,
     )
 
 
@@ -209,6 +316,40 @@ def get_atualizar_status_agendamento_use_case(
     return AtualizarStatusAgendamentoUseCase(repository)
 
 
+def get_criar_avaliacao_use_case(
+    agendamento_repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+    avaliacao_repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> CriarAvaliacaoUseCase:
+    return CriarAvaliacaoUseCase(
+        agendamento_repository,
+        avaliacao_repository,
+    )
+
+
+def get_listar_avaliacoes_do_cliente_use_case(
+    repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> ListarAvaliacoesDoClienteUseCase:
+    return ListarAvaliacoesDoClienteUseCase(repository)
+
+
+def get_listar_avaliacoes_para_administrador_use_case(
+    repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> ListarAvaliacoesParaAdministradorUseCase:
+    return ListarAvaliacoesParaAdministradorUseCase(repository)
+
+
 def get_criar_servico_use_case(
     repository: Annotated[ServicoRepository, Depends(get_servico_repository)],
 ) -> CriarServicoUseCase:
@@ -219,6 +360,22 @@ def get_profissional_repository(
     db: Annotated[Session, Depends(get_db)],
 ) -> ProfissionalRepository:
     return SqlAlchemyProfissionalRepository(db)
+
+
+def get_consultar_media_avaliacoes_profissional_use_case(
+    profissional_repository: Annotated[
+        ProfissionalRepository,
+        Depends(get_profissional_repository),
+    ],
+    avaliacao_repository: Annotated[
+        AvaliacaoRepository,
+        Depends(get_avaliacao_repository),
+    ],
+) -> ConsultarMediaAvaliacoesProfissionalUseCase:
+    return ConsultarMediaAvaliacoesProfissionalUseCase(
+        profissional_repository,
+        avaliacao_repository,
+    )
 
 
 def get_associar_profissional_servico_use_case(

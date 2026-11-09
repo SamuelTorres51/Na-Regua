@@ -12,10 +12,15 @@ export function useDiscardChangesGuard({
 }: DiscardChangesGuardOptions) {
   const navigation = useNavigation();
   const [isDialogVisible, setIsDialogVisible] = useState(false);
+  const [isLeaveAllowed, setIsLeaveAllowed] = useState(false);
   const leaveRef = useRef<(() => void) | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
+    if (isLeaveAllowed) {
+      return;
+    }
+
     const unsubscribe = navigation.addListener("beforeRemove", (event) => {
       if (isBusy) {
         event.preventDefault();
@@ -34,10 +39,11 @@ export function useDiscardChangesGuard({
     unsubscribeRef.current = unsubscribe;
 
     return unsubscribe;
-  }, [hasChanges, isBusy, navigation]);
+  }, [hasChanges, isBusy, isLeaveAllowed, navigation]);
 
   const allowLeave = useCallback(() => {
     unsubscribeRef.current?.();
+    setIsLeaveAllowed(true);
   }, []);
 
   const handleCancelDiscard = useCallback(() => {
@@ -46,9 +52,9 @@ export function useDiscardChangesGuard({
 
   const handleConfirmDiscard = useCallback(() => {
     setIsDialogVisible(false);
-    unsubscribeRef.current?.();
+    allowLeave();
     leaveRef.current?.();
-  }, []);
+  }, [allowLeave]);
 
   return {
     allowLeave,
