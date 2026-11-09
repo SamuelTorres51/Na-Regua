@@ -54,6 +54,18 @@ class AgendamentoNaoPodeSerCanceladoError(ApplicationError):
     """Lançada quando um agendamento não atende às regras de cancelamento."""
 
 
+class AvaliacaoNaoPermitidaError(ApplicationError):
+    """LanÃ§ada quando o usuÃ¡rio nÃ£o pode avaliar o agendamento informado."""
+
+
+class AvaliacaoAgendamentoNaoConcluidoError(ApplicationError):
+    """LanÃ§ada quando tentam avaliar um agendamento ainda nÃ£o concluÃ­do."""
+
+
+class AvaliacaoJaRegistradaError(ApplicationError):
+    """LanÃ§ada quando um agendamento jÃ¡ possui uma avaliaÃ§Ã£o."""
+
+
 class ProfissionalServicoDuplicadoError(ApplicationError):
     """Lançada quando a associação já existe."""
 
