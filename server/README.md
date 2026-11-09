@@ -60,7 +60,12 @@ DATABASE_URL=postgresql+psycopg://naregua_user:naregua_pass@localhost:5432/nareg
 JWT_SECRET_KEY=chave-secreta-com-pelo-menos-32-caracteres
 JWT_ALGORITHM=HS256
 JWT_EXPIRATION_MINUTES=30
+CORS_ORIGINS=["http://localhost:5173","http://127.0.0.1:5173"]
 ```
+
+`CORS_ORIGINS` lista as origens que podem chamar a API pelo navegador, como o
+painel web. Sem a variável, são liberadas as origens do Vite em
+desenvolvimento (`localhost:5173` e `127.0.0.1:5173`).
 
 O arquivo `.env` não deve ser versionado.
 
