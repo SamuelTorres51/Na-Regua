@@ -1,6 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { useCallback, useState } from "react";
 
+import type { PerfilAcesso } from "@/features/auth/types";
 import { type AppPage, AppSidebar } from "./app-sidebar";
 import { AppTopbar } from "./app-topbar";
 
@@ -9,7 +10,7 @@ interface AppShellProps {
   onSignOut: () => void;
   page: AppPage;
   userName: string;
-  userRole: string;
+  userRole: PerfilAcesso;
 }
 
 export function AppShell({
@@ -28,7 +29,7 @@ export function AppShell({
   return (
     <div className="flex min-h-dvh bg-zinc-950 text-zinc-100">
       <aside className="hidden w-64 shrink-0 border-zinc-800 border-r bg-zinc-900/40 lg:block">
-        <AppSidebar onNavigate={onNavigate} page={page} />
+        <AppSidebar onNavigate={onNavigate} page={page} perfil={userRole} />
       </aside>
 
       {isMenuOpen ? (
@@ -40,7 +41,7 @@ export function AppShell({
             type="button"
           />
           <aside className="relative h-full w-72 animate-fade-in border-zinc-800 border-r bg-zinc-900">
-            <AppSidebar onNavigate={onNavigate} page={page} />
+            <AppSidebar onNavigate={onNavigate} page={page} perfil={userRole} />
           </aside>
         </div>
       ) : null}

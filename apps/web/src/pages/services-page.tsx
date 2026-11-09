@@ -135,7 +135,11 @@ function getCategoryClass(category: ServiceCategory) {
   return "bg-brand/10 text-brand";
 }
 
-export function ServicesPage() {
+interface ServicesPageProps {
+  canManage: boolean;
+}
+
+export function ServicesPage({ canManage }: ServicesPageProps) {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [form, setForm] = useState<ServiceForm>(EMPTY_FORM);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -241,14 +245,16 @@ export function ServicesPage() {
             Organize os serviços oferecidos pela sua barbearia.
           </p>
         </div>
-        <button
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 font-roboto-semibold text-sm text-zinc-950 transition hover:brightness-110"
-          onClick={openCreateDialog}
-          type="button"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Novo serviço
-        </button>
+        {canManage ? (
+          <button
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 font-roboto-semibold text-sm text-zinc-950 transition hover:brightness-110"
+            onClick={openCreateDialog}
+            type="button"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Novo serviço
+          </button>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-3 lg:flex-row">
@@ -293,7 +299,9 @@ export function ServicesPage() {
               Nenhum serviço encontrado
             </p>
             <p className="mt-2 font-roboto text-sm text-zinc-500">
-              Tente outro filtro ou cadastre um novo serviço.
+              {canManage
+                ? "Tente outro filtro ou cadastre um novo serviço."
+                : "Tente outro filtro ou termo de busca."}
             </p>
           </div>
         ) : (
@@ -305,7 +313,9 @@ export function ServicesPage() {
                   <th className="px-5 py-4">Categoria</th>
                   <th className="px-5 py-4">Duração</th>
                   <th className="px-5 py-4">Preço</th>
-                  <th className="px-5 py-4 text-right">Ações</th>
+                  {canManage ? (
+                    <th className="px-5 py-4 text-right">Ações</th>
+                  ) : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-800/80">
@@ -334,25 +344,27 @@ export function ServicesPage() {
                     <td className="px-5 py-4 font-roboto-medium text-white">
                       {service.price}
                     </td>
-                    <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          className="rounded-lg px-3 py-2 font-roboto-medium text-brand text-xs transition hover:bg-brand/10"
-                          onClick={() => openEditDialog(service)}
-                          type="button"
-                        >
-                          Editar
-                        </button>
-                        <button
-                          aria-label={`Excluir ${service.name}`}
-                          className="rounded-lg p-2 text-zinc-500 transition hover:bg-danger/10 hover:text-danger"
-                          onClick={() => setServiceToDelete(service)}
-                          type="button"
-                        >
-                          <TrashIcon className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {canManage ? (
+                      <td className="px-5 py-4">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            className="rounded-lg px-3 py-2 font-roboto-medium text-brand text-xs transition hover:bg-brand/10"
+                            onClick={() => openEditDialog(service)}
+                            type="button"
+                          >
+                            Editar
+                          </button>
+                          <button
+                            aria-label={`Excluir ${service.name}`}
+                            className="rounded-lg p-2 text-zinc-500 transition hover:bg-danger/10 hover:text-danger"
+                            onClick={() => setServiceToDelete(service)}
+                            type="button"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>
