@@ -40,7 +40,7 @@ function getPageSubtitle(page: AppPage) {
   }
 
   if (page === "profissionais") {
-    return "Equipe, agenda e histórico de atendimentos";
+    return "Cadastro e status da equipe";
   }
 
   if (page === "servicos") {

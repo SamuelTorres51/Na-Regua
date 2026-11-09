@@ -1,6 +1,5 @@
+import { isValidEmail } from "@/utils/email";
 import { MIN_PASSWORD_LENGTH } from "@/utils/password";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const validationMessages = {
   email: "Informe um e-mail válido.",
@@ -17,7 +16,7 @@ export type LoginErrors = Partial<Record<keyof LoginValues, string>>;
 export function validateLogin({ email, password }: LoginValues): LoginErrors {
   const errors: LoginErrors = {};
 
-  if (!EMAIL_PATTERN.test(email.trim())) {
+  if (!isValidEmail(email)) {
     errors.email = validationMessages.email;
   }
 
