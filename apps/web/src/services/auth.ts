@@ -1,3 +1,4 @@
+import { canAccessPanel } from "@/features/auth/permissions";
 import type { AuthSession, Usuario } from "@/features/auth/types";
 import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
 
@@ -15,6 +16,21 @@ export class InvalidCredentialsError extends Error {
     super("E-mail ou senha inválidos.", options);
     this.name = "InvalidCredentialsError";
   }
+}
+
+export class PanelAccessDeniedError extends Error {
+  constructor() {
+    super("A conta não tem acesso ao painel.");
+    this.name = "PanelAccessDeniedError";
+  }
+}
+
+function ensurePanelAccess(usuario: Usuario) {
+  if (!canAccessPanel(usuario.perfil)) {
+    throw new PanelAccessDeniedError();
+  }
+
+  return usuario;
 }
 
 interface AuthResponse {
@@ -53,24 +69,35 @@ function rethrowInvalidCredentials(error: unknown): never {
   throw error;
 }
 
-async function signInWithApi({
-  email,
-  password,
-}: SignInInput): Promise<AuthSession> {
+async function requestSignIn(email: string, password: string) {
   try {
-    const { access_token, usuario } = await api.post<AuthResponse>(
-      "/auth/login",
-      { email, senha: password }
-    );
-
-    return { token: access_token, usuario };
+    return await api.post<AuthResponse>("/auth/login", {
+      email,
+      senha: password,
+    });
   } catch (error) {
     return rethrowInvalidCredentials(error);
   }
 }
 
+async function signInWithApi({
+  email,
+  password,
+}: SignInInput): Promise<AuthSession> {
+  const response = await requestSignIn(email, password);
+
+  return {
+    token: response.access_token,
+    usuario: ensurePanelAccess(response.usuario),
+  };
+}
+
 export const signIn = isApiEnabled ? signInWithApi : signInWithMock;
 
-export function getCurrentUser() {
-  return api.get<Usuario>("/auth/me", { timeoutMs: SESSION_CHECK_TIMEOUT_MS });
+export async function getCurrentUser() {
+  const usuario = await api.get<Usuario>("/auth/me", {
+    timeoutMs: SESSION_CHECK_TIMEOUT_MS,
+  });
+
+  return ensurePanelAccess(usuario);
 }

@@ -1,11 +1,16 @@
 import { useCallback, useState } from "react";
 
 import { isNetworkError } from "@/services/api-client";
-import { InvalidCredentialsError } from "@/services/auth";
+import {
+  InvalidCredentialsError,
+  PanelAccessDeniedError,
+} from "@/services/auth";
 import { useSession } from "./session-provider";
 import { type LoginErrors, validateLogin } from "./validation";
 
 const signInErrorMessages = {
+  accessDenied:
+    "Acesso negado. O painel é restrito a administradores e profissionais; clientes devem usar o aplicativo Na Régua.",
   invalidCredentials: "E-mail ou senha incorretos.",
   network:
     "Não foi possível conectar ao servidor. Tente novamente em instantes.",
@@ -17,6 +22,10 @@ const SESSION_EXPIRED_MESSAGE = "Sua sessão expirou. Entre novamente.";
 function describeSignInError(error: unknown) {
   if (error instanceof InvalidCredentialsError) {
     return signInErrorMessages.invalidCredentials;
+  }
+
+  if (error instanceof PanelAccessDeniedError) {
+    return signInErrorMessages.accessDenied;
   }
 
   if (isNetworkError(error)) {
