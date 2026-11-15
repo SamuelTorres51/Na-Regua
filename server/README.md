@@ -159,6 +159,58 @@ Authorization: Bearer <access_token>
 O backend valida o formato do e-mail, a senha, a assinatura e a expiração
 do JWT, além de verificar se o usuário está ativo.
 
+## Horários e disponibilidade
+
+Nenhum horário fica gravado: a disponibilidade é calculada a partir do
+funcionamento da barbearia, da jornada do profissional e dos agendamentos
+ativos. Um horário só é oferecido quando o serviço inteiro cabe no expediente,
+então um serviço de 45 minutos não aparece às 8:30 se houver outro atendimento
+às 9:00.
+
+### Funcionamento da barbearia
+
+`GET /barbearia/horarios` e `PUT /barbearia/horarios` (apenas administrador)
+
+```json
+{
+  "turnos": [
+    { "diaSemana": "segunda", "inicio": "08:00", "fim": "12:00" },
+    { "diaSemana": "segunda", "inicio": "14:00", "fim": "18:00" }
+  ]
+}
+```
+
+A pausa do almoço são dois turnos no mesmo dia. Dia sem turno é dia fechado.
+A migration já cria segunda a sábado, das 08:00 às 12:00 e das 14:00 às 18:00.
+
+### Jornada do profissional
+
+`GET /profissionais/{id}/jornada` e `PUT /profissionais/{id}/jornada`
+(apenas administrador), com o mesmo formato de `turnos`.
+
+Com `"turnos": null`, o profissional segue o horário integral da barbearia.
+Com uma lista, vale só a jornada própria, limitada ao funcionamento da
+barbearia, e dia sem turno é folga.
+
+### Horários disponíveis
+
+`GET /profissionais/{id}/disponibilidade?servico_id=1&de=2026-11-16&ate=2026-11-30`
+
+```json
+[
+  {
+    "data": "2026-11-16",
+    "status": "disponivel",
+    "horarios": ["2026-11-16T08:00:00-03:00", "2026-11-16T08:30:00-03:00"]
+  },
+  { "data": "2026-11-22", "status": "fechado", "horarios": [] }
+]
+```
+
+`status` pode ser `disponivel`, `lotado`, `folga` ou `fechado`. Os horários
+seguem uma grade de 30 minutos e também encaixam logo depois de um atendimento
+que termina fora dela. O período é limitado a hoje e aos próximos 15 dias.
+
 ## Health check
 
 `GET /health`

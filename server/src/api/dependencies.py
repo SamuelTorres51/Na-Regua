@@ -91,6 +91,21 @@ from application.use_cases.profissional_servico.listar_servicos_do_profissional 
 from application.use_cases.profissional_servico.listar_profissionais_do_servico import (
     ListarProfissionaisDoServicoUseCase,
 )
+from application.use_cases.disponibilidade.consultar_disponibilidade import (
+    ConsultarDisponibilidadeUseCase,
+)
+from application.use_cases.horarios.consultar_horario_funcionamento import (
+    ConsultarHorarioFuncionamentoUseCase,
+)
+from application.use_cases.horarios.consultar_jornada_profissional import (
+    ConsultarJornadaProfissionalUseCase,
+)
+from application.use_cases.horarios.definir_horario_funcionamento import (
+    DefinirHorarioFuncionamentoUseCase,
+)
+from application.use_cases.horarios.definir_jornada_profissional import (
+    DefinirJornadaProfissionalUseCase,
+)
 from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
 from domain.repositories.profissional_repository import ProfissionalRepository
@@ -104,6 +119,7 @@ from domain.repositories.profissional_servico_repository import (
 )
 from domain.repositories.cancelamento_repository import CancelamentoRepository
 from domain.repositories.notificacao_repository import NotificacaoRepository
+from domain.repositories.horario_repository import HorarioRepository
 from infrastructure.database.connection import get_db as get_database_session
 from infrastructure.database.repositories.profissional_repository import (
     SqlAlchemyProfissionalRepository,
@@ -131,6 +147,9 @@ from infrastructure.database.repositories.cancelamento_repository import (
 )
 from infrastructure.database.repositories.notificacao_repository import (
     SqlAlchemyNotificacaoRepository,
+)
+from infrastructure.database.repositories.horario_repository import (
+    SqlAlchemyHorarioRepository,
 )
 
 
@@ -287,6 +306,12 @@ def get_profissional_servico_repository(
     return SqlAlchemyProfissionalServicoRepository(db)
 
 
+def get_horario_repository(
+    db: Annotated[Session, Depends(get_db)],
+) -> HorarioRepository:
+    return SqlAlchemyHorarioRepository(db)
+
+
 def get_criar_agendamento_use_case(
     agendamento_repository: Annotated[
         AgendamentoRepository,
@@ -308,6 +333,10 @@ def get_criar_agendamento_use_case(
         NotificacaoRepository,
         Depends(get_notificacao_repository),
     ],
+    horario_repository: Annotated[
+        HorarioRepository,
+        Depends(get_horario_repository),
+    ],
 ) -> CriarAgendamentoUseCase:
     return CriarAgendamentoUseCase(
         agendamento_repository,
@@ -315,6 +344,7 @@ def get_criar_agendamento_use_case(
         servico_repository,
         profissional_servico_repository,
         notificacao_repository,
+        horario_repository,
     )
 
 
@@ -528,6 +558,81 @@ def get_reativar_profissional_use_case(
     repository: Annotated[ProfissionalRepository, Depends(get_profissional_repository)],
 ) -> ReativarProfissionalUseCase:
     return ReativarProfissionalUseCase(repository)
+
+
+def get_consultar_horario_funcionamento_use_case(
+    repository: Annotated[HorarioRepository, Depends(get_horario_repository)],
+) -> ConsultarHorarioFuncionamentoUseCase:
+    return ConsultarHorarioFuncionamentoUseCase(repository)
+
+
+def get_definir_horario_funcionamento_use_case(
+    repository: Annotated[HorarioRepository, Depends(get_horario_repository)],
+) -> DefinirHorarioFuncionamentoUseCase:
+    return DefinirHorarioFuncionamentoUseCase(repository)
+
+
+def get_consultar_jornada_profissional_use_case(
+    profissional_repository: Annotated[
+        ProfissionalRepository,
+        Depends(get_profissional_repository),
+    ],
+    horario_repository: Annotated[
+        HorarioRepository,
+        Depends(get_horario_repository),
+    ],
+) -> ConsultarJornadaProfissionalUseCase:
+    return ConsultarJornadaProfissionalUseCase(
+        profissional_repository,
+        horario_repository,
+    )
+
+
+def get_definir_jornada_profissional_use_case(
+    profissional_repository: Annotated[
+        ProfissionalRepository,
+        Depends(get_profissional_repository),
+    ],
+    horario_repository: Annotated[
+        HorarioRepository,
+        Depends(get_horario_repository),
+    ],
+) -> DefinirJornadaProfissionalUseCase:
+    return DefinirJornadaProfissionalUseCase(
+        profissional_repository,
+        horario_repository,
+    )
+
+
+def get_consultar_disponibilidade_use_case(
+    profissional_repository: Annotated[
+        ProfissionalRepository,
+        Depends(get_profissional_repository),
+    ],
+    servico_repository: Annotated[
+        ServicoRepository,
+        Depends(get_servico_repository),
+    ],
+    profissional_servico_repository: Annotated[
+        ProfissionalServicoRepository,
+        Depends(get_profissional_servico_repository),
+    ],
+    agendamento_repository: Annotated[
+        AgendamentoRepository,
+        Depends(get_agendamento_repository),
+    ],
+    horario_repository: Annotated[
+        HorarioRepository,
+        Depends(get_horario_repository),
+    ],
+) -> ConsultarDisponibilidadeUseCase:
+    return ConsultarDisponibilidadeUseCase(
+        profissional_repository,
+        servico_repository,
+        profissional_servico_repository,
+        agendamento_repository,
+        horario_repository,
+    )
 
 
 def get_listar_clientes_use_case(

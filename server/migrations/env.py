@@ -27,6 +27,12 @@ from infrastructure.database.models.notificacao_model import (
 from infrastructure.database.models.avaliacao_model import (
     AvaliacaoModel as _AvaliacaoModel,
 )
+from infrastructure.database.models.horario_funcionamento_model import (
+    HorarioFuncionamentoModel as _HorarioFuncionamentoModel,
+)
+from infrastructure.database.models.turno_profissional_model import (
+    TurnoProfissionalModel as _TurnoProfissionalModel,
+)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.database_url)

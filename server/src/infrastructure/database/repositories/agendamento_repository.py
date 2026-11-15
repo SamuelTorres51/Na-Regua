@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -8,18 +8,15 @@ from domain.entities.agendamento import (
     PessoaAgendamento,
     ServicoAgendamento,
 )
-from domain.enums.status_agendamento import StatusAgendamento
+from domain.entities.periodo import Periodo
+from domain.enums.status_agendamento import (
+    STATUS_QUE_OCUPAM_AGENDA,
+    StatusAgendamento,
+)
 from domain.repositories.agendamento_repository import AgendamentoRepository
 from infrastructure.database.models.agendamento_model import AgendamentoModel
 from infrastructure.database.models.servico_model import ServicoModel
 from infrastructure.database.models.usuario_model import UsuarioModel
-
-
-_STATUS_ATIVOS = (
-    StatusAgendamento.AGENDADO,
-    StatusAgendamento.CONFIRMADO,
-    StatusAgendamento.EM_ATENDIMENTO,
-)
 
 
 class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
@@ -109,6 +106,28 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
             fim,
         )
 
+    def listar_ocupados(
+        self,
+        profissional_id: int,
+        inicio: datetime,
+        fim: datetime,
+    ) -> list[Periodo]:
+        # Lê só o necessário: sem carregar cliente, profissional e serviço.
+        linhas = self._db.execute(
+            select(AgendamentoModel.inicio, AgendamentoModel.duracao_minutos)
+            .where(
+                AgendamentoModel.profissional_id == profissional_id,
+                AgendamentoModel.status.in_(STATUS_QUE_OCUPAM_AGENDA),
+                AgendamentoModel.inicio < fim,
+                _termino_agendamento() > inicio,
+            )
+            .order_by(AgendamentoModel.inicio)
+        ).all()
+        return [
+            Periodo(inicio_agendamento, inicio_agendamento + timedelta(minutes=duracao))
+            for inicio_agendamento, duracao in linhas
+        ]
+
     def _existe_conflito(
         self,
         titular_condition: object,
@@ -117,20 +136,22 @@ class SqlAlchemyAgendamentoRepository(AgendamentoRepository):
     ) -> bool:
         query = select(AgendamentoModel.id).where(
             titular_condition,
-            AgendamentoModel.status.in_(_STATUS_ATIVOS),
+            AgendamentoModel.status.in_(STATUS_QUE_OCUPAM_AGENDA),
             AgendamentoModel.inicio < fim,
-            AgendamentoModel.inicio
-            + func.make_interval(
-                0,
-                0,
-                0,
-                0,
-                0,
-                AgendamentoModel.duracao_minutos,
-            )
-            > inicio,
+            _termino_agendamento() > inicio,
         )
         return self._db.scalar(query) is not None
+
+
+def _termino_agendamento():
+    return AgendamentoModel.inicio + func.make_interval(
+        0,
+        0,
+        0,
+        0,
+        0,
+        AgendamentoModel.duracao_minutos,
+    )
 
 
 def _para_entidade(model: AgendamentoModel, db: Session) -> Agendamento:
