@@ -8,3 +8,10 @@ class StatusAgendamento(str, Enum):
     CONCLUIDO = "concluido"
     CANCELADO = "cancelado"
     AUSENTE = "ausente"
+
+
+STATUS_QUE_OCUPAM_AGENDA = (
+    StatusAgendamento.AGENDADO,
+    StatusAgendamento.CONFIRMADO,
+    StatusAgendamento.EM_ATENDIMENTO,
+)

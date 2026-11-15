@@ -31,6 +31,7 @@ from application.common.exceptions import (
     AvaliacaoJaRegistradaError,
     AvaliacaoNaoPermitidaError,
     ClienteNaoEncontradoError,
+    ForaDoHorarioDeAtendimentoError,
     ProfissionalNaoEncontradoError,
     ProfissionalServicoNaoEncontradoError,
     ServicoNaoEncontradoError,
@@ -306,7 +307,7 @@ def criar_agendamento(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(error),
         ) from error
-    except AgendamentoConflitanteError as error:
+    except (AgendamentoConflitanteError, ForaDoHorarioDeAtendimentoError) as error:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(error),

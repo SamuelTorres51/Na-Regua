@@ -42,6 +42,10 @@ class AgendamentoConflitanteError(ApplicationError):
     """Lançada quando o horário solicitado já está ocupado."""
 
 
+class ForaDoHorarioDeAtendimentoError(ApplicationError):
+    """Lançada quando o atendimento não cabe inteiro no expediente do profissional."""
+
+
 class AgendamentoNaoPermitidoError(ApplicationError):
     """Lançada quando o usuário não pode criar o agendamento solicitado."""
 

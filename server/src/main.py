@@ -6,6 +6,7 @@ from api.routes import (
     agendamentos,
     auth,
     avaliacoes,
+    barbearia,
     clientes,
     health,
     notificacoes,
@@ -35,3 +36,4 @@ app.include_router(agendamentos.router)
 app.include_router(avaliacoes.router)
 app.include_router(notificacoes.router)
 app.include_router(clientes.router)
+app.include_router(barbearia.router)

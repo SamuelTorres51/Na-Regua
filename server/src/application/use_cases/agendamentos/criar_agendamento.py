@@ -6,6 +6,7 @@ from application.common.exceptions import (
     AgendamentoConflitanteError,
     AgendamentoNaoPermitidoError,
     ClienteNaoEncontradoError,
+    ForaDoHorarioDeAtendimentoError,
     ProfissionalNaoEncontradoError,
     ProfissionalServicoNaoEncontradoError,
     ServicoNaoEncontradoError,
@@ -13,17 +14,20 @@ from application.common.exceptions import (
 )
 from domain.entities.agendamento import Agendamento
 from domain.entities.notificacao import Notificacao
+from domain.entities.periodo import Periodo
 from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
 from domain.enums.status_agendamento import StatusAgendamento
 from domain.enums.tipo_notificacao import TipoNotificacao
 from domain.repositories.agendamento_repository import AgendamentoRepository
+from domain.repositories.horario_repository import HorarioRepository
 from domain.repositories.notificacao_repository import NotificacaoRepository
 from domain.repositories.servico_repository import ServicoRepository
 from domain.repositories.profissional_servico_repository import (
     ProfissionalServicoRepository,
 )
 from domain.repositories.usuario_repository import UsuarioRepository
+from domain.services.disponibilidade import cabe_no_expediente, periodos_de_trabalho
 
 FORTALEZA_TZ = ZoneInfo("America/Fortaleza")
 ANTECEDENCIA_MINIMA = timedelta(minutes=30)
@@ -46,12 +50,14 @@ class CriarAgendamentoUseCase:
         servico_repository: ServicoRepository,
         profissional_servico_repository: ProfissionalServicoRepository,
         notificacao_repository: NotificacaoRepository | None = None,
+        horario_repository: HorarioRepository | None = None,
     ) -> None:
         self.agendamento_repository = agendamento_repository
         self.usuario_repository = usuario_repository
         self.servico_repository = servico_repository
         self.profissional_servico_repository = profissional_servico_repository
         self.notificacao_repository = notificacao_repository
+        self.horario_repository = horario_repository
 
     def execute(
         self,
@@ -86,6 +92,8 @@ class CriarAgendamentoUseCase:
             )
 
         fim = inicio + timedelta(minutes=servico.duracao_minutos)
+        self._validar_horario_de_atendimento(dados.profissional_id, inicio, fim)
+
         if self.agendamento_repository.existe_conflito_profissional(
             dados.profissional_id,
             inicio,
@@ -149,6 +157,27 @@ class CriarAgendamentoUseCase:
             )
 
         return criado
+
+    def _validar_horario_de_atendimento(
+        self,
+        profissional_id: int,
+        inicio: datetime,
+        fim: datetime,
+    ) -> None:
+        """RN02: o atendimento inteiro precisa caber no expediente do profissional."""
+        if self.horario_repository is None:
+            return
+
+        expediente = periodos_de_trabalho(
+            self.horario_repository.listar_funcionamento(),
+            self.horario_repository.buscar_jornada(profissional_id),
+            inicio.date(),
+            FORTALEZA_TZ,
+        )
+        if not cabe_no_expediente(Periodo(inicio, fim), expediente):
+            raise ForaDoHorarioDeAtendimentoError(
+                "O horário escolhido está fora do horário de atendimento do profissional."
+            )
 
     @staticmethod
     def _validar_data(inicio: datetime, agora: datetime) -> None:
