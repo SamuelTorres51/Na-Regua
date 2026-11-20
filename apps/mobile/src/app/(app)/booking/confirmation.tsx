@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { BookingStepScreen } from "@/components/booking/booking-step-screen";
 import { ConfirmationActions } from "@/components/booking/confirmation-actions";
 import { InfoNote } from "@/components/ui/info-note";
-import { CHANGE_POLICY_MESSAGE } from "@/features/appointments/cancellation";
+import { CANCELLATION_POLICY_MESSAGE } from "@/features/appointments/cancellation";
 import { useBookingConfirmation } from "@/features/booking/use-booking-confirmation";
 import { layout } from "@/theme/styles";
 
@@ -13,13 +13,8 @@ export default function BookingConfirmationStep() {
     serviceId: string;
     startsAt: string;
   }>();
-  const {
-    confirmError,
-    handleChooseAnotherTime,
-    handleConfirm,
-    handleGoToAppointments,
-    isConfirming,
-  } = useBookingConfirmation({ barberId, serviceId, startsAt });
+  const { confirmError, handleChooseAnotherTime, handleConfirm, isConfirming } =
+    useBookingConfirmation({ barberId, serviceId, startsAt });
 
   return (
     <BookingStepScreen
@@ -30,7 +25,7 @@ export default function BookingConfirmationStep() {
       subtitle="Revise e confirme o agendamento."
     >
       <View style={layout.actionGroup}>
-        <InfoNote message={CHANGE_POLICY_MESSAGE} />
+        <InfoNote message={CANCELLATION_POLICY_MESSAGE} />
 
         <View className="mt-4">
           <ConfirmationActions
@@ -39,7 +34,6 @@ export default function BookingConfirmationStep() {
             isConfirming={isConfirming}
             onChooseAnotherTime={handleChooseAnotherTime}
             onConfirm={handleConfirm}
-            onGoToAppointments={handleGoToAppointments}
           />
         </View>
       </View>

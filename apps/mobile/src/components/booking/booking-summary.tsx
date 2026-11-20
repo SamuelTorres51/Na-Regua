@@ -45,7 +45,6 @@ function describeTimeRange(startsAt: string, service?: Service) {
 }
 
 interface BookingSummaryProps extends BookingSelection {
-  previousStartsAt?: string;
   startsAt?: string;
 }
 
@@ -69,12 +68,9 @@ function ScheduleDetails({ service, startsAt }: ScheduleDetailsProps) {
 
 export function BookingSummary({
   barber,
-  previousStartsAt,
   service,
   startsAt,
 }: BookingSummaryProps) {
-  const isRescheduling = isValidDate(previousStartsAt);
-
   return (
     <>
       {service ? (
@@ -94,16 +90,8 @@ export function BookingSummary({
         </SummarySection>
       ) : null}
 
-      {isValidDate(previousStartsAt) ? (
-        <SummarySection label="Horário atual">
-          <ScheduleDetails service={service} startsAt={previousStartsAt} />
-        </SummarySection>
-      ) : null}
-
       {isValidDate(startsAt) ? (
-        <SummarySection
-          label={isRescheduling ? "Novo horário" : "Data e horário"}
-        >
+        <SummarySection label="Data e horário">
           <ScheduleDetails service={service} startsAt={startsAt} />
         </SummarySection>
       ) : null}

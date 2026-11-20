@@ -1,11 +1,7 @@
 import type { AuthSession, User } from "@/types/models";
 import { formatPhone, onlyDigits } from "@/utils/phone";
-import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
-import { simulateLatency } from "./fake-api";
+import { api, HTTP_STATUS, hasApiStatus } from "./api-client";
 
-const MOCK_TOKEN = "mock-token";
-const MOCK_USER_ID = "usr-1";
-const STAFF_EMAILS = ["barbearia@naregua.com"];
 const SESSION_CHECK_TIMEOUT_MS = 5000;
 const CLIENT_ROLE = "cliente";
 
@@ -90,10 +86,6 @@ function isClientAccount({ perfil }: UserResponse) {
   return perfil === CLIENT_ROLE;
 }
 
-function isStaffEmail(email: string) {
-  return STAFF_EMAILS.includes(email.toLowerCase());
-}
-
 function rethrowEmailInUse(error: unknown): never {
   if (hasApiStatus(error, HTTP_STATUS.conflict)) {
     throw new EmailInUseError();
@@ -118,60 +110,6 @@ function rethrowIncorrectPassword(error: unknown): never {
   throw error;
 }
 
-function isEmailTaken(email: string, currentEmail = "") {
-  return (
-    email.toLowerCase() !== currentEmail.toLowerCase() && isStaffEmail(email)
-  );
-}
-
-async function signInWithMock({ email }: SignInInput): Promise<AuthSession> {
-  await simulateLatency();
-
-  if (isStaffEmail(email)) {
-    throw new InvalidCredentialsError();
-  }
-
-  return {
-    token: MOCK_TOKEN,
-    user: {
-      email,
-      fullName: "Dagoberto Silva",
-      id: MOCK_USER_ID,
-      phone: "(89) 99999-9999",
-    },
-  };
-}
-
-async function signUpWithMock({
-  email,
-  fullName,
-  phone,
-}: SignUpInput): Promise<AuthSession> {
-  await simulateLatency();
-
-  if (isEmailTaken(email)) {
-    throw new EmailInUseError();
-  }
-
-  return {
-    token: MOCK_TOKEN,
-    user: { email, fullName, id: MOCK_USER_ID, phone },
-  };
-}
-
-async function updateProfileWithMock(
-  currentUser: User,
-  changes: UpdateProfileInput
-): Promise<User> {
-  await simulateLatency();
-
-  if (isEmailTaken(changes.email, currentUser.email)) {
-    throw new EmailInUseError();
-  }
-
-  return { ...currentUser, ...changes };
-}
-
 async function requestSignIn(email: string, password: string) {
   try {
     return await api.post<AuthResponse>("/auth/login", {
@@ -183,7 +121,7 @@ async function requestSignIn(email: string, password: string) {
   }
 }
 
-async function signInWithApi({
+export async function signIn({
   email,
   password,
 }: SignInInput): Promise<AuthSession> {
@@ -196,7 +134,7 @@ async function signInWithApi({
   return toSession(response);
 }
 
-async function signUpWithApi({
+export async function signUp({
   email,
   fullName,
   password,
@@ -216,10 +154,11 @@ async function signUpWithApi({
   }
 }
 
-async function updateProfileWithApi(
-  _currentUser: User,
-  { email, fullName, phone }: UpdateProfileInput
-): Promise<User> {
+export async function updateProfile({
+  email,
+  fullName,
+  phone,
+}: UpdateProfileInput): Promise<User> {
   try {
     const response = await api.patch<UserResponse>("/auth/me", {
       email,
@@ -233,11 +172,7 @@ async function updateProfileWithApi(
   }
 }
 
-async function changePasswordWithMock(_input: ChangePasswordInput) {
-  await simulateLatency();
-}
-
-async function changePasswordWithApi({
+export async function changePassword({
   currentPassword,
   newPassword,
 }: ChangePasswordInput) {
@@ -250,15 +185,6 @@ async function changePasswordWithApi({
     rethrowIncorrectPassword(error);
   }
 }
-
-export const changePassword = isApiEnabled
-  ? changePasswordWithApi
-  : changePasswordWithMock;
-export const signIn = isApiEnabled ? signInWithApi : signInWithMock;
-export const signUp = isApiEnabled ? signUpWithApi : signUpWithMock;
-export const updateProfile = isApiEnabled
-  ? updateProfileWithApi
-  : updateProfileWithMock;
 
 export async function getCurrentUser() {
   const response = await api.get<UserResponse>("/auth/me", {

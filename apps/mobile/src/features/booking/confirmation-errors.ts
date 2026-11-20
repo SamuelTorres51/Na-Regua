@@ -3,7 +3,7 @@ import {
   type BookingConflictReason,
 } from "@/services/booking";
 
-export type ConfirmationErrorKind = "conflict" | "failed" | "notAllowed";
+export type ConfirmationErrorKind = "conflict" | "failed";
 
 export interface ConfirmationError {
   kind: ConfirmationErrorKind;
@@ -13,8 +13,6 @@ export interface ConfirmationError {
 const CONFLICT_MESSAGES: Record<BookingConflictReason, string> = {
   clientBusy:
     "Você já tem um agendamento nesse horário. Escolha outro horário.",
-  notAllowed:
-    "Este agendamento não pode mais ser alterado. Confira em Agendamentos.",
   unavailable: "Este horário não está mais disponível. Escolha outro horário.",
 };
 
@@ -26,8 +24,5 @@ export function toConfirmationError(
     return { kind: "failed", message: failedMessage };
   }
 
-  return {
-    kind: error.reason === "notAllowed" ? "notAllowed" : "conflict",
-    message: CONFLICT_MESSAGES[error.reason],
-  };
+  return { kind: "conflict", message: CONFLICT_MESSAGES[error.reason] };
 }

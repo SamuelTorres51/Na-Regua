@@ -17,8 +17,6 @@ const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(
   ""
 );
 
-export const isApiEnabled = API_URL.length > 0;
-
 let accessToken: string | null = null;
 let unauthorizedHandler: (() => void) | null = null;
 

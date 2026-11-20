@@ -9,60 +9,35 @@ interface ConfirmationActionsProps {
   isConfirming: boolean;
   onChooseAnotherTime: () => void;
   onConfirm: () => void;
-  onGoToAppointments: () => void;
-}
-
-interface ConfirmationButtonProps
-  extends Omit<ConfirmationActionsProps, "confirmError"> {
-  errorKind?: ConfirmationError["kind"];
-}
-
-function ConfirmationButton({
-  confirmLabel,
-  errorKind,
-  isConfirming,
-  onChooseAnotherTime,
-  onConfirm,
-  onGoToAppointments,
-}: ConfirmationButtonProps) {
-  if (errorKind === "conflict") {
-    return (
-      <PrimaryButton
-        accessibilityLabel="Escolher outro horário"
-        label="Escolher outro horário"
-        onPress={onChooseAnotherTime}
-      />
-    );
-  }
-
-  if (errorKind === "notAllowed") {
-    return (
-      <PrimaryButton
-        accessibilityLabel="Ver meus agendamentos"
-        label="Ver meus agendamentos"
-        onPress={onGoToAppointments}
-      />
-    );
-  }
-
-  return (
-    <PrimaryButton
-      accessibilityLabel={confirmLabel}
-      isLoading={isConfirming}
-      label={confirmLabel}
-      onPress={onConfirm}
-    />
-  );
 }
 
 export function ConfirmationActions({
   confirmError,
-  ...buttonProps
+  confirmLabel,
+  isConfirming,
+  onChooseAnotherTime,
+  onConfirm,
 }: ConfirmationActionsProps) {
+  const hasConflict = confirmError?.kind === "conflict";
+
   return (
     <View>
       <FormAlert message={confirmError?.message ?? null} />
-      <ConfirmationButton {...buttonProps} errorKind={confirmError?.kind} />
+
+      {hasConflict ? (
+        <PrimaryButton
+          accessibilityLabel="Escolher outro horário"
+          label="Escolher outro horário"
+          onPress={onChooseAnotherTime}
+        />
+      ) : (
+        <PrimaryButton
+          accessibilityLabel={confirmLabel}
+          isLoading={isConfirming}
+          label={confirmLabel}
+          onPress={onConfirm}
+        />
+      )}
     </View>
   );
 }

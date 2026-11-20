@@ -55,16 +55,10 @@ export function useBookingConfirmation({
 
   const handleChooseAnotherTime = useCallback(() => router.back(), [router]);
 
-  const handleGoToAppointments = useCallback(() => {
-    router.dismissAll();
-    router.navigate("/appointments");
-  }, [router]);
-
   return {
     confirmError,
     handleChooseAnotherTime,
     handleConfirm,
-    handleGoToAppointments,
     isConfirming,
   };
 }
