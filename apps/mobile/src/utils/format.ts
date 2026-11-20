@@ -36,6 +36,10 @@ const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
   minute: "2-digit",
 });
 
+export function toPriceInCents(price: number) {
+  return Math.round(price * CENTS_PER_UNIT);
+}
+
 export function formatPrice(priceInCents: number) {
   return currencyFormatter.format(priceInCents / CENTS_PER_UNIT);
 }

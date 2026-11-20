@@ -1,6 +1,7 @@
 import { NotificationFeedbackType, notificationAsync } from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
+import { useSession } from "@/features/auth/session-provider";
 import { createAppointment } from "@/services/booking";
 import type { BookingRequest } from "@/types/models";
 import {
@@ -17,6 +18,8 @@ export function useBookingConfirmation({
   startsAt,
 }: BookingRequest) {
   const router = useRouter();
+  const { session } = useSession();
+  const clientId = session?.user.id ?? "";
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<ConfirmationError | null>(
     null
@@ -29,6 +32,7 @@ export function useBookingConfirmation({
     try {
       const appointment = await createAppointment({
         barberId,
+        clientId,
         serviceId,
         startsAt,
       });
@@ -47,7 +51,7 @@ export function useBookingConfirmation({
       setConfirmError(toConfirmationError(error, CONFIRM_ERROR_MESSAGE));
       setIsConfirming(false);
     }
-  }, [barberId, router, serviceId, startsAt]);
+  }, [barberId, clientId, router, serviceId, startsAt]);
 
   const handleChooseAnotherTime = useCallback(() => router.back(), [router]);
 

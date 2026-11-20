@@ -4,6 +4,7 @@ import type {
   AppointmentStatus,
   Barber,
   BookingDay,
+  BookingDayStatus,
   BookingSelectionIds,
   BusyPeriod,
   Service,
@@ -11,7 +12,8 @@ import type {
   Weekday,
   WeeklyHours,
 } from "@/types/models";
-import { addDays, isValidDate, startOfDay } from "@/utils/date";
+import { addDays, isValidDate, parseDateOnly, startOfDay } from "@/utils/date";
+import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
 import { findStoredAppointment, getBarberAppointments } from "./appointments";
 import { canBarberPerformService, findBarber, findService } from "./catalog";
 import { simulateLatency } from "./fake-api";
@@ -272,7 +274,39 @@ export async function findBookableSelection({
   return barber && service && isAllowed ? { barber, service } : null;
 }
 
-export async function listBookingDays(
+const DAY_STATUS_FROM_API: Record<string, BookingDayStatus> = {
+  disponivel: "available",
+  fechado: "closed",
+  folga: "dayOff",
+  lotado: "full",
+};
+
+interface AvailabilityDayResponse {
+  data: string;
+  horarios: string[];
+  status: string;
+}
+
+function toBookingDay({
+  data,
+  horarios,
+  status,
+}: AvailabilityDayResponse): BookingDay {
+  return {
+    date: parseDateOnly(data).toISOString(),
+    slots: horarios.map((slot) => new Date(slot).toISOString()),
+    status: DAY_STATUS_FROM_API[status] ?? "closed",
+  };
+}
+
+function isUnbookableSelection(error: unknown) {
+  return (
+    hasApiStatus(error, HTTP_STATUS.notFound) ||
+    hasApiStatus(error, HTTP_STATUS.conflict)
+  );
+}
+
+async function listBookingDaysWithMock(
   ids: BookingSelectionIds
 ): Promise<BookingDay[]> {
   await simulateLatency();
@@ -281,6 +315,33 @@ export async function listBookingDays(
 
   return selection ? buildBookingDays(selection.barber, selection.service) : [];
 }
+
+async function listBookingDaysWithApi({
+  barberId,
+  serviceId,
+}: BookingSelectionIds): Promise<BookingDay[]> {
+  if (!(barberId && serviceId)) {
+    return [];
+  }
+
+  try {
+    const days = await api.get<AvailabilityDayResponse[]>(
+      `/profissionais/${barberId}/disponibilidade?servico_id=${serviceId}`
+    );
+
+    return days.map(toBookingDay);
+  } catch (error) {
+    if (isUnbookableSelection(error)) {
+      return [];
+    }
+
+    throw error;
+  }
+}
+
+export const listBookingDays = isApiEnabled
+  ? listBookingDaysWithApi
+  : listBookingDaysWithMock;
 
 export async function listRescheduleDays(
   appointmentId?: string

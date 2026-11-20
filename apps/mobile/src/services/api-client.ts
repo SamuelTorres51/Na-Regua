@@ -9,6 +9,7 @@ export const HTTP_STATUS = {
   network: 0,
   notFound: 404,
   unauthorized: 401,
+  unprocessable: 422,
 } as const;
 
 const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? "").replace(
