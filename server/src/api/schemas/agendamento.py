@@ -9,11 +9,15 @@ class PessoaAgendamentoResponse(BaseModel):
     id: int
     nome: str
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ServicoAgendamentoResponse(BaseModel):
     id: int
     nome: str
     preco: float
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CriarAgendamentoRequest(BaseModel):
