@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, { FadeIn, LinearTransition } from "react-native-reanimated";
 import { Icon } from "@/components/ui/icon";
+import { StarRating } from "@/components/ui/star-rating";
 import {
   type CancellationState,
   getCancellationState,
@@ -55,18 +56,62 @@ function CancellationFooter({
   }
 }
 
+interface ReviewFooterProps {
+  onRequestReview: () => void;
+  rating?: number;
+  serviceName: string;
+}
+
+function ReviewFooter({
+  onRequestReview,
+  rating,
+  serviceName,
+}: ReviewFooterProps) {
+  if (rating) {
+    return (
+      <View className="mt-4 flex-row items-center justify-between rounded-2xl bg-zinc-800/50 px-4 py-3">
+        <Text className="font-roboto text-sm text-zinc-400">Sua avaliação</Text>
+        <StarRating value={rating} />
+      </View>
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityLabel={`Avaliar atendimento de ${serviceName}`}
+      accessibilityRole="button"
+      className="mt-4 h-11 flex-row items-center justify-center rounded-2xl border border-brand/30 bg-brand/10 active:opacity-70"
+      onPress={onRequestReview}
+    >
+      <Icon name="star-outline" size="sm" tone="accent" />
+      <Text className="ml-2 font-roboto-medium text-brand text-sm">
+        Avaliar atendimento
+      </Text>
+    </Pressable>
+  );
+}
+
 interface AppointmentCardProps {
   appointment: Appointment;
   onRequestCancel: (appointment: Appointment) => void;
+  onRequestReview: (appointment: Appointment) => void;
+  rating?: number;
 }
 
 export function AppointmentCard({
   appointment,
   onRequestCancel,
+  onRequestReview,
+  rating,
 }: AppointmentCardProps) {
   const handleRequestCancel = useCallback(
     () => onRequestCancel(appointment),
     [appointment, onRequestCancel]
+  );
+
+  const handleRequestReview = useCallback(
+    () => onRequestReview(appointment),
+    [appointment, onRequestReview]
   );
 
   return (
@@ -84,11 +129,19 @@ export function AppointmentCard({
         }
       />
 
-      <CancellationFooter
-        onRequestCancel={handleRequestCancel}
-        serviceName={appointment.service.name}
-        state={getCancellationState(appointment)}
-      />
+      {appointment.status === "completed" ? (
+        <ReviewFooter
+          onRequestReview={handleRequestReview}
+          rating={rating}
+          serviceName={appointment.service.name}
+        />
+      ) : (
+        <CancellationFooter
+          onRequestCancel={handleRequestCancel}
+          serviceName={appointment.service.name}
+          state={getCancellationState(appointment)}
+        />
+      )}
     </Animated.View>
   );
 }

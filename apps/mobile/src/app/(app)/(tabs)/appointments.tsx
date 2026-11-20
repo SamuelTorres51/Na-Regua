@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { AppointmentList } from "@/components/appointments/appointment-list";
@@ -13,6 +14,7 @@ import {
 import { splitAppointments } from "@/features/appointments/status";
 import { useAppointments } from "@/features/appointments/use-appointments";
 import { useCancellationDialog } from "@/features/appointments/use-cancellation-dialog";
+import { useMyReviews } from "@/features/reviews/use-my-reviews";
 import type { Appointment } from "@/types/models";
 import { formatRelativeDate, formatTime } from "@/utils/format";
 
@@ -47,6 +49,7 @@ function describeCancellation({ barber, service, startsAt }: Appointment) {
 }
 
 export default function Appointments() {
+  const router = useRouter();
   const {
     appointments,
     cancelAppointment,
@@ -56,6 +59,7 @@ export default function Appointments() {
     isRefreshing,
     refresh,
   } = useAppointments();
+  const { ratingsByAppointment, refresh: refreshReviews } = useMyReviews();
 
   const {
     dialog,
@@ -71,9 +75,22 @@ export default function Appointments() {
     [appointments]
   );
 
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refresh(), refreshReviews()]);
+  }, [refresh, refreshReviews]);
+
+  const handleRequestReview = useCallback(
+    (appointment: Appointment) =>
+      router.push({
+        params: { id: appointment.id },
+        pathname: "/review/[id]",
+      }),
+    [router]
+  );
+
   return (
     <>
-      <TabScreen isRefreshing={isRefreshing} onRefresh={refresh}>
+      <TabScreen isRefreshing={isRefreshing} onRefresh={handleRefresh}>
         <View className="px-6">
           <ScreenHeader
             subtitle="Seus horários marcados e o histórico."
@@ -94,6 +111,8 @@ export default function Appointments() {
               hasLoadError={hasLoadError}
               isLoading={isLoading}
               onRequestCancel={handleRequestCancel}
+              onRequestReview={handleRequestReview}
+              ratingsByAppointment={ratingsByAppointment}
             />
           </View>
         </View>
