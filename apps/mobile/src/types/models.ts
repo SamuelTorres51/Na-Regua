@@ -56,6 +56,14 @@ export interface Appointment {
   status: AppointmentStatus;
 }
 
+export interface Review {
+  appointmentId: string;
+  comment: string;
+  createdAt: string;
+  id: string;
+  rating: number;
+}
+
 export interface User {
   email: string;
   fullName: string;

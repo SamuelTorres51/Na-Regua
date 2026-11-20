@@ -30,6 +30,7 @@ interface FormFieldProps {
   delay: number;
   error?: string;
   inputRef?: RefObject<TextInput | null>;
+  isMultiline?: boolean;
   isSecure?: boolean;
   keyboardType?: TextInputProps["keyboardType"];
   label: string;
@@ -37,7 +38,7 @@ interface FormFieldProps {
   onChangeText: (value: string) => void;
   onSubmit?: () => void;
   placeholder: string;
-  returnKeyType: "go" | "next";
+  returnKeyType?: "go" | "next";
   shakeTrigger: number;
   value: string;
 }
@@ -48,6 +49,7 @@ export function FormField({
   delay,
   error,
   inputRef,
+  isMultiline = false,
   isSecure = false,
   keyboardType = "default",
   label,
@@ -113,10 +115,11 @@ export function FormField({
         <TextInput
           autoCapitalize={autoCapitalize}
           autoComplete={autoComplete}
-          autoCorrect={false}
-          className="flex-1 py-4 font-roboto text-base text-white"
+          autoCorrect={isMultiline}
+          className={`flex-1 py-4 font-roboto text-base text-white ${isMultiline ? "min-h-32" : ""}`}
           keyboardType={keyboardType}
           maxLength={maxLength}
+          multiline={isMultiline}
           onBlur={handleBlur}
           onChangeText={onChangeText}
           onFocus={handleFocus}
@@ -126,6 +129,7 @@ export function FormField({
           ref={inputRef}
           returnKeyType={returnKeyType}
           secureTextEntry={isSecure && !isPasswordVisible}
+          textAlignVertical={isMultiline ? "top" : "center"}
           value={value}
         />
 
