@@ -34,21 +34,29 @@ export function useAppointments() {
     setIsRefreshing(false);
   }, [loadAppointments]);
 
-  const cancelAppointment = useCallback(async (appointmentId: string) => {
-    setIsCancelling(true);
+  const cancelAppointment = useCallback(
+    async (appointmentId: string) => {
+      setIsCancelling(true);
 
-    try {
-      const cancelled = await requestCancelAppointment(appointmentId);
+      try {
+        await requestCancelAppointment(appointmentId);
 
-      setAppointments((current) =>
-        current.map((appointment) =>
-          appointment.id === cancelled.id ? cancelled : appointment
-        )
-      );
-    } finally {
-      setIsCancelling(false);
-    }
-  }, []);
+        setAppointments((current) =>
+          current.map((appointment) =>
+            appointment.id === appointmentId
+              ? { ...appointment, status: "cancelled" }
+              : appointment
+          )
+        );
+      } catch (error) {
+        await loadAppointments();
+        throw error;
+      } finally {
+        setIsCancelling(false);
+      }
+    },
+    [loadAppointments]
+  );
 
   return {
     appointments,

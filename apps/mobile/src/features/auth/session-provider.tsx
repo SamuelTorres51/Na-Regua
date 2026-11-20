@@ -10,7 +10,6 @@ import {
 import {
   HTTP_STATUS,
   hasApiStatus,
-  isApiEnabled,
   setAccessToken,
   setUnauthorizedHandler,
 } from "@/services/api-client";
@@ -66,10 +65,6 @@ async function restoreSession(): Promise<AuthSession | null> {
   }
 
   setAccessToken(storedSession.token);
-
-  if (!isApiEnabled) {
-    return storedSession;
-  }
 
   try {
     const refreshedSession = {
@@ -139,7 +134,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
         return;
       }
 
-      const user = await requestUpdateProfile(session.user, changes);
+      const user = await requestUpdateProfile(changes);
       await startSession({ ...session, user });
     },
     [session, startSession]

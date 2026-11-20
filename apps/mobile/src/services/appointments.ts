@@ -1,74 +1,38 @@
-import type { Appointment } from "@/types/models";
-import { simulateLatency } from "./fake-api";
-import { createMockAppointments } from "./mock-data";
+import { api, HTTP_STATUS, hasApiStatus } from "./api-client";
+import {
+  type AppointmentResponse,
+  toAppointment,
+} from "./appointment-response";
 
-const appointments = createMockAppointments();
+const CANCELLATION_REASON = "Cancelado pelo cliente no app.";
+
+export class AppointmentNotCancellableError extends Error {
+  constructor() {
+    super("O agendamento não pode mais ser cancelado.");
+    this.name = "AppointmentNotCancellableError";
+  }
+}
+
+function rethrowNotCancellable(error: unknown): never {
+  if (hasApiStatus(error, HTTP_STATUS.conflict)) {
+    throw new AppointmentNotCancellableError();
+  }
+
+  throw error;
+}
 
 export async function listAppointments() {
-  await simulateLatency();
+  const responses = await api.get<AppointmentResponse[]>("/agendamentos");
 
-  return [...appointments].sort(
-    (a, b) => Date.parse(b.startsAt) - Date.parse(a.startsAt)
-  );
+  return responses.map(toAppointment);
 }
 
-export function getStoredAppointments() {
-  return [...appointments];
-}
-
-export function getBarberAppointments(barberId: string) {
-  return appointments.filter(
-    (appointment) => appointment.barber.id === barberId
-  );
-}
-
-export function findStoredAppointment(appointmentId?: string) {
-  return appointments.find((appointment) => appointment.id === appointmentId);
-}
-
-export function addAppointment(appointment: Appointment) {
-  appointments.push(appointment);
-}
-
-export function replaceAppointment(updated: Appointment) {
-  const index = appointments.findIndex(
-    (appointment) => appointment.id === updated.id
-  );
-
-  if (index !== -1) {
-    appointments[index] = updated;
+export async function cancelAppointment(appointmentId: string) {
+  try {
+    await api.post(`/agendamentos/${appointmentId}/cancelar`, {
+      motivo: CANCELLATION_REASON,
+    });
+  } catch (error) {
+    rethrowNotCancellable(error);
   }
-}
-
-export async function getAppointment(appointmentId?: string) {
-  await simulateLatency();
-
-  return findStoredAppointment(appointmentId) ?? null;
-}
-
-// PROVISÓRIO: troca o item no "banco" em memória por uma cópia cancelada, sem
-// mutar objetos que a tela já tem em estado. Na API, o cancelamento também
-// registra o autor (RN13).
-export async function cancelAppointment(
-  appointmentId: string
-): Promise<Appointment> {
-  await simulateLatency();
-
-  const index = appointments.findIndex(
-    (appointment) => appointment.id === appointmentId
-  );
-
-  if (index === -1) {
-    throw new Error(`Agendamento não encontrado: ${appointmentId}`);
-  }
-
-  const cancelled: Appointment = {
-    ...appointments[index],
-    cancelledAt: new Date().toISOString(),
-    status: "cancelled",
-  };
-
-  appointments[index] = cancelled;
-
-  return cancelled;
 }

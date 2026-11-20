@@ -6,9 +6,7 @@ import type {
   Service,
 } from "@/types/models";
 import { toPriceInCents } from "@/utils/format";
-import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
-import { simulateLatency } from "./fake-api";
-import { BARBER_SERVICE_IDS, BARBERS, SERVICES } from "./mock-data";
+import { api, HTTP_STATUS, hasApiStatus } from "./api-client";
 
 interface ServiceResponse {
   ativo: boolean;
@@ -51,16 +49,6 @@ function toBarber({ id, nome }: ProfessionalResponse): Barber {
   return { id: String(id), name: nome };
 }
 
-function toActiveServices(responses: ServiceResponse[]) {
-  return sortByName(
-    responses.filter((response) => response.ativo).map(toService)
-  );
-}
-
-function toActiveBarbers(responses: ProfessionalResponse[]) {
-  return responses.filter((response) => response.ativo).map(toBarber);
-}
-
 async function requestOrDefault<TResponse, TFallback>(
   path: string,
   fallback: TFallback
@@ -76,40 +64,18 @@ async function requestOrDefault<TResponse, TFallback>(
   }
 }
 
-function listMockBarberServices(barberId: string) {
-  const serviceIds = BARBER_SERVICE_IDS[barberId] ?? [];
-
-  return SERVICES.filter((service) => serviceIds.includes(service.id));
-}
-
-async function listServicesWithMock(barberId?: string) {
-  await simulateLatency();
-
-  return sortByName(barberId ? listMockBarberServices(barberId) : SERVICES);
-}
-
-async function listServicesWithApi(barberId?: string) {
+export async function listServices(barberId?: string) {
   const path = barberId
     ? `/profissionais/${barberId}/servicos`
     : "/servicos?apenas_ativos=true";
   const responses = await requestOrDefault<ServiceResponse[], []>(path, []);
 
-  return toActiveServices(responses);
-}
-
-async function listBarbersWithMock(serviceId?: string) {
-  await simulateLatency();
-
-  if (!serviceId) {
-    return BARBERS;
-  }
-
-  return BARBERS.filter((barber) =>
-    BARBER_SERVICE_IDS[barber.id]?.includes(serviceId)
+  return sortByName(
+    responses.filter((response) => response.ativo).map(toService)
   );
 }
 
-async function listBarbersWithApi(serviceId?: string) {
+export async function listBarbers(serviceId?: string) {
   const path = serviceId
     ? `/servicos/${serviceId}/profissionais`
     : "/profissionais?apenas_ativos=true";
@@ -118,14 +84,10 @@ async function listBarbersWithApi(serviceId?: string) {
     []
   );
 
-  return toActiveBarbers(responses);
+  return responses.filter((response) => response.ativo).map(toBarber);
 }
 
-function findBarberWithMock(barberId?: string) {
-  return Promise.resolve(BARBERS.find((barber) => barber.id === barberId));
-}
-
-async function findBarberWithApi(barberId?: string) {
+async function findBarber(barberId?: string) {
   if (!barberId) {
     return;
   }
@@ -138,11 +100,7 @@ async function findBarberWithApi(barberId?: string) {
   return response?.ativo ? toBarber(response) : undefined;
 }
 
-function findServiceWithMock(serviceId?: string) {
-  return Promise.resolve(SERVICES.find((service) => service.id === serviceId));
-}
-
-async function findServiceWithApi(serviceId?: string) {
+async function findService(serviceId?: string) {
   if (!serviceId) {
     return;
   }
@@ -155,42 +113,12 @@ async function findServiceWithApi(serviceId?: string) {
   return response?.ativo ? toService(response) : undefined;
 }
 
-export const findBarber = isApiEnabled ? findBarberWithApi : findBarberWithMock;
-export const findService = isApiEnabled
-  ? findServiceWithApi
-  : findServiceWithMock;
-export const listServices = isApiEnabled
-  ? listServicesWithApi
-  : listServicesWithMock;
-export const listBarbers = isApiEnabled
-  ? listBarbersWithApi
-  : listBarbersWithMock;
-
-export async function canBarberPerformService(
-  barberId: string,
-  serviceId: string
-) {
-  if (!isApiEnabled) {
-    return BARBER_SERVICE_IDS[barberId]?.includes(serviceId) ?? false;
-  }
-
-  const services = await listServicesWithApi(barberId);
-
-  return services.some((service) => service.id === serviceId);
-}
-
 export async function getBarberProfile(
   barberId: string
 ): Promise<BarberProfile | null> {
-  if (!isApiEnabled) {
-    await simulateLatency();
-  }
-
   const [barber, services] = await Promise.all([
     findBarber(barberId),
-    isApiEnabled
-      ? listServicesWithApi(barberId)
-      : sortByName(listMockBarberServices(barberId)),
+    listServices(barberId),
   ]);
 
   return barber ? { barber, services } : null;
@@ -200,10 +128,6 @@ export async function getBookingSelection({
   barberId,
   serviceId,
 }: BookingSelectionIds): Promise<BookingSelection> {
-  if (!isApiEnabled) {
-    await simulateLatency();
-  }
-
   const [barber, service] = await Promise.all([
     findBarber(barberId),
     findService(serviceId),
