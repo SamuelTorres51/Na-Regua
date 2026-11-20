@@ -5,11 +5,10 @@ import type {
   BookingSelectionIds,
   Service,
 } from "@/types/models";
+import { toPriceInCents } from "@/utils/format";
 import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
 import { simulateLatency } from "./fake-api";
 import { BARBER_SERVICE_IDS, BARBERS, SERVICES } from "./mock-data";
-
-const CENTS_PER_UNIT = 100;
 
 interface ServiceResponse {
   ativo: boolean;
@@ -44,7 +43,7 @@ function toService({
     durationMinutes: duracaoMinutos,
     id: String(id),
     name: nome,
-    priceInCents: Math.round(preco * CENTS_PER_UNIT),
+    priceInCents: toPriceInCents(preco),
   };
 }
 
