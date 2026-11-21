@@ -7,6 +7,7 @@ import type {
 } from "@/types/models";
 import { toPriceInCents } from "@/utils/format";
 import { api, HTTP_STATUS, hasApiStatus } from "./api-client";
+import { getBarberRating } from "./reviews";
 
 interface ServiceResponse {
   ativo: boolean;
@@ -116,12 +117,13 @@ async function findService(serviceId?: string) {
 export async function getBarberProfile(
   barberId: string
 ): Promise<BarberProfile | null> {
-  const [barber, services] = await Promise.all([
+  const [barber, services, rating] = await Promise.all([
     findBarber(barberId),
     listServices(barberId),
+    getBarberRating(barberId).catch(() => null),
   ]);
 
-  return barber ? { barber, services } : null;
+  return barber ? { barber, rating, services } : null;
 }
 
 export async function getBookingSelection({

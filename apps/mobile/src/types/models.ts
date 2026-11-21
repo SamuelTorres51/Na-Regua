@@ -19,8 +19,14 @@ export interface Barber {
   name: string;
 }
 
+export interface BarberRating {
+  average: number | null;
+  total: number;
+}
+
 export interface BarberProfile {
   barber: Barber;
+  rating: BarberRating | null;
   services: Service[];
 }
 
@@ -62,6 +68,11 @@ export interface Review {
   createdAt: string;
   id: string;
   rating: number;
+}
+
+export interface ReviewHistoryItem {
+  appointment?: Appointment;
+  review: Review;
 }
 
 export interface User {
