@@ -1,5 +1,6 @@
-import type { Review } from "@/types/models";
+import type { BarberRating, Review, ReviewHistoryItem } from "@/types/models";
 import { api, HTTP_STATUS, hasApiStatus } from "./api-client";
+import { listAppointments } from "./appointments";
 
 const UNAVAILABLE_STATUSES: readonly number[] = [
   HTTP_STATUS.conflict,
@@ -57,10 +58,37 @@ function rethrowReviewUnavailable(error: unknown): never {
   throw error;
 }
 
+interface BarberRatingResponse {
+  mediaNota: number | null;
+  totalAvaliacoes: number;
+}
+
 export async function listMyReviews() {
   const responses = await api.get<ReviewResponse[]>("/avaliacoes/minhas");
 
   return responses.map(toReview);
+}
+
+export async function listMyReviewHistory(): Promise<ReviewHistoryItem[]> {
+  const [reviews, appointments] = await Promise.all([
+    listMyReviews(),
+    listAppointments(),
+  ]);
+
+  return reviews.map((review) => ({
+    appointment: appointments.find(
+      (appointment) => appointment.id === review.appointmentId
+    ),
+    review,
+  }));
+}
+
+export async function getBarberRating(barberId: string): Promise<BarberRating> {
+  const { mediaNota, totalAvaliacoes } = await api.get<BarberRatingResponse>(
+    `/profissionais/${barberId}/avaliacoes/media`
+  );
+
+  return { average: mediaNota, total: totalAvaliacoes };
 }
 
 export async function createReview({

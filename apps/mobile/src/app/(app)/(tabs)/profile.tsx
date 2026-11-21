@@ -19,8 +19,9 @@ import { formatPhone } from "@/utils/phone";
 
 const IDENTITY_DELAY = 260;
 const CONTACT_DELAY = 340;
-const SECURITY_DELAY = 400;
-const ACTIONS_DELAY = 460;
+const REVIEWS_DELAY = 380;
+const SECURITY_DELAY = 420;
+const ACTIONS_DELAY = 480;
 const ENTERING_DURATION = 600;
 const APP_VERSION = Constants.expoConfig?.version;
 
@@ -42,6 +43,11 @@ export default function Profile() {
 
   const handleGoToChangePassword = useCallback(
     () => router.push("/change-password"),
+    [router]
+  );
+
+  const handleGoToReviews = useCallback(
+    () => router.push("/reviews"),
     [router]
   );
 
@@ -99,6 +105,23 @@ export default function Profile() {
                   value={formatPhone(user.phone)}
                 />
               </View>
+            </Animated.View>
+
+            <Animated.View
+              className="mt-8"
+              entering={FadeInDown.delay(REVIEWS_DELAY).duration(
+                ENTERING_DURATION
+              )}
+            >
+              <Text className="mb-3 font-roboto-medium text-sm text-zinc-400">
+                Avaliações
+              </Text>
+              <ShortcutCard
+                description="Veja as notas que você deu aos atendimentos."
+                icon="star-outline"
+                onPress={handleGoToReviews}
+                title="Minhas avaliações"
+              />
             </Animated.View>
 
             <Animated.View

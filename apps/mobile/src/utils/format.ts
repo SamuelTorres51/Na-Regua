@@ -36,6 +36,15 @@ const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
   minute: "2-digit",
 });
 
+const ratingFormatter = new Intl.NumberFormat("pt-BR", {
+  maximumFractionDigits: 1,
+  minimumFractionDigits: 1,
+});
+
+export function formatRating(average: number) {
+  return ratingFormatter.format(average);
+}
+
 export function toPriceInCents(price: number) {
   return Math.round(price * CENTS_PER_UNIT);
 }
