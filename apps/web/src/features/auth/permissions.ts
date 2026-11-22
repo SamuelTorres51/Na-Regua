@@ -5,6 +5,7 @@ const PANEL_ROLES: readonly PerfilAcesso[] = ["administrador", "profissional"];
 
 const PAGE_ROLES: Record<AppPage, readonly PerfilAcesso[]> = {
   agenda: ["administrador", "profissional"],
+  barbearia: ["administrador"],
   clientes: ["administrador"],
   profissionais: ["administrador"],
   servicos: ["administrador", "profissional"],

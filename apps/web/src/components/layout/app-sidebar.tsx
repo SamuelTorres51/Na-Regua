@@ -8,45 +8,38 @@ import {
   StoreIcon,
   UsersIcon,
 } from "@/components/ui/icons";
-import { canAccessPage, isAdministrador } from "@/features/auth/permissions";
+import { canAccessPage } from "@/features/auth/permissions";
 import type { PerfilAcesso } from "@/features/auth/types";
 
 interface NavItem {
-  enabled: boolean;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   label: string;
-  page?: AppPage;
+  page: AppPage;
 }
 
-export type AppPage = "agenda" | "clientes" | "profissionais" | "servicos";
+export type AppPage =
+  | "agenda"
+  | "barbearia"
+  | "clientes"
+  | "profissionais"
+  | "servicos";
 
 const NAV_ITEMS: NavItem[] = [
-  { enabled: true, icon: CalendarIcon, label: "Agenda", page: "agenda" },
-  { enabled: true, icon: UsersIcon, label: "Clientes", page: "clientes" },
-  { enabled: true, icon: ScissorsIcon, label: "Serviços", page: "servicos" },
+  { icon: CalendarIcon, label: "Agenda", page: "agenda" },
+  { icon: UsersIcon, label: "Clientes", page: "clientes" },
+  { icon: ScissorsIcon, label: "Serviços", page: "servicos" },
   {
-    enabled: true,
     icon: ProfessionalsIcon,
     label: "Profissionais",
     page: "profissionais",
   },
-  { enabled: false, icon: StoreIcon, label: "Barbearia" },
+  { icon: StoreIcon, label: "Barbearia", page: "barbearia" },
 ];
 
-function isNavItemVisible({ page }: NavItem, perfil: PerfilAcesso) {
-  return page ? canAccessPage(perfil, page) : isAdministrador(perfil);
-}
-
-function getNavItemClass(isActive: boolean, enabled: boolean) {
-  if (isActive) {
-    return "flex w-full items-center gap-3 rounded-xl bg-brand/10 px-3 py-2.5 text-left font-roboto-medium text-brand text-sm";
-  }
-
-  if (enabled) {
-    return "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-roboto text-sm text-zinc-300 transition-colors hover:bg-zinc-800/60 hover:text-white";
-  }
-
-  return "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-roboto text-sm text-zinc-500";
+function getNavItemClass(isActive: boolean) {
+  return isActive
+    ? "flex w-full items-center gap-3 rounded-xl bg-brand/10 px-3 py-2.5 text-left font-roboto-medium text-brand text-sm"
+    : "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left font-roboto text-sm text-zinc-300 transition-colors hover:bg-zinc-800/60 hover:text-white";
 }
 
 interface AppSidebarProps {
@@ -56,7 +49,7 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ onNavigate, page, perfil }: AppSidebarProps) {
-  const navItems = NAV_ITEMS.filter((item) => isNavItemVisible(item, perfil));
+  const navItems = NAV_ITEMS.filter((item) => canAccessPage(perfil, item.page));
 
   return (
     <div className="flex h-full flex-col px-5 py-6">
@@ -64,36 +57,24 @@ export function AppSidebar({ onNavigate, page, perfil }: AppSidebarProps) {
 
       <nav aria-label="Navegação principal" className="mt-10">
         <ul className="flex flex-col gap-1">
-          {navItems.map(
-            ({ enabled, icon: IconComponent, label, page: itemPage }) => {
-              const isActive = enabled && itemPage === page;
+          {navItems.map(({ icon: IconComponent, label, page: itemPage }) => {
+            const isActive = itemPage === page;
 
-              return (
-                <li key={label}>
-                  <button
-                    aria-current={isActive ? "page" : undefined}
-                    aria-disabled={enabled ? undefined : true}
-                    className={getNavItemClass(isActive, enabled)}
-                    // biome-ignore lint/performance/noJsxPropsBind: navigation depends on the selected item
-                    onClick={() => {
-                      if (enabled && itemPage) {
-                        onNavigate(itemPage);
-                      }
-                    }}
-                    type="button"
-                  >
-                    <IconComponent className="h-5 w-5" />
-                    {label}
-                    {enabled ? null : (
-                      <span className="ml-auto font-roboto text-[10px] text-zinc-600 uppercase tracking-wide">
-                        em breve
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            }
-          )}
+            return (
+              <li key={itemPage}>
+                <button
+                  aria-current={isActive ? "page" : undefined}
+                  className={getNavItemClass(isActive)}
+                  // biome-ignore lint/performance/noJsxPropsBind: navigation depends on the selected item
+                  onClick={() => onNavigate(itemPage)}
+                  type="button"
+                >
+                  <IconComponent className="h-5 w-5" />
+                  {label}
+                </button>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 

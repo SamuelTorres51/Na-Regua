@@ -19,6 +19,10 @@ function getInitials(name: string) {
 }
 
 function getPageTitle(page: AppPage) {
+  if (page === "barbearia") {
+    return "Barbearia";
+  }
+
   if (page === "clientes") {
     return "Gerenciamento de clientes";
   }
@@ -35,6 +39,9 @@ function getPageTitle(page: AppPage) {
 }
 
 function getPageSubtitle(page: AppPage, userRole: string) {
+  if (page === "barbearia") {
+    return "Horários de funcionamento";
+  }
   if (page === "clientes") {
     return "Cadastros da sua barbearia";
   }
