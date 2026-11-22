@@ -6,6 +6,7 @@ import { AppointmentHistoryDialog } from "@/components/agenda/appointment-histor
 import { ProfessionalFormDialog } from "@/components/professionals/professional-form-dialog";
 import { ProfessionalScheduleCard } from "@/components/professionals/professional-schedule-card";
 import { ProfessionalServicesCard } from "@/components/professionals/professional-services-card";
+import { ProfessionalRatingSummary } from "@/components/reviews/professional-rating-summary";
 import { ActiveBadge } from "@/components/ui/active-badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormAlert } from "@/components/ui/form-alert";
@@ -226,6 +227,12 @@ export function ProfessionalsPage() {
                   </div>
                 </div>
                 <ActiveBadge ativo={selectedProfissional.ativo} />
+              </div>
+
+              <div className="mt-5">
+                <ProfessionalRatingSummary
+                  profissionalId={selectedProfissional.id}
+                />
               </div>
 
               {statusError && !profissionalToInactivate ? (
