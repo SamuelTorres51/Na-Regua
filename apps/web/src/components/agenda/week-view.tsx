@@ -22,7 +22,7 @@ export function WeekView({ agendamentos, referenceDate }: WeekViewProps) {
   if (agendamentos.length === 0) {
     return (
       <AgendaEmptyState
-        description="Não há atendimentos marcados nesta semana. Ajuste os filtros ou crie um novo agendamento."
+        description="Escolha outra semana ou ajuste os filtros para consultar outros atendimentos."
         title="Semana sem agendamentos"
       />
     );

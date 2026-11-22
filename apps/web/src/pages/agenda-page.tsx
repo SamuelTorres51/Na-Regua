@@ -12,13 +12,17 @@ import {
   formatFullDate,
   formatMonthYear,
   formatShortDate,
+  getAgendaDate,
   getWeekDays,
+  toIsoDate,
 } from "@/features/agenda/date-utils";
+import type { Agendamento } from "@/features/agenda/types";
 import { useAgenda } from "@/features/agenda/use-agenda";
 
 export function AgendaPage() {
   const {
     agendamentos,
+    canCreateAppointment,
     clearFilters,
     error,
     filters,
@@ -29,6 +33,7 @@ export function AgendaPage() {
     profissional,
     profissionais,
     referenceDate,
+    refresh,
     selectDate,
     servicos,
     setFilter,
@@ -38,9 +43,22 @@ export function AgendaPage() {
   } = useAgenda();
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [didCreate, setDidCreate] = useState(false);
 
-  const handleOpenDialog = useCallback(() => setIsDialogOpen(true), []);
+  const handleOpenDialog = useCallback(() => {
+    setDidCreate(false);
+    setIsDialogOpen(true);
+  }, []);
   const handleCloseDialog = useCallback(() => setIsDialogOpen(false), []);
+  const handleCreated = useCallback(
+    ({ inicio }: Agendamento) => {
+      setReferenceDate(getAgendaDate(new Date(inicio)));
+      refresh();
+      setIsDialogOpen(false);
+      setDidCreate(true);
+    },
+    [refresh, setReferenceDate]
+  );
 
   const title = useMemo(() => {
     if (view === "semana") {
@@ -89,7 +107,7 @@ export function AgendaPage() {
   return (
     <div className="flex flex-col gap-6">
       <AgendaToolbar
-        onNewAppointment={handleOpenDialog}
+        onNewAppointment={canCreateAppointment ? handleOpenDialog : undefined}
         onNext={goToNext}
         onPrevious={goToPrevious}
         onToday={goToToday}
@@ -109,14 +127,24 @@ export function AgendaPage() {
         servicos={servicos}
       />
 
+      {didCreate ? (
+        <p
+          className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 font-roboto text-emerald-300 text-sm"
+          role="status"
+        >
+          Agendamento criado com sucesso.
+        </p>
+      ) : null}
+
       {content}
 
-      <NewAppointmentDialog
-        isOpen={isDialogOpen}
-        onClose={handleCloseDialog}
-        profissionais={profissionais}
-        servicos={servicos}
-      />
+      {canCreateAppointment && isDialogOpen ? (
+        <NewAppointmentDialog
+          initialDate={toIsoDate(referenceDate)}
+          onClose={handleCloseDialog}
+          onCreated={handleCreated}
+        />
+      ) : null}
     </div>
   );
 }

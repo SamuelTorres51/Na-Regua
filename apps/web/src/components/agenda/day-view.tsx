@@ -55,7 +55,7 @@ export function DayView({ agendamentos, profissionais }: DayViewProps) {
   if (agendamentos.length === 0) {
     return (
       <AgendaEmptyState
-        description="Não há atendimentos marcados para esta data. Use “Novo agendamento” para registrar um horário."
+        description="Escolha outra data ou ajuste os filtros para consultar outros atendimentos."
         title="Nenhum agendamento neste dia"
       />
     );
