@@ -7,6 +7,7 @@ import { canAccessPage, isAdministrador } from "@/features/auth/permissions";
 import { useSession } from "@/features/auth/session-provider";
 import type { PerfilAcesso } from "@/features/auth/types";
 import { AgendaPage } from "@/pages/agenda-page";
+import { BarbershopPage } from "@/pages/barbershop-page";
 import { ClientsPage } from "@/pages/clients-page";
 import { LoginPage } from "@/pages/login-page";
 import { ProfessionalsPage } from "@/pages/professionals-page";
@@ -15,6 +16,10 @@ import { ServicesPage } from "@/pages/services-page";
 const DEFAULT_PAGE: AppPage = "agenda";
 
 function getPageContent(page: AppPage, perfil: PerfilAcesso) {
+  if (page === "barbearia") {
+    return <BarbershopPage />;
+  }
+
   if (page === "clientes") {
     return <ClientsPage />;
   }
