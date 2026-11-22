@@ -1,17 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useSession } from "@/features/auth/session-provider";
+import { type AgendaQuery, listarAgendamentos } from "@/services/agenda";
+import { getApiErrorMessage } from "@/services/api-client";
+import { listServicos } from "@/services/catalog";
+import { listProfissionais } from "@/services/professionals";
 import {
-  listarAgendamentos,
-  listarProfissionais,
-  listarServicos,
-} from "@/services/agenda";
-import { addDays, addMonths } from "./date-utils";
+  addDays,
+  addMonths,
+  getAgendaDate,
+  getAgendaPeriod,
+} from "./date-utils";
 import type {
   AgendaFilters,
   Agendamento,
   AgendaView,
-  Profissional,
-  Servico,
+  ReferenciaAgenda,
 } from "./types";
 
 const EMPTY_FILTERS: AgendaFilters = {
@@ -22,72 +26,96 @@ const EMPTY_FILTERS: AgendaFilters = {
 
 const LOAD_ERROR_MESSAGE = "Não foi possível carregar a agenda.";
 
+interface AgendaResult {
+  agendamentos: Agendamento[];
+  error: string | null;
+  query: AgendaQuery;
+}
+
+interface CatalogResult {
+  error: string | null;
+  profissionais: ReferenciaAgenda[];
+  servicos: ReferenciaAgenda[];
+}
+
 export function useAgenda() {
+  const { session } = useSession();
+  const usuario = session?.usuario;
+  const profissional = usuario?.perfil === "profissional" ? usuario : null;
+
   const [view, setView] = useState<AgendaView>("dia");
-  const [referenceDate, setReferenceDate] = useState(() => new Date());
+  const [referenceDate, setReferenceDate] = useState(() => getAgendaDate());
   const [filters, setFilters] = useState<AgendaFilters>(EMPTY_FILTERS);
+  const [catalog, setCatalog] = useState<CatalogResult | null>(null);
+  const [result, setResult] = useState<AgendaResult | null>(null);
 
-  const [agendamentos, setAgendamentos] = useState<Agendamento[]>([]);
-  const [profissionais, setProfissionais] = useState<Profissional[]>([]);
-  const [servicos, setServicos] = useState<Servico[]>([]);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { fim, inicio } = getAgendaPeriod(referenceDate, view);
+  const { profissionalId, servicoId, status } = filters;
+  const query = useMemo(
+    () => ({ fim, inicio, profissionalId, status }),
+    [fim, inicio, profissionalId, status]
+  );
 
   useEffect(() => {
     let isActive = true;
 
-    setIsLoading(true);
-    setError(null);
-
-    Promise.all([listarAgendamentos(), listarProfissionais(), listarServicos()])
-      .then(([agenda, listaProfissionais, listaServicos]) => {
-        if (!isActive) {
-          return;
-        }
-
-        setAgendamentos(agenda);
-        setProfissionais(listaProfissionais);
-        setServicos(listaServicos);
-      })
-      .catch(() => {
+    Promise.all([
+      profissional ? Promise.resolve([profissional]) : listProfissionais(),
+      listServicos(),
+    ])
+      .then(([profissionais, servicos]) => {
         if (isActive) {
-          setError(LOAD_ERROR_MESSAGE);
+          setCatalog({ error: null, profissionais, servicos });
         }
       })
-      .finally(() => {
+      .catch((error) => {
         if (isActive) {
-          setIsLoading(false);
+          setCatalog({
+            error: getApiErrorMessage(
+              error,
+              "Não foi possível carregar os filtros da agenda."
+            ),
+            profissionais: [],
+            servicos: [],
+          });
         }
       });
 
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [profissional]);
 
-  const filteredAgendamentos = useMemo(
-    () =>
-      agendamentos.filter((agendamento) => {
-        if (
-          filters.profissionalId &&
-          agendamento.profissionalId !== filters.profissionalId
-        ) {
-          return false;
+  useEffect(() => {
+    let isActive = true;
+
+    listarAgendamentos(query)
+      .then((items) => {
+        if (isActive) {
+          setResult({ agendamentos: items, error: null, query });
         }
-
-        if (filters.servicoId && agendamento.servicoId !== filters.servicoId) {
-          return false;
+      })
+      .catch((error) => {
+        if (isActive) {
+          setResult({
+            agendamentos: [],
+            error: getApiErrorMessage(error, LOAD_ERROR_MESSAGE),
+            query,
+          });
         }
+      });
 
-        if (filters.status && agendamento.status !== filters.status) {
-          return false;
-        }
+    return () => {
+      isActive = false;
+    };
+  }, [query]);
 
-        return true;
-      }),
-    [agendamentos, filters]
-  );
+  const currentResult = result?.query === query ? result : null;
+  const agendamentos = currentResult?.agendamentos ?? [];
+  const selectedServicoId = Number(servicoId);
+  const filteredAgendamentos = servicoId
+    ? agendamentos.filter(({ servico }) => servico?.id === selectedServicoId)
+    : agendamentos;
 
   const setFilter = useCallback(
     <Key extends keyof AgendaFilters>(key: Key, value: AgendaFilters[Key]) => {
@@ -118,7 +146,7 @@ export function useAgenda() {
     });
   }, [view]);
 
-  const goToToday = useCallback(() => setReferenceDate(new Date()), []);
+  const goToToday = useCallback(() => setReferenceDate(getAgendaDate()), []);
 
   const selectDate = useCallback((date: Date) => {
     setReferenceDate(date);
@@ -128,16 +156,17 @@ export function useAgenda() {
   return {
     agendamentos: filteredAgendamentos,
     clearFilters,
-    error,
+    error: currentResult?.error ?? catalog?.error ?? null,
     filters,
     goToNext,
     goToPrevious,
     goToToday,
-    isLoading,
-    profissionais,
+    isLoading: !(currentResult && catalog),
+    profissionais: catalog?.profissionais ?? [],
+    profissional,
     referenceDate,
     selectDate,
-    servicos,
+    servicos: catalog?.servicos ?? [],
     setFilter,
     setReferenceDate,
     setView,

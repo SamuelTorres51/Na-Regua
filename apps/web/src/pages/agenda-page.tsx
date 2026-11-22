@@ -7,7 +7,7 @@ import { DayView } from "@/components/agenda/day-view";
 import { MonthView } from "@/components/agenda/month-view";
 import { NewAppointmentDialog } from "@/components/agenda/new-appointment-dialog";
 import { WeekView } from "@/components/agenda/week-view";
-import { SpinnerIcon } from "@/components/ui/icons";
+import { ErrorPanel, LoadingPanel } from "@/components/ui/state-panels";
 import {
   formatFullDate,
   formatMonthYear,
@@ -26,6 +26,7 @@ export function AgendaPage() {
     goToPrevious,
     goToToday,
     isLoading,
+    profissional,
     profissionais,
     referenceDate,
     selectDate,
@@ -57,38 +58,23 @@ export function AgendaPage() {
   let content: ReactNode;
 
   if (isLoading) {
-    content = (
-      <div className="flex items-center justify-center gap-3 rounded-3xl border border-zinc-800 bg-zinc-900/30 py-16 text-zinc-400">
-        <SpinnerIcon className="h-5 w-5 animate-spin" />
-        <span className="font-roboto text-sm">Carregando agenda...</span>
-      </div>
-    );
+    content = <LoadingPanel label="Carregando agenda..." />;
   } else if (error) {
-    content = (
-      <div
-        className="rounded-3xl border border-danger/40 bg-danger/10 px-6 py-10 text-center"
-        role="alert"
-      >
-        <p className="font-roboto-medium text-danger text-sm">{error}</p>
-      </div>
-    );
+    content = <ErrorPanel message={error} />;
   } else if (view === "dia") {
+    const visibleProfessionals = filters.profissionalId
+      ? profissionais.filter(({ id }) => String(id) === filters.profissionalId)
+      : profissionais;
+
     content = (
       <DayView
         agendamentos={agendamentos}
-        date={referenceDate}
-        profissionais={profissionais}
-        servicos={servicos}
+        profissionais={visibleProfessionals}
       />
     );
   } else if (view === "semana") {
     content = (
-      <WeekView
-        agendamentos={agendamentos}
-        profissionais={profissionais}
-        referenceDate={referenceDate}
-        servicos={servicos}
-      />
+      <WeekView agendamentos={agendamentos} referenceDate={referenceDate} />
     );
   } else {
     content = (
@@ -118,6 +104,7 @@ export function AgendaPage() {
         onDateChange={setReferenceDate}
         onFilterChange={setFilter}
         profissionais={profissionais}
+        profissional={profissional}
         referenceDate={referenceDate}
         servicos={servicos}
       />
