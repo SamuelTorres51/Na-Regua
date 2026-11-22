@@ -11,6 +11,7 @@ interface ConfirmDialogProps {
   onClose: () => void;
   onConfirm: () => void;
   title: string;
+  tone?: "danger" | "primary";
 }
 
 export function ConfirmDialog({
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   onClose,
   onConfirm,
   title,
+  tone = "danger",
 }: ConfirmDialogProps) {
   return (
     <Dialog
@@ -43,7 +45,7 @@ export function ConfirmDialog({
           </button>
           <button
             aria-busy={isLoading}
-            className="flex h-11 items-center gap-2 rounded-xl bg-danger px-5 font-roboto-semibold text-sm text-zinc-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+            className={`flex h-11 items-center gap-2 rounded-xl px-5 font-roboto-semibold text-sm text-zinc-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 ${tone === "danger" ? "bg-danger" : "bg-brand"}`}
             disabled={isLoading}
             onClick={onConfirm}
             type="button"

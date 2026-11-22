@@ -38,11 +38,10 @@ function getPageTitle(page: AppPage) {
   return "Agenda consolidada";
 }
 
-function getPageSubtitle(page: AppPage) {
+function getPageSubtitle(page: AppPage, userRole: string) {
   if (page === "barbearia") {
     return "Horários de funcionamento";
   }
-
   if (page === "clientes") {
     return "Cadastros da sua barbearia";
   }
@@ -55,7 +54,9 @@ function getPageSubtitle(page: AppPage) {
     return "Catálogo de serviços da sua barbearia";
   }
 
-  return "Todos os profissionais em uma única tela";
+  return userRole === "profissional"
+    ? "Seus atendimentos em uma única tela"
+    : "Todos os profissionais em uma única tela";
 }
 
 export function AppTopbar({
@@ -82,7 +83,7 @@ export function AppTopbar({
             {getPageTitle(page)}
           </p>
           <p className="hidden truncate font-roboto text-xs text-zinc-500 sm:block">
-            {getPageSubtitle(page)}
+            {getPageSubtitle(page, userRole)}
           </p>
         </div>
       </div>

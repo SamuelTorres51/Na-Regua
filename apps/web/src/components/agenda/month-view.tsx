@@ -1,6 +1,11 @@
 import { useCallback, useMemo } from "react";
 
-import { getMonthGrid, isToday, toIsoDate } from "@/features/agenda/date-utils";
+import {
+  getAgendaDate,
+  getMonthGrid,
+  isToday,
+  toIsoDate,
+} from "@/features/agenda/date-utils";
 import type { Agendamento } from "@/features/agenda/types";
 
 const WEEKDAY_LABELS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
@@ -34,7 +39,7 @@ function DayCell({ count, date, isCurrentMonth, onSelect }: DayCellProps) {
             : "font-roboto text-xs text-zinc-300"
         }
       >
-        {date.getDate()}
+        {date.getUTCDate()}
       </span>
 
       {count > 0 ? (
@@ -63,7 +68,7 @@ export function MonthView({
     const counts = new Map<string, number>();
 
     for (const agendamento of agendamentos) {
-      const key = toIsoDate(new Date(agendamento.inicio));
+      const key = toIsoDate(getAgendaDate(new Date(agendamento.inicio)));
       counts.set(key, (counts.get(key) ?? 0) + 1);
     }
 
@@ -88,7 +93,7 @@ export function MonthView({
           <DayCell
             count={countByDay.get(toIsoDate(day)) ?? 0}
             date={day}
-            isCurrentMonth={day.getMonth() === referenceDate.getMonth()}
+            isCurrentMonth={day.getUTCMonth() === referenceDate.getUTCMonth()}
             key={day.toISOString()}
             onSelect={onSelectDay}
           />

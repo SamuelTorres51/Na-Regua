@@ -9,23 +9,18 @@ export const STATUS_AGENDAMENTO = [
 
 export type StatusAgendamento = (typeof STATUS_AGENDAMENTO)[number];
 
-export interface Profissional {
-  id: string;
-  nome: string;
-}
-
-export interface Servico {
-  id: string;
+export interface ReferenciaAgenda {
+  id: number;
   nome: string;
 }
 
 export interface Agendamento {
-  clienteNome: string;
+  cliente: ReferenciaAgenda | null;
   duracaoMinutos: number;
-  id: string;
+  id: number;
   inicio: string;
-  profissionalId: string;
-  servicoId: string;
+  profissional: ReferenciaAgenda | null;
+  servico: ReferenciaAgenda | null;
   status: StatusAgendamento;
 }
 
