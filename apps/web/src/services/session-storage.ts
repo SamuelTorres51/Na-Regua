@@ -43,8 +43,10 @@ export function loadSession(): AuthSession | null {
 
   const session = parseSession(stored);
 
-  if (!session) {
+  // Descarta sessões que foram salvas pelo antigo login de demonstração.
+  if (!session || session.token === "mock-token") {
     clearSession();
+    return null;
   }
 
   return session;

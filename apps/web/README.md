@@ -12,7 +12,8 @@ funcionários da barbearia (RF49–RF51).
 
 ## Configuração
 
-Copie o arquivo de exemplo e informe a URL da API:
+O painel precisa da API em execução. Copie o arquivo de exemplo e configure
+`VITE_API_URL` com o endereço do back-end.
 
 ```bash
 cp .env.example .env
@@ -21,8 +22,6 @@ cp .env.example .env
 ```env
 VITE_API_URL=http://127.0.0.1:8000
 ```
-
-Sem `VITE_API_URL`, o painel continua usando os dados provisórios.
 
 ## Scripts
 
@@ -41,7 +40,7 @@ src/
   components/   # componentes reutilizáveis (ui e layout)
   features/     # lógica por domínio (ex.: auth)
   pages/        # telas montadas a partir dos componentes
-  services/     # acesso a dados (provisório até a API expor as rotas)
+  services/     # integração com a API e armazenamento da sessão
   theme/        # tokens de design compartilhados
   utils/        # funções utilitárias
 ```

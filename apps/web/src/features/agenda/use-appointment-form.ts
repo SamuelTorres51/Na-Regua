@@ -10,7 +10,6 @@ import {
   getApiErrorMessage,
   HTTP_STATUS,
   hasApiStatus,
-  isApiEnabled,
   isNetworkError,
 } from "@/services/api-client";
 import { listServicos } from "@/services/catalog";
@@ -109,7 +108,7 @@ export function useAppointmentForm({
   );
 
   const catalog = useAppointmentQuery(
-    isApiEnabled ? loadCatalog : null,
+    loadCatalog,
     "Não foi possível carregar os clientes e serviços."
   );
   const professionals = useAppointmentQuery(

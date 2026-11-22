@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { getApiErrorMessage, isApiEnabled } from "@/services/api-client";
+import { getApiErrorMessage } from "@/services/api-client";
 
 interface ReviewQueryResult<T> {
   attempt: number;
@@ -17,10 +17,6 @@ export function useReviewsQuery<T>(
   const [result, setResult] = useState<ReviewQueryResult<T> | null>(null);
 
   useEffect(() => {
-    if (!isApiEnabled) {
-      return;
-    }
-
     let isActive = true;
     load()
       .then((data) => {

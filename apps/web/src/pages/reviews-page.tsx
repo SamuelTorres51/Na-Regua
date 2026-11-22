@@ -6,7 +6,6 @@ import { ReviewCard } from "@/components/reviews/review-card";
 import { SelectField } from "@/components/ui/select-field";
 import { ErrorPanel, LoadingPanel } from "@/components/ui/state-panels";
 import { useReviewsQuery } from "@/features/reviews/use-reviews-query";
-import { isApiEnabled } from "@/services/api-client";
 import { listClientes } from "@/services/clients";
 import { listProfissionais } from "@/services/professionals";
 import { listarAvaliacoes } from "@/services/reviews";
@@ -103,11 +102,7 @@ export function ReviewsPage() {
   const [professionalFilter, setProfessionalFilter] = useState("");
 
   let content: ReactNode;
-  if (!isApiEnabled) {
-    content = (
-      <ErrorPanel message="Conecte o painel à API para consultar as avaliações." />
-    );
-  } else if (error) {
+  if (error) {
     content = (
       <div className="flex flex-col items-center gap-3">
         <div className="w-full">

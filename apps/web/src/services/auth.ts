@@ -5,11 +5,9 @@ import type {
   AuthSession,
   Usuario,
 } from "@/features/auth/types";
-import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
-import { simulateLatency } from "./fake-api";
+import { api, HTTP_STATUS, hasApiStatus } from "./api-client";
 
 const SESSION_CHECK_TIMEOUT_MS = 5000;
-const MOCK_TOKEN = "mock-token";
 
 export interface SignInInput {
   email: string;
@@ -43,23 +41,6 @@ interface AuthResponse {
   usuario: Usuario;
 }
 
-// PROVISÓRIO: usado enquanto VITE_API_URL não estiver configurada.
-async function signInWithMock({ email }: SignInInput): Promise<AuthSession> {
-  await simulateLatency();
-
-  return {
-    token: MOCK_TOKEN,
-    usuario: {
-      ativo: true,
-      email,
-      id: 1,
-      nome: "Administrador",
-      perfil: "administrador",
-      telefone: "",
-    },
-  };
-}
-
 function rethrowInvalidCredentials(error: unknown): never {
   if (hasApiStatus(error, HTTP_STATUS.unauthorized)) {
     throw new InvalidCredentialsError({ cause: error });
@@ -79,7 +60,7 @@ async function requestSignIn(email: string, password: string) {
   }
 }
 
-async function signInWithApi({
+export async function signIn({
   email,
   password,
 }: SignInInput): Promise<AuthSession> {
@@ -90,8 +71,6 @@ async function signInWithApi({
     usuario: ensurePanelAccess(response.usuario),
   };
 }
-
-export const signIn = isApiEnabled ? signInWithApi : signInWithMock;
 
 export async function getCurrentUser() {
   const usuario = await api.get<Usuario>("/auth/me", {

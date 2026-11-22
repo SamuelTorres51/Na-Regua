@@ -13,12 +13,9 @@ export const HTTP_STATUS = {
   unprocessableEntity: 422,
 } as const;
 
-const API_URL = (import.meta.env.VITE_API_URL ?? "").replace(
-  TRAILING_SLASH_PATTERN,
-  ""
-);
-
-export const isApiEnabled = API_URL.length > 0;
+const API_URL = (import.meta.env.VITE_API_URL ?? "")
+  .trim()
+  .replace(TRAILING_SLASH_PATTERN, "");
 
 let accessToken: string | null = null;
 let unauthorizedHandler: (() => void) | null = null;
@@ -168,6 +165,12 @@ export async function request<TResponse>(
     timeoutMs = DEFAULT_TIMEOUT_MS,
   }: RequestOptions = {}
 ): Promise<TResponse> {
+  if (!API_URL) {
+    throw new ApiError("Configure VITE_API_URL para conectar o painel à API.", {
+      status: HTTP_STATUS.network,
+    });
+  }
+
   const hasBody = body !== undefined;
   const sentToken = accessToken;
 
