@@ -1,5 +1,10 @@
 import { canAccessPanel } from "@/features/auth/permissions";
-import type { AuthSession, Usuario } from "@/features/auth/types";
+import type {
+  AlterarSenhaInput,
+  AtualizarPerfilInput,
+  AuthSession,
+  Usuario,
+} from "@/features/auth/types";
 import { api, HTTP_STATUS, hasApiStatus, isApiEnabled } from "./api-client";
 import { simulateLatency } from "./fake-api";
 
@@ -94,4 +99,24 @@ export async function getCurrentUser() {
   });
 
   return ensurePanelAccess(usuario);
+}
+
+export async function atualizarPerfil(input: AtualizarPerfilInput) {
+  const usuario = await api.patch<Usuario>("/auth/me", input);
+  return ensurePanelAccess(usuario);
+}
+
+export async function alterarSenha({
+  novaSenha,
+  senhaAtual,
+}: AlterarSenhaInput) {
+  const { mensagem } = await api.put<{ mensagem: string }>(
+    "/auth/alterar-senha",
+    {
+      nova_senha: novaSenha,
+      senha_atual: senhaAtual,
+    }
+  );
+
+  return mensagem;
 }

@@ -11,6 +11,7 @@ import { BarbershopPage } from "@/pages/barbershop-page";
 import { ClientsPage } from "@/pages/clients-page";
 import { LoginPage } from "@/pages/login-page";
 import { ProfessionalsPage } from "@/pages/professionals-page";
+import { ProfilePage } from "@/pages/profile-page";
 import { ReviewsPage } from "@/pages/reviews-page";
 import { ServicesPage } from "@/pages/services-page";
 
@@ -27,6 +28,10 @@ function getPageContent(page: AppPage, perfil: PerfilAcesso) {
 
   if (page === "clientes") {
     return <ClientsPage />;
+  }
+
+  if (page === "perfil") {
+    return <ProfilePage />;
   }
 
   if (page === "profissionais") {

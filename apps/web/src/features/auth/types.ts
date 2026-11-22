@@ -13,3 +13,12 @@ export interface AuthSession {
   token: string;
   usuario: Usuario;
 }
+
+export type DadosPerfil = Pick<Usuario, "email" | "nome" | "telefone">;
+
+export type AtualizarPerfilInput = Partial<DadosPerfil>;
+
+export interface AlterarSenhaInput {
+  novaSenha: string;
+  senhaAtual: string;
+}

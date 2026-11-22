@@ -7,6 +7,7 @@ import {
   ScissorsIcon,
   StarIcon,
   StoreIcon,
+  UserIcon,
   UsersIcon,
 } from "@/components/ui/icons";
 import { canAccessPage } from "@/features/auth/permissions";
@@ -23,6 +24,7 @@ export type AppPage =
   | "avaliacoes"
   | "barbearia"
   | "clientes"
+  | "perfil"
   | "profissionais"
   | "servicos";
 
@@ -37,6 +39,7 @@ const NAV_ITEMS: NavItem[] = [
   },
   { icon: StarIcon, label: "Avaliações", page: "avaliacoes" },
   { icon: StoreIcon, label: "Barbearia", page: "barbearia" },
+  { icon: UserIcon, label: "Meu perfil", page: "perfil" },
 ];
 
 function getNavItemClass(isActive: boolean) {
