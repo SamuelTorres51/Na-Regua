@@ -5,6 +5,7 @@ import { type AgendaQuery, listarAgendamentos } from "@/services/agenda";
 import { getApiErrorMessage } from "@/services/api-client";
 import { listServicos } from "@/services/catalog";
 import { listProfissionais } from "@/services/professionals";
+import { podeGerenciarAgendamento } from "./appointment-actions";
 import {
   addDays,
   addMonths,
@@ -130,6 +131,11 @@ export function useAgenda() {
 
   const clearFilters = useCallback(() => setFilters(EMPTY_FILTERS), []);
   const refresh = useCallback(() => setRevision((current) => current + 1), []);
+  const canManageAppointment = useCallback(
+    (agendamento: Agendamento) =>
+      podeGerenciarAgendamento(agendamento, usuario),
+    [usuario]
+  );
 
   const goToPrevious = useCallback(() => {
     setReferenceDate((current) => {
@@ -161,6 +167,7 @@ export function useAgenda() {
   return {
     agendamentos: filteredAgendamentos,
     canCreateAppointment: usuario?.perfil === "administrador",
+    canManageAppointment,
     clearFilters,
     error: currentResult?.error ?? catalog?.error ?? null,
     filters,

@@ -13,10 +13,17 @@ import { AppointmentCard } from "./appointment-card";
 
 interface WeekViewProps {
   agendamentos: Agendamento[];
+  canManageAppointment: (agendamento: Agendamento) => boolean;
+  onManageAppointment: (agendamento: Agendamento) => void;
   referenceDate: Date;
 }
 
-export function WeekView({ agendamentos, referenceDate }: WeekViewProps) {
+export function WeekView({
+  agendamentos,
+  canManageAppointment,
+  onManageAppointment,
+  referenceDate,
+}: WeekViewProps) {
   const days = useMemo(() => getWeekDays(referenceDate), [referenceDate]);
 
   if (agendamentos.length === 0) {
@@ -76,6 +83,11 @@ export function WeekView({ agendamentos, referenceDate }: WeekViewProps) {
                 <AppointmentCard
                   agendamento={agendamento}
                   key={agendamento.id}
+                  onManage={
+                    canManageAppointment(agendamento)
+                      ? onManageAppointment
+                      : undefined
+                  }
                 />
               ))
             )}
