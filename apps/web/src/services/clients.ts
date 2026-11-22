@@ -31,8 +31,15 @@ const mockClientes = createMockStore<Cliente>([
   },
 ]);
 
-export function listClientes() {
-  return isApiEnabled ? api.get<Cliente[]>("/clientes") : mockClientes.list();
+export async function listClientes(apenasAtivos = false) {
+  if (isApiEnabled) {
+    return api.get<Cliente[]>("/clientes", {
+      query: { apenas_ativos: apenasAtivos || undefined },
+    });
+  }
+
+  const clientes = await mockClientes.list();
+  return apenasAtivos ? clientes.filter(({ ativo }) => ativo) : clientes;
 }
 
 export function createCliente(input: NovoClienteInput) {

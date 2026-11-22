@@ -30,6 +30,7 @@ interface AgendaResult {
   agendamentos: Agendamento[];
   error: string | null;
   query: AgendaQuery;
+  revision: number;
 }
 
 interface CatalogResult {
@@ -48,6 +49,7 @@ export function useAgenda() {
   const [filters, setFilters] = useState<AgendaFilters>(EMPTY_FILTERS);
   const [catalog, setCatalog] = useState<CatalogResult | null>(null);
   const [result, setResult] = useState<AgendaResult | null>(null);
+  const [revision, setRevision] = useState(0);
 
   const { fim, inicio } = getAgendaPeriod(referenceDate, view);
   const { profissionalId, servicoId, status } = filters;
@@ -92,7 +94,7 @@ export function useAgenda() {
     listarAgendamentos(query)
       .then((items) => {
         if (isActive) {
-          setResult({ agendamentos: items, error: null, query });
+          setResult({ agendamentos: items, error: null, query, revision });
         }
       })
       .catch((error) => {
@@ -101,6 +103,7 @@ export function useAgenda() {
             agendamentos: [],
             error: getApiErrorMessage(error, LOAD_ERROR_MESSAGE),
             query,
+            revision,
           });
         }
       });
@@ -108,9 +111,10 @@ export function useAgenda() {
     return () => {
       isActive = false;
     };
-  }, [query]);
+  }, [query, revision]);
 
-  const currentResult = result?.query === query ? result : null;
+  const currentResult =
+    result?.query === query && result.revision === revision ? result : null;
   const agendamentos = currentResult?.agendamentos ?? [];
   const selectedServicoId = Number(servicoId);
   const filteredAgendamentos = servicoId
@@ -125,6 +129,7 @@ export function useAgenda() {
   );
 
   const clearFilters = useCallback(() => setFilters(EMPTY_FILTERS), []);
+  const refresh = useCallback(() => setRevision((current) => current + 1), []);
 
   const goToPrevious = useCallback(() => {
     setReferenceDate((current) => {
@@ -155,6 +160,7 @@ export function useAgenda() {
 
   return {
     agendamentos: filteredAgendamentos,
+    canCreateAppointment: usuario?.perfil === "administrador",
     clearFilters,
     error: currentResult?.error ?? catalog?.error ?? null,
     filters,
@@ -165,6 +171,7 @@ export function useAgenda() {
     profissionais: catalog?.profissionais ?? [],
     profissional,
     referenceDate,
+    refresh,
     selectDate,
     servicos: catalog?.servicos ?? [],
     setFilter,

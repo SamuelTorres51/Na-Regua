@@ -45,7 +45,7 @@ function ViewToggleButton({
 }
 
 interface AgendaToolbarProps {
-  onNewAppointment: () => void;
+  onNewAppointment?: () => void;
   onNext: () => void;
   onPrevious: () => void;
   onToday: () => void;
@@ -110,14 +110,16 @@ export function AgendaToolbar({
           ))}
         </div>
 
-        <button
-          className="flex h-10 items-center gap-2 rounded-xl bg-brand px-4 font-roboto font-semibold text-sm text-zinc-950 transition duration-150 hover:brightness-110 active:scale-[0.99]"
-          onClick={onNewAppointment}
-          type="button"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Novo agendamento
-        </button>
+        {onNewAppointment ? (
+          <button
+            className="flex h-10 items-center gap-2 rounded-xl bg-brand px-4 font-roboto font-semibold text-sm text-zinc-950 transition duration-150 hover:brightness-110 active:scale-[0.99]"
+            onClick={onNewAppointment}
+            type="button"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Novo agendamento
+          </button>
+        ) : null}
       </div>
     </div>
   );

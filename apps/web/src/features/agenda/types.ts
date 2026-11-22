@@ -24,6 +24,19 @@ export interface Agendamento {
   status: StatusAgendamento;
 }
 
+export interface NovoAgendamentoInput {
+  clienteId: number;
+  inicio: string;
+  profissionalId: number;
+  servicoId: number;
+}
+
+export interface DiaDisponibilidade {
+  data: string;
+  horarios: string[];
+  status: "disponivel" | "fechado" | "folga" | "lotado";
+}
+
 export interface AgendaFilters {
   profissionalId: string;
   servicoId: string;
