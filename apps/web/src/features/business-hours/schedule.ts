@@ -26,6 +26,8 @@ export interface Turno {
   inicio: string;
 }
 
+export type CampoTurno = "inicio" | "fim";
+
 const TIME_PATTERN = /^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/;
 
 export function ordenarTurnos(turnos: readonly Turno[]) {
@@ -37,9 +39,30 @@ export function ordenarTurnos(turnos: readonly Turno[]) {
   );
 }
 
+export function turnosIguais(
+  first: readonly Turno[] | null,
+  second: readonly Turno[] | null
+) {
+  if (first === null || second === null) {
+    return first === second;
+  }
+
+  return (
+    first.length === second.length &&
+    first.every(({ diaSemana, fim, inicio }, index) => {
+      const other = second.at(index);
+      return (
+        other?.diaSemana === diaSemana &&
+        other.fim === fim &&
+        other.inicio === inicio
+      );
+    })
+  );
+}
+
 export function validarTurnos(turnos: readonly Turno[]) {
   if (turnos.length === 0) {
-    return "Informe pelo menos um turno de funcionamento na semana.";
+    return "Informe pelo menos um turno na semana.";
   }
 
   let anterior: Turno | undefined;
@@ -49,10 +72,10 @@ export function validarTurnos(turnos: readonly Turno[]) {
     const dia = NOMES_DIAS[diaSemana].toLocaleLowerCase("pt-BR");
 
     if (!(TIME_PATTERN.test(inicio) && TIME_PATTERN.test(fim))) {
-      return `Preencha a abertura e o fechamento de cada turno de ${dia}.`;
+      return `Preencha o início e o fim de cada turno de ${dia}.`;
     }
     if (inicio >= fim) {
-      return `O fechamento do turno de ${dia} (${inicio}–${fim}) deve ser depois da abertura.`;
+      return `O fim do turno de ${dia} (${inicio}–${fim}) deve ser depois do início.`;
     }
     if (anterior?.diaSemana === diaSemana && inicio < anterior.fim) {
       return `Os turnos de ${dia} (${anterior.inicio}–${anterior.fim} e ${inicio}–${fim}) se sobrepõem.`;
