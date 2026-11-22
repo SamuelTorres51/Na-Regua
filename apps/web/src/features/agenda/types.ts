@@ -14,15 +14,21 @@ export interface ReferenciaAgenda {
   nome: string;
 }
 
+interface ServicoAgendamento extends ReferenciaAgenda {
+  preco: number;
+}
+
 export interface Agendamento {
   cliente: ReferenciaAgenda | null;
   duracaoMinutos: number;
   id: number;
   inicio: string;
   profissional: ReferenciaAgenda | null;
-  servico: ReferenciaAgenda | null;
+  servico: ServicoAgendamento | null;
   status: StatusAgendamento;
 }
+
+export type TipoHistorico = "cliente" | "profissional";
 
 export interface NovoAgendamentoInput {
   clienteId: number;

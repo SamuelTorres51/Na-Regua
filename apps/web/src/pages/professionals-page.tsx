@@ -2,13 +2,14 @@
 import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 
+import { AppointmentHistoryDialog } from "@/components/agenda/appointment-history-dialog";
 import { ProfessionalFormDialog } from "@/components/professionals/professional-form-dialog";
 import { ProfessionalScheduleCard } from "@/components/professionals/professional-schedule-card";
 import { ProfessionalServicesCard } from "@/components/professionals/professional-services-card";
 import { ActiveBadge } from "@/components/ui/active-badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormAlert } from "@/components/ui/form-alert";
-import { PlusIcon, SearchIcon } from "@/components/ui/icons";
+import { HistoryIcon, PlusIcon, SearchIcon } from "@/components/ui/icons";
 import { ErrorPanel, LoadingPanel } from "@/components/ui/state-panels";
 import type {
   NovoProfissionalInput,
@@ -60,6 +61,8 @@ export function ProfessionalsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProfissional, setEditingProfissional] =
     useState<Profissional | null>(null);
+  const [historyProfissional, setHistoryProfissional] =
+    useState<Profissional | null>(null);
   const [profissionalToInactivate, setProfissionalToInactivate] =
     useState<Profissional | null>(null);
   const [statusError, setStatusError] = useState<string | null>(null);
@@ -98,6 +101,7 @@ export function ProfessionalsPage() {
   }, []);
 
   const closeFormDialog = useCallback(() => setIsFormOpen(false), []);
+  const closeHistory = useCallback(() => setHistoryProfissional(null), []);
 
   const handleSave = useCallback(
     async (input: NovoProfissionalInput) => {
@@ -238,6 +242,14 @@ export function ProfessionalsPage() {
                 >
                   Editar dados
                 </button>
+                <button
+                  className="flex h-10 items-center gap-2 rounded-xl border border-zinc-700 px-4 font-roboto-medium text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-white"
+                  onClick={() => setHistoryProfissional(selectedProfissional)}
+                  type="button"
+                >
+                  <HistoryIcon className="h-4 w-4" />
+                  Ver histórico
+                </button>
                 {selectedProfissional.ativo ? (
                   <button
                     className="h-10 rounded-xl border border-danger/40 px-4 font-roboto-medium text-danger text-sm transition hover:bg-danger/10"
@@ -287,46 +299,62 @@ export function ProfessionalsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="font-roboto text-sm text-zinc-500">Equipe</p>
-          <h1 className="mt-1 font-roboto-bold text-2xl text-white">
-            Profissionais
-          </h1>
-          <p className="mt-2 font-roboto text-sm text-zinc-400">
-            Cadastre e gerencie os profissionais da sua barbearia.
-          </p>
+    <>
+      <div
+        className="flex flex-col gap-6"
+        inert={
+          isFormOpen ||
+          historyProfissional !== null ||
+          profissionalToInactivate !== null
+        }
+      >
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="font-roboto text-sm text-zinc-500">Equipe</p>
+            <h1 className="mt-1 font-roboto-bold text-2xl text-white">
+              Profissionais
+            </h1>
+            <p className="mt-2 font-roboto text-sm text-zinc-400">
+              Cadastre e gerencie os profissionais da sua barbearia.
+            </p>
+          </div>
+          <button
+            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 font-roboto-semibold text-sm text-zinc-950 transition hover:brightness-110"
+            onClick={openCreateDialog}
+            type="button"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Novo profissional
+          </button>
         </div>
-        <button
-          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-brand px-4 font-roboto-semibold text-sm text-zinc-950 transition hover:brightness-110"
-          onClick={openCreateDialog}
-          type="button"
-        >
-          <PlusIcon className="h-4 w-4" />
-          Novo profissional
-        </button>
-      </div>
 
-      <div className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4">
-        <SearchIcon className="h-5 w-5 shrink-0 text-zinc-500" />
-        <input
-          aria-label="Buscar profissionais"
-          className="h-12 min-w-0 flex-1 bg-transparent font-roboto text-sm text-white outline-none placeholder:text-zinc-600"
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Buscar por nome, e-mail ou telefone"
-          type="search"
-          value={search}
-        />
-      </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/40 px-4">
+          <SearchIcon className="h-5 w-5 shrink-0 text-zinc-500" />
+          <input
+            aria-label="Buscar profissionais"
+            className="h-12 min-w-0 flex-1 bg-transparent font-roboto text-sm text-white outline-none placeholder:text-zinc-600"
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por nome, e-mail ou telefone"
+            type="search"
+            value={search}
+          />
+        </div>
 
-      {body}
+        {body}
+      </div>
 
       {isFormOpen ? (
         <ProfessionalFormDialog
           onClose={closeFormDialog}
           onSave={handleSave}
           profissional={editingProfissional}
+        />
+      ) : null}
+      {historyProfissional ? (
+        <AppointmentHistoryDialog
+          onClose={closeHistory}
+          pessoa={historyProfissional}
+          tipo="profissional"
         />
       ) : null}
 
@@ -340,6 +368,6 @@ export function ProfessionalsPage() {
         onConfirm={confirmInactivate}
         title="Inativar profissional?"
       />
-    </div>
+    </>
   );
 }
