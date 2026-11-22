@@ -75,6 +75,21 @@ export interface ReviewHistoryItem {
   review: Review;
 }
 
+export type NotificationKind =
+  | "cancellation"
+  | "confirmation"
+  | "general"
+  | "reminder";
+
+export interface AppNotification {
+  appointmentId?: string;
+  id: string;
+  isRead: boolean;
+  kind: NotificationKind;
+  message: string;
+  sentAt: string;
+}
+
 export interface User {
   email: string;
   fullName: string;
