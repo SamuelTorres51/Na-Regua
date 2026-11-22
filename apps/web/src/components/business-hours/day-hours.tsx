@@ -1,16 +1,11 @@
 // biome-ignore-all lint/performance/noJsxPropsBind: each control edits a specific shift
 import { PlusIcon, TrashIcon } from "@/components/ui/icons";
 import {
+  type CampoTurno,
   type DiaSemana,
   NOMES_DIAS,
-  type Turno,
 } from "@/features/business-hours/schedule";
-
-export interface EditableTurno extends Turno {
-  id: number;
-}
-
-type TimeField = "inicio" | "fim";
+import type { EditableTurno } from "@/features/business-hours/use-turnos-editor";
 
 interface HourInputProps {
   label: string;
@@ -35,14 +30,16 @@ function HourInput({ label, onChange, value }: HourInputProps) {
 
 interface DayHoursProps {
   diaSemana: DiaSemana;
+  emptyDayLabel: string;
   onAdd: (day: DiaSemana) => void;
-  onChange: (id: number, field: TimeField, value: string) => void;
+  onChange: (id: number, field: CampoTurno, value: string) => void;
   onRemove: (id: number) => void;
   turnos: EditableTurno[];
 }
 
 export function DayHours({
   diaSemana,
+  emptyDayLabel,
   onAdd,
   onChange,
   onRemove,
@@ -51,12 +48,12 @@ export function DayHours({
   const dayLabel = NOMES_DIAS[diaSemana];
 
   return (
-    <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[11rem_minmax(0,1fr)]">
+    <div className="grid @2xl:grid-cols-[11rem_minmax(0,1fr)] gap-4 @lg:p-5 p-4">
       <div className="flex flex-wrap items-center gap-2 self-start">
         <h2 className="font-roboto-semibold text-sm text-white">{dayLabel}</h2>
         {turnos.length === 0 ? (
           <span className="rounded-full bg-zinc-800 px-2.5 py-1 font-roboto-medium text-xs text-zinc-400">
-            Fechado
+            {emptyDayLabel}
           </span>
         ) : null}
       </div>
@@ -67,19 +64,19 @@ export function DayHours({
 
           return (
             <fieldset
-              className="grid w-full max-w-lg grid-cols-[minmax(0,1fr)_auto] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:gap-3"
+              className="grid w-full min-w-0 max-w-lg @sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] grid-cols-[minmax(0,1fr)_auto] items-end @sm:gap-3 gap-2"
               key={turno.id}
             >
               <legend className="sr-only">{shiftLabel}</legend>
-              <div className="col-span-2 sm:col-span-1">
+              <div className="@sm:col-span-1 col-span-2">
                 <HourInput
-                  label="Abertura"
+                  label="Início"
                   onChange={(value) => onChange(turno.id, "inicio", value)}
                   value={turno.inicio}
                 />
               </div>
               <HourInput
-                label="Fechamento"
+                label="Fim"
                 onChange={(value) => onChange(turno.id, "fim", value)}
                 value={turno.fim}
               />

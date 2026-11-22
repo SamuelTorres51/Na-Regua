@@ -3,11 +3,12 @@ import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 
 import { ProfessionalFormDialog } from "@/components/professionals/professional-form-dialog";
+import { ProfessionalScheduleCard } from "@/components/professionals/professional-schedule-card";
 import { ProfessionalServicesCard } from "@/components/professionals/professional-services-card";
 import { ActiveBadge } from "@/components/ui/active-badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormAlert } from "@/components/ui/form-alert";
-import { ClockIcon, PlusIcon, SearchIcon } from "@/components/ui/icons";
+import { PlusIcon, SearchIcon } from "@/components/ui/icons";
 import { ErrorPanel, LoadingPanel } from "@/components/ui/state-panels";
 import type {
   NovoProfissionalInput,
@@ -267,27 +268,11 @@ export function ProfessionalsPage() {
             />
           </div>
 
-          <div className="rounded-3xl border border-zinc-800 bg-zinc-900/30 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-roboto-semibold text-base text-white">
-                  Horários disponíveis
-                </h2>
-                <p className="mt-1 font-roboto text-xs text-zinc-500">
-                  Grade semanal de atendimento.
-                </p>
-              </div>
-              <ClockIcon className="h-5 w-5 text-zinc-500" />
-            </div>
-            <div className="mt-5 rounded-2xl border border-zinc-800 border-dashed px-5 py-8 text-center">
-              <span className="font-roboto text-[10px] text-zinc-500 uppercase tracking-wide">
-                em breve
-              </span>
-              <p className="mt-2 font-roboto text-sm text-zinc-400">
-                A grade de horários do profissional vai aparecer aqui.
-              </p>
-            </div>
-          </div>
+          <ProfessionalScheduleCard
+            key={selectedProfissional.id}
+            profissionalId={selectedProfissional.id}
+            profissionalNome={selectedProfissional.nome}
+          />
         </section>
       </>
     );

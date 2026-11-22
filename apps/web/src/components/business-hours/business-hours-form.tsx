@@ -1,18 +1,18 @@
 import type { FormEvent } from "react";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { FormAlert } from "@/components/ui/form-alert";
 import { SpinnerIcon } from "@/components/ui/icons";
 import {
-  DIAS_SEMANA,
-  type DiaSemana,
   ordenarTurnos,
   type Turno,
+  turnosIguais,
   validarTurnos,
 } from "@/features/business-hours/schedule";
+import { useTurnosEditor } from "@/features/business-hours/use-turnos-editor";
 import { getApiErrorMessage, isApiEnabled } from "@/services/api-client";
 import { updateBusinessHours } from "@/services/business-hours";
-import { DayHours, type EditableTurno } from "./day-hours";
+import { WeeklyHoursEditor } from "./weekly-hours-editor";
 
 const SAVE_ERROR_MESSAGE =
   "Não foi possível salvar o expediente. Tente novamente.";
@@ -22,68 +22,20 @@ interface Feedback {
   type: "error" | "success";
 }
 
-function toDraft(turnos: Turno[]): EditableTurno[] {
-  return turnos.map((turno, id) => ({ ...turno, id }));
-}
-
 interface BusinessHoursFormProps {
   turnos: Turno[];
 }
 
 export function BusinessHoursForm({ turnos }: BusinessHoursFormProps) {
   const [saved, setSaved] = useState(() => ordenarTurnos(turnos));
-  const [draft, setDraft] = useState(() => toDraft(saved));
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const nextId = useRef(turnos.length);
   const isSubmitting = useRef<boolean>(false);
 
-  const payload = useMemo(
-    () =>
-      ordenarTurnos(
-        draft.map(({ diaSemana, fim, inicio }) => ({ diaSemana, fim, inicio }))
-      ),
-    [draft]
-  );
-  const hasChanges =
-    saved.length !== payload.length ||
-    payload.some(({ diaSemana, fim, inicio }, index) => {
-      const original = saved.at(index);
-      return (
-        original?.diaSemana !== diaSemana ||
-        original.fim !== fim ||
-        original.inicio !== inicio
-      );
-    });
-
-  const addTurno = useCallback((diaSemana: DiaSemana) => {
-    const id = nextId.current;
-    nextId.current += 1;
-    setDraft((current) => [...current, { diaSemana, fim: "", id, inicio: "" }]);
-    setFeedback(null);
-  }, []);
-
-  const changeTurno = useCallback(
-    (id: number, field: "inicio" | "fim", value: string) => {
-      setDraft((current) =>
-        current.map((turno) =>
-          turno.id === id ? { ...turno, [field]: value } : turno
-        )
-      );
-      setFeedback(null);
-    },
-    []
-  );
-
-  const removeTurno = useCallback((id: number) => {
-    setDraft((current) => current.filter((turno) => turno.id !== id));
-    setFeedback(null);
-  }, []);
-
-  const resetDraft = useCallback((nextTurnos: Turno[]) => {
-    nextId.current = nextTurnos.length;
-    setDraft(toDraft(nextTurnos));
-  }, []);
+  const clearFeedback = useCallback(() => setFeedback(null), []);
+  const editor = useTurnosEditor(saved, clearFeedback);
+  const { resetDraft, turnos: payload } = editor;
+  const hasChanges = !turnosIguais(saved, payload);
 
   const discardChanges = useCallback(() => {
     resetDraft(saved);
@@ -133,18 +85,7 @@ export function BusinessHoursForm({ turnos }: BusinessHoursFormProps) {
   return (
     <form noValidate onSubmit={handleSubmit}>
       <fieldset className="flex min-w-0 flex-col gap-4" disabled={isSaving}>
-        <div className="divide-y divide-zinc-800 rounded-3xl border border-zinc-800 bg-zinc-900/30">
-          {DIAS_SEMANA.map((diaSemana) => (
-            <DayHours
-              diaSemana={diaSemana}
-              key={diaSemana}
-              onAdd={addTurno}
-              onChange={changeTurno}
-              onRemove={removeTurno}
-              turnos={draft.filter((turno) => turno.diaSemana === diaSemana)}
-            />
-          ))}
-        </div>
+        <WeeklyHoursEditor editor={editor} />
 
         {feedback?.type === "error" ? (
           <FormAlert message={feedback.message} />
