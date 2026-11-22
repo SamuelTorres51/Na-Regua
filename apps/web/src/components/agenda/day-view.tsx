@@ -14,6 +14,8 @@ import { AppointmentCard } from "./appointment-card";
 
 interface DayViewProps {
   agendamentos: Agendamento[];
+  canManageAppointment: (agendamento: Agendamento) => boolean;
+  onManageAppointment: (agendamento: Agendamento) => void;
   profissionais: ReferenciaAgenda[];
 }
 
@@ -21,7 +23,10 @@ function slotKey(profissionalId: number | null, minutes: number) {
   return `${profissionalId}-${minutes}`;
 }
 
-function getDayGrid({ agendamentos, profissionais }: DayViewProps) {
+function getDayGrid({
+  agendamentos,
+  profissionais,
+}: Pick<DayViewProps, "agendamentos" | "profissionais">) {
   const columns = new Map<number | null, string>(
     profissionais.map(({ id, nome }) => [id, nome])
   );
@@ -51,7 +56,12 @@ function getDayGrid({ agendamentos, profissionais }: DayViewProps) {
   };
 }
 
-export function DayView({ agendamentos, profissionais }: DayViewProps) {
+export function DayView({
+  agendamentos,
+  canManageAppointment,
+  onManageAppointment,
+  profissionais,
+}: DayViewProps) {
   if (agendamentos.length === 0) {
     return (
       <AgendaEmptyState
@@ -107,6 +117,11 @@ export function DayView({ agendamentos, profissionais }: DayViewProps) {
                       <AppointmentCard
                         agendamento={agendamento}
                         key={agendamento.id}
+                        onManage={
+                          canManageAppointment(agendamento)
+                            ? onManageAppointment
+                            : undefined
+                        }
                       />
                     ))}
                 </div>

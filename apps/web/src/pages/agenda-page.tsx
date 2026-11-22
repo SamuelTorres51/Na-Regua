@@ -4,9 +4,11 @@ import { useCallback, useMemo, useState } from "react";
 import { AgendaFiltersBar } from "@/components/agenda/agenda-filters";
 import { AgendaToolbar } from "@/components/agenda/agenda-toolbar";
 import { DayView } from "@/components/agenda/day-view";
+import { ManageAppointmentDialog } from "@/components/agenda/manage-appointment-dialog";
 import { MonthView } from "@/components/agenda/month-view";
 import { NewAppointmentDialog } from "@/components/agenda/new-appointment-dialog";
 import { WeekView } from "@/components/agenda/week-view";
+import { FormAlert } from "@/components/ui/form-alert";
 import { ErrorPanel, LoadingPanel } from "@/components/ui/state-panels";
 import {
   formatFullDate,
@@ -19,10 +21,20 @@ import {
 import type { Agendamento } from "@/features/agenda/types";
 import { useAgenda } from "@/features/agenda/use-agenda";
 
+type AgendaDialog =
+  | { type: "create" }
+  | { agendamento: Agendamento; type: "manage" };
+
+interface AgendaFeedback {
+  message: string;
+  type: "error" | "success";
+}
+
 export function AgendaPage() {
   const {
     agendamentos,
     canCreateAppointment,
+    canManageAppointment,
     clearFilters,
     error,
     filters,
@@ -42,22 +54,37 @@ export function AgendaPage() {
     view,
   } = useAgenda();
 
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [didCreate, setDidCreate] = useState(false);
+  const [dialog, setDialog] = useState<AgendaDialog | null>(null);
+  const [feedback, setFeedback] = useState<AgendaFeedback | null>(null);
 
   const handleOpenDialog = useCallback(() => {
-    setDidCreate(false);
-    setIsDialogOpen(true);
+    setFeedback(null);
+    setDialog({ type: "create" });
   }, []);
-  const handleCloseDialog = useCallback(() => setIsDialogOpen(false), []);
+  const handleOpenManagement = useCallback(
+    (agendamento: Agendamento) => {
+      if (canManageAppointment(agendamento)) {
+        setFeedback(null);
+        setDialog({ agendamento, type: "manage" });
+      }
+    },
+    [canManageAppointment]
+  );
+  const handleCloseDialog = useCallback(() => setDialog(null), []);
+  const handleFinish = useCallback(
+    (message: string, type: AgendaFeedback["type"]) => {
+      setFeedback({ message, type });
+      setDialog(null);
+      refresh();
+    },
+    [refresh]
+  );
   const handleCreated = useCallback(
     ({ inicio }: Agendamento) => {
       setReferenceDate(getAgendaDate(new Date(inicio)));
-      refresh();
-      setIsDialogOpen(false);
-      setDidCreate(true);
+      handleFinish("Agendamento criado com sucesso.", "success");
     },
-    [refresh, setReferenceDate]
+    [handleFinish, setReferenceDate]
   );
 
   const title = useMemo(() => {
@@ -87,12 +114,19 @@ export function AgendaPage() {
     content = (
       <DayView
         agendamentos={agendamentos}
+        canManageAppointment={canManageAppointment}
+        onManageAppointment={handleOpenManagement}
         profissionais={visibleProfessionals}
       />
     );
   } else if (view === "semana") {
     content = (
-      <WeekView agendamentos={agendamentos} referenceDate={referenceDate} />
+      <WeekView
+        agendamentos={agendamentos}
+        canManageAppointment={canManageAppointment}
+        onManageAppointment={handleOpenManagement}
+        referenceDate={referenceDate}
+      />
     );
   } else {
     content = (
@@ -105,46 +139,58 @@ export function AgendaPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <AgendaToolbar
-        onNewAppointment={canCreateAppointment ? handleOpenDialog : undefined}
-        onNext={goToNext}
-        onPrevious={goToPrevious}
-        onToday={goToToday}
-        onViewChange={setView}
-        title={title}
-        view={view}
-      />
+    <>
+      <div className="flex flex-col gap-6" inert={dialog !== null}>
+        <AgendaToolbar
+          onNewAppointment={canCreateAppointment ? handleOpenDialog : undefined}
+          onNext={goToNext}
+          onPrevious={goToPrevious}
+          onToday={goToToday}
+          onViewChange={setView}
+          title={title}
+          view={view}
+        />
 
-      <AgendaFiltersBar
-        filters={filters}
-        onClear={clearFilters}
-        onDateChange={setReferenceDate}
-        onFilterChange={setFilter}
-        profissionais={profissionais}
-        profissional={profissional}
-        referenceDate={referenceDate}
-        servicos={servicos}
-      />
+        <AgendaFiltersBar
+          filters={filters}
+          onClear={clearFilters}
+          onDateChange={setReferenceDate}
+          onFilterChange={setFilter}
+          profissionais={profissionais}
+          profissional={profissional}
+          referenceDate={referenceDate}
+          servicos={servicos}
+        />
 
-      {didCreate ? (
-        <p
-          className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 font-roboto text-emerald-300 text-sm"
-          role="status"
-        >
-          Agendamento criado com sucesso.
-        </p>
-      ) : null}
+        {feedback?.type === "error" ? (
+          <FormAlert message={feedback.message} />
+        ) : null}
+        {feedback?.type === "success" ? (
+          <p
+            className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 font-roboto text-emerald-300 text-sm"
+            role="status"
+          >
+            {feedback.message}
+          </p>
+        ) : null}
 
-      {content}
+        {content}
+      </div>
 
-      {canCreateAppointment && isDialogOpen ? (
+      {canCreateAppointment && dialog?.type === "create" ? (
         <NewAppointmentDialog
           initialDate={toIsoDate(referenceDate)}
           onClose={handleCloseDialog}
           onCreated={handleCreated}
         />
       ) : null}
-    </div>
+      {dialog?.type === "manage" && canManageAppointment(dialog.agendamento) ? (
+        <ManageAppointmentDialog
+          agendamento={dialog.agendamento}
+          onClose={handleCloseDialog}
+          onFinish={handleFinish}
+        />
+      ) : null}
+    </>
   );
 }

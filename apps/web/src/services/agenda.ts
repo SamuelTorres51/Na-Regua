@@ -1,3 +1,4 @@
+import type { StatusAtualizavel } from "@/features/agenda/appointment-actions";
 import type {
   AgendaFilters,
   Agendamento,
@@ -30,6 +31,22 @@ export function listarAgendamentos({
 
 export function criarAgendamento(input: NovoAgendamentoInput) {
   return api.post<Agendamento>("/agendamentos", input);
+}
+
+export function atualizarStatusAgendamento(
+  agendamentoId: number,
+  status: StatusAtualizavel
+) {
+  return api.patch<Agendamento>(`/agendamentos/${agendamentoId}/status`, {
+    status,
+  });
+}
+
+export async function cancelarAgendamento(
+  agendamentoId: number,
+  motivo: string
+) {
+  await api.post(`/agendamentos/${agendamentoId}/cancelar`, { motivo });
 }
 
 export async function listarProfissionaisDoServico(servicoId: number) {
