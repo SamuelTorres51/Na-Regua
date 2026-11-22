@@ -1,19 +1,23 @@
 interface PrimaryButtonProps {
+  disabled?: boolean;
   isLoading?: boolean;
   label: string;
+  loadingLabel?: string;
   type?: "button" | "submit";
 }
 
 export function PrimaryButton({
+  disabled = false,
   isLoading = false,
   label,
+  loadingLabel = "Entrando...",
   type = "submit",
 }: PrimaryButtonProps) {
   return (
     <button
       aria-busy={isLoading}
       className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand font-roboto font-semibold text-base text-zinc-950 transition duration-150 hover:brightness-110 focus-visible:outline-brand active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
-      disabled={isLoading}
+      disabled={disabled || isLoading}
       type={type}
     >
       {isLoading ? (
@@ -38,7 +42,7 @@ export function PrimaryButton({
               fill="currentColor"
             />
           </svg>
-          <span>Entrando...</span>
+          <span>{loadingLabel}</span>
         </>
       ) : (
         label

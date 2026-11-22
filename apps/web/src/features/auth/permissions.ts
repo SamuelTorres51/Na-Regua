@@ -8,6 +8,7 @@ const PAGE_ROLES: Record<AppPage, readonly PerfilAcesso[]> = {
   avaliacoes: ["administrador"],
   barbearia: ["administrador"],
   clientes: ["administrador"],
+  perfil: PANEL_ROLES,
   profissionais: ["administrador"],
   servicos: ["administrador", "profissional"],
 };

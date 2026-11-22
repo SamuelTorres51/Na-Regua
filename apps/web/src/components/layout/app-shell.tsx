@@ -25,6 +25,17 @@ export function AppShell({
 
   const handleOpenMenu = useCallback(() => setIsMenuOpen(true), []);
   const handleCloseMenu = useCallback(() => setIsMenuOpen(false), []);
+  const handleMobileNavigate = useCallback(
+    (nextPage: AppPage) => {
+      onNavigate(nextPage);
+      handleCloseMenu();
+    },
+    [handleCloseMenu, onNavigate]
+  );
+  const handleOpenProfile = useCallback(
+    () => handleMobileNavigate("perfil"),
+    [handleMobileNavigate]
+  );
 
   return (
     <div className="flex min-h-dvh bg-zinc-950 text-zinc-100">
@@ -41,7 +52,11 @@ export function AppShell({
             type="button"
           />
           <aside className="relative h-full w-72 animate-fade-in border-zinc-800 border-r bg-zinc-900">
-            <AppSidebar onNavigate={onNavigate} page={page} perfil={userRole} />
+            <AppSidebar
+              onNavigate={handleMobileNavigate}
+              page={page}
+              perfil={userRole}
+            />
           </aside>
         </div>
       ) : null}
@@ -49,6 +64,7 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar
           onOpenMenu={handleOpenMenu}
+          onOpenProfile={handleOpenProfile}
           onSignOut={onSignOut}
           page={page}
           userName={userName}

@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -16,6 +17,8 @@ import {
   setUnauthorizedHandler,
 } from "@/services/api-client";
 import {
+  alterarSenha,
+  atualizarPerfil,
   getCurrentUser,
   PanelAccessDeniedError,
   signIn as requestSignIn,
@@ -26,14 +29,22 @@ import {
   loadSession,
   saveSession,
 } from "@/services/session-storage";
-import type { AuthSession } from "./types";
+import type {
+  AlterarSenhaInput,
+  AtualizarPerfilInput,
+  AuthSession,
+  Usuario,
+} from "./types";
 
 interface SessionContextValue {
+  changePassword: (input: AlterarSenhaInput) => Promise<string>;
   hasSessionExpired: boolean;
   isLoading: boolean;
+  isUpdatingAccount: boolean;
   session: AuthSession | null;
   signIn: (input: SignInInput) => Promise<void>;
   signOut: () => void;
+  updateProfile: (input: AtualizarPerfilInput) => Promise<Usuario>;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -50,7 +61,9 @@ function endStoredSession() {
   clearSession();
 }
 
-async function restoreSession(): Promise<AuthSession | null> {
+async function restoreSession(
+  isCurrent: () => boolean
+): Promise<AuthSession | null> {
   const storedSession = loadSession();
 
   if (!storedSession) {
@@ -68,11 +81,15 @@ async function restoreSession(): Promise<AuthSession | null> {
       ...storedSession,
       usuario: await getCurrentUser(),
     };
-    saveSession(refreshedSession);
+    if (isCurrent()) {
+      saveSession(refreshedSession);
+    }
     return refreshedSession;
   } catch (error) {
     if (isRevokedSession(error)) {
-      endStoredSession();
+      if (isCurrent()) {
+        endStoredSession();
+      }
       return null;
     }
 
@@ -84,12 +101,20 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasSessionExpired, setHasSessionExpired] = useState(false);
+  const [isUpdatingAccount, setIsUpdatingAccount] = useState(false);
+  const currentSession = useRef<AuthSession | null>(null);
+  const updatingAccount = useRef<boolean>(false);
+
+  const applySession = useCallback((nextSession: AuthSession | null) => {
+    currentSession.current = nextSession;
+    setSession(nextSession);
+  }, []);
 
   const expireSession = useCallback(() => {
     endStoredSession();
     setHasSessionExpired(true);
-    setSession(null);
-  }, []);
+    applySession(null);
+  }, [applySession]);
 
   useEffect(() => {
     setUnauthorizedHandler(expireSession);
@@ -97,30 +122,109 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, [expireSession]);
 
   useEffect(() => {
-    restoreSession()
-      .then(setSession)
-      .catch(() => setSession(null))
-      .finally(() => setIsLoading(false));
-  }, []);
+    let isActive = true;
 
-  const signIn = useCallback(async (input: SignInInput) => {
-    const nextSession = await requestSignIn(input);
+    restoreSession(() => isActive)
+      .then((restored) => {
+        if (isActive) {
+          applySession(restored);
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          applySession(null);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsLoading(false);
+        }
+      });
 
-    saveSession(nextSession);
-    setAccessToken(nextSession.token);
-    setHasSessionExpired(false);
-    setSession(nextSession);
-  }, []);
+    return () => {
+      isActive = false;
+    };
+  }, [applySession]);
+
+  const signIn = useCallback(
+    async (input: SignInInput) => {
+      const nextSession = await requestSignIn(input);
+
+      saveSession(nextSession);
+      setAccessToken(nextSession.token);
+      setHasSessionExpired(false);
+      applySession(nextSession);
+    },
+    [applySession]
+  );
 
   const signOut = useCallback(() => {
     endStoredSession();
     setHasSessionExpired(false);
-    setSession(null);
-  }, []);
+    applySession(null);
+  }, [applySession]);
+
+  const runAccountUpdate = useCallback(
+    async <T,>(operation: (activeSession: AuthSession) => Promise<T>) => {
+      const activeSession = currentSession.current;
+      if (!activeSession || updatingAccount.current) {
+        throw new Error("A atualização da conta não está disponível.");
+      }
+
+      updatingAccount.current = true;
+      setIsUpdatingAccount(true);
+      try {
+        return await operation(activeSession);
+      } finally {
+        updatingAccount.current = false;
+        setIsUpdatingAccount(false);
+      }
+    },
+    []
+  );
+
+  const updateProfile = useCallback(
+    (input: AtualizarPerfilInput) =>
+      runAccountUpdate(async (activeSession) => {
+        const usuario = await atualizarPerfil(input);
+        if (currentSession.current !== activeSession) {
+          throw new Error("A sessão foi alterada durante a atualização.");
+        }
+
+        const nextSession = { ...activeSession, usuario };
+        saveSession(nextSession);
+        applySession(nextSession);
+        return usuario;
+      }),
+    [applySession, runAccountUpdate]
+  );
+
+  const changePassword = useCallback(
+    (input: AlterarSenhaInput) => runAccountUpdate(() => alterarSenha(input)),
+    [runAccountUpdate]
+  );
 
   const value = useMemo(
-    () => ({ hasSessionExpired, isLoading, session, signIn, signOut }),
-    [hasSessionExpired, isLoading, session, signIn, signOut]
+    () => ({
+      changePassword,
+      hasSessionExpired,
+      isLoading,
+      isUpdatingAccount,
+      session,
+      signIn,
+      signOut,
+      updateProfile,
+    }),
+    [
+      changePassword,
+      hasSessionExpired,
+      isLoading,
+      isUpdatingAccount,
+      session,
+      signIn,
+      signOut,
+      updateProfile,
+    ]
   );
 
   return <SessionContext value={value}>{children}</SessionContext>;

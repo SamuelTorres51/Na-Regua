@@ -3,6 +3,7 @@ import type { AppPage } from "./app-sidebar";
 
 interface AppTopbarProps {
   onOpenMenu: () => void;
+  onOpenProfile: () => void;
   onSignOut: () => void;
   page: AppPage;
   userName: string;
@@ -31,6 +32,10 @@ function getPageTitle(page: AppPage) {
     return "Gerenciamento de clientes";
   }
 
+  if (page === "perfil") {
+    return "Meu perfil";
+  }
+
   if (page === "profissionais") {
     return "Gerenciamento de profissionais";
   }
@@ -54,6 +59,10 @@ function getPageSubtitle(page: AppPage, userRole: string) {
     return "Cadastros da sua barbearia";
   }
 
+  if (page === "perfil") {
+    return "Dados da conta e senha";
+  }
+
   if (page === "profissionais") {
     return "Cadastro e status da equipe";
   }
@@ -69,6 +78,7 @@ function getPageSubtitle(page: AppPage, userRole: string) {
 
 export function AppTopbar({
   onOpenMenu,
+  onOpenProfile,
   onSignOut,
   page,
   userRole,
@@ -97,19 +107,29 @@ export function AppTopbar({
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="hidden text-right sm:block">
-          <p className="font-roboto-medium text-sm text-white">{userName}</p>
-          <p className="font-roboto text-xs text-zinc-500 capitalize">
-            {userRole}
-          </p>
-        </div>
-
-        <span
-          aria-hidden="true"
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-brand/15 font-roboto-semibold text-brand text-xs"
+        <button
+          aria-current={page === "perfil" ? "page" : undefined}
+          aria-label="Meu perfil"
+          className="flex min-w-0 items-center gap-3 rounded-xl p-1 text-right transition hover:bg-zinc-800/60"
+          onClick={onOpenProfile}
+          title="Meu perfil"
+          type="button"
         >
-          {getInitials(userName)}
-        </span>
+          <span className="hidden min-w-0 max-w-52 sm:block">
+            <span className="block truncate font-roboto-medium text-sm text-white">
+              {userName}
+            </span>
+            <span className="block font-roboto text-xs text-zinc-500 capitalize">
+              {userRole}
+            </span>
+          </span>
+          <span
+            aria-hidden="true"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand/15 font-roboto-semibold text-brand text-xs"
+          >
+            {getInitials(userName)}
+          </span>
+        </button>
 
         <button
           className="flex h-10 items-center gap-2 rounded-xl border border-zinc-800 px-3 font-roboto-medium text-sm text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"

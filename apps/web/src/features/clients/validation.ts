@@ -1,5 +1,5 @@
 import { isValidEmail } from "@/utils/email";
-import { MIN_PASSWORD_LENGTH } from "@/utils/password";
+import { isPasswordTooLong, MIN_PASSWORD_LENGTH } from "@/utils/password";
 import type { Cliente, NovoClienteInput } from "./types";
 
 const MIN_NAME_LENGTH = 3;
@@ -7,8 +7,6 @@ const MAX_NAME_LENGTH = 150;
 const MAX_EMAIL_LENGTH = 150;
 const MIN_PHONE_LENGTH = 10;
 const MAX_PHONE_LENGTH = 20;
-// O bcrypt usado pela API limita a senha a 72 bytes em UTF-8.
-const MAX_PASSWORD_BYTES = 72;
 
 export type ClientFormErrors = Partial<Record<keyof NovoClienteInput, string>>;
 
@@ -46,9 +44,7 @@ export function parseClientForm(values: NovoClienteInput, isEditing: boolean) {
   if (!isEditing) {
     if (Array.from(input.senha).length < MIN_PASSWORD_LENGTH) {
       errors.senha = `A senha precisa ter ao menos ${MIN_PASSWORD_LENGTH} caracteres.`;
-    } else if (
-      new TextEncoder().encode(input.senha).length > MAX_PASSWORD_BYTES
-    ) {
+    } else if (isPasswordTooLong(input.senha)) {
       errors.senha = "A senha excede o tamanho aceito. Use menos caracteres.";
     }
   }
