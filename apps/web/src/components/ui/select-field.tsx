@@ -7,6 +7,7 @@ export interface SelectOption {
 }
 
 interface SelectFieldProps {
+  disabled?: boolean;
   label: string;
   onChange: (value: string) => void;
   options: SelectOption[];
@@ -14,6 +15,7 @@ interface SelectFieldProps {
 }
 
 export function SelectField({
+  disabled,
   label,
   onChange,
   options,
@@ -36,6 +38,7 @@ export function SelectField({
       </label>
       <select
         className="h-11 rounded-xl border border-zinc-700 bg-zinc-900/60 px-3 font-roboto text-sm text-white outline-none transition-colors hover:border-zinc-600 focus:border-brand"
+        disabled={disabled}
         id={selectId}
         onChange={handleChange}
         value={value}

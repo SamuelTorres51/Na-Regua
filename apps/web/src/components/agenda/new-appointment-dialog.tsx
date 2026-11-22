@@ -5,14 +5,14 @@ import { Dialog } from "@/components/ui/dialog";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { SelectField } from "@/components/ui/select-field";
 import { TextField } from "@/components/ui/text-field";
-import { toIsoDate } from "@/features/agenda/date-utils";
-import type { Profissional, Servico } from "@/features/agenda/types";
+import { getAgendaDate, toIsoDate } from "@/features/agenda/date-utils";
+import type { ReferenciaAgenda } from "@/features/agenda/types";
 
 interface NewAppointmentDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  profissionais: Profissional[];
-  servicos: Servico[];
+  profissionais: ReferenciaAgenda[];
+  servicos: ReferenciaAgenda[];
 }
 
 export function NewAppointmentDialog({
@@ -24,13 +24,13 @@ export function NewAppointmentDialog({
   const [cliente, setCliente] = useState("");
   const [servicoId, setServicoId] = useState("");
   const [profissionalId, setProfissionalId] = useState("");
-  const [data, setData] = useState(() => toIsoDate(new Date()));
+  const [data, setData] = useState(() => toIsoDate(getAgendaDate()));
   const [hora, setHora] = useState("09:00");
 
   const servicoOptions = useMemo(
     () => [
       { label: "Selecione um serviço", value: "" },
-      ...servicos.map((item) => ({ label: item.nome, value: item.id })),
+      ...servicos.map((item) => ({ label: item.nome, value: String(item.id) })),
     ],
     [servicos]
   );
@@ -38,7 +38,10 @@ export function NewAppointmentDialog({
   const profissionalOptions = useMemo(
     () => [
       { label: "Selecione um profissional", value: "" },
-      ...profissionais.map((item) => ({ label: item.nome, value: item.id })),
+      ...profissionais.map((item) => ({
+        label: item.nome,
+        value: String(item.id),
+      })),
     ],
     [profissionais]
   );

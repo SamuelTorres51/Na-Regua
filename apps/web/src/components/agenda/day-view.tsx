@@ -1,61 +1,58 @@
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 import {
   formatMinutes,
+  getAgendaDate,
   getTimeSlots,
-  isSameDay,
   minutesOfDay,
+  TIME_SLOT_END_MINUTES,
   TIME_SLOT_START_MINUTES,
   TIME_SLOT_STEP_MINUTES,
 } from "@/features/agenda/date-utils";
-import type {
-  Agendamento,
-  Profissional,
-  Servico,
-} from "@/features/agenda/types";
+import type { Agendamento, ReferenciaAgenda } from "@/features/agenda/types";
 import { AgendaEmptyState } from "./agenda-empty-state";
 import { AppointmentCard } from "./appointment-card";
 
 interface DayViewProps {
   agendamentos: Agendamento[];
-  date: Date;
-  profissionais: Profissional[];
-  servicos: Servico[];
+  profissionais: ReferenciaAgenda[];
 }
 
-export function DayView({
-  agendamentos,
-  date,
-  profissionais,
-  servicos,
-}: DayViewProps) {
-  const columns = useMemo(
-    () =>
-      profissionais.length > 0 ? profissionais : [{ id: "", nome: "Agenda" }],
-    [profissionais]
-  );
+function slotKey(profissionalId: number | null, minutes: number) {
+  return `${profissionalId}-${minutes}`;
+}
 
-  const profissionalNames = useMemo(
-    () => new Map(profissionais.map((item) => [item.id, item.nome])),
-    [profissionais]
+function getDayGrid({ agendamentos, profissionais }: DayViewProps) {
+  const columns = new Map<number | null, string>(
+    profissionais.map(({ id, nome }) => [id, nome])
   );
+  const appointmentsBySlot = new Map<string, Agendamento[]>();
+  let startMinutes = TIME_SLOT_START_MINUTES;
+  let endMinutes = TIME_SLOT_END_MINUTES;
 
-  const servicoNames = useMemo(
-    () => new Map(servicos.map((item) => [item.id, item.nome])),
-    [servicos]
-  );
+  for (const agendamento of agendamentos) {
+    const { inicio, profissional } = agendamento;
+    const profissionalId = profissional?.id ?? null;
+    const minutes = minutesOfDay(getAgendaDate(new Date(inicio)));
+    const slot = minutes - (minutes % TIME_SLOT_STEP_MINUTES);
+    const key = slotKey(profissionalId, slot);
+    const appointments = appointmentsBySlot.get(key) ?? [];
 
-  const dayAgendamentos = useMemo(
-    () =>
-      agendamentos
-        .filter((item) => isSameDay(new Date(item.inicio), date))
-        .sort(
-          (first, second) =>
-            new Date(first.inicio).getTime() - new Date(second.inicio).getTime()
-        ),
-    [agendamentos, date]
-  );
+    appointments.push(agendamento);
+    appointmentsBySlot.set(key, appointments);
+    columns.set(profissionalId, profissional?.nome ?? "Sem profissional");
+    startMinutes = Math.min(startMinutes, slot);
+    endMinutes = Math.max(endMinutes, slot + TIME_SLOT_STEP_MINUTES);
+  }
 
-  if (dayAgendamentos.length === 0) {
+  return {
+    appointmentsBySlot,
+    columns: Array.from(columns),
+    slots: getTimeSlots(startMinutes, endMinutes),
+  };
+}
+
+export function DayView({ agendamentos, profissionais }: DayViewProps) {
+  if (agendamentos.length === 0) {
     return (
       <AgendaEmptyState
         description="Não há atendimentos marcados para esta data. Use “Novo agendamento” para registrar um horário."
@@ -64,7 +61,10 @@ export function DayView({
     );
   }
 
-  const slots = getTimeSlots();
+  const { appointmentsBySlot, columns, slots } = getDayGrid({
+    agendamentos,
+    profissionais,
+  });
   const columnTemplate = `4.5rem repeat(${columns.length}, minmax(0, 1fr))`;
 
   return (
@@ -75,73 +75,44 @@ export function DayView({
           style={{ gridTemplateColumns: columnTemplate }}
         >
           <div className="px-3 py-3" />
-          {columns.map((column) => (
+          {columns.map(([id, name]) => (
             <div
               className="border-zinc-800 border-l px-3 py-3 font-roboto-medium text-sm text-zinc-200"
-              key={column.id}
+              key={id ?? "sem-profissional"}
             >
-              {column.nome}
+              {name}
             </div>
           ))}
         </div>
 
         <div
-          className="grid"
+          className="grid auto-rows-[minmax(3rem,auto)]"
           style={{
             gridTemplateColumns: columnTemplate,
-            gridTemplateRows: `repeat(${slots.length}, 3rem)`,
           }}
         >
-          {slots.map((minutes, index) => (
+          {slots.map((minutes) => (
             <Fragment key={minutes}>
               <div className="border-zinc-800 border-t py-1 pr-3 text-right font-roboto text-xs text-zinc-500">
-                {index === 0 ? "" : formatMinutes(minutes)}
+                {formatMinutes(minutes)}
               </div>
-              {columns.map((column) => (
+              {columns.map(([id]) => (
                 <div
-                  className="border-zinc-800 border-t border-l"
-                  key={`${column.id}-${minutes}`}
-                />
+                  className="flex min-w-0 flex-col gap-1.5 border-zinc-800 border-t border-l px-1.5 py-1"
+                  key={id ?? "sem-profissional"}
+                >
+                  {appointmentsBySlot
+                    .get(slotKey(id, minutes))
+                    ?.map((agendamento) => (
+                      <AppointmentCard
+                        agendamento={agendamento}
+                        key={agendamento.id}
+                      />
+                    ))}
+                </div>
               ))}
             </Fragment>
           ))}
-
-          {dayAgendamentos.map((agendamento) => {
-            const columnIndex = columns.findIndex(
-              (column) => column.id === agendamento.profissionalId
-            );
-            const startSlot = Math.max(
-              0,
-              Math.floor(
-                (minutesOfDay(new Date(agendamento.inicio)) -
-                  TIME_SLOT_START_MINUTES) /
-                  TIME_SLOT_STEP_MINUTES
-              )
-            );
-            const span = Math.max(
-              1,
-              Math.ceil(agendamento.duracaoMinutos / TIME_SLOT_STEP_MINUTES)
-            );
-
-            return (
-              <div
-                className="z-10 px-1.5 py-1"
-                key={agendamento.id}
-                style={{
-                  gridColumn: (columnIndex >= 0 ? columnIndex : 0) + 2,
-                  gridRow: `${startSlot + 1} / span ${span}`,
-                }}
-              >
-                <AppointmentCard
-                  agendamento={agendamento}
-                  profissionalNome={profissionalNames.get(
-                    agendamento.profissionalId
-                  )}
-                  servicoNome={servicoNames.get(agendamento.servicoId)}
-                />
-              </div>
-            );
-          })}
         </div>
       </div>
     </div>

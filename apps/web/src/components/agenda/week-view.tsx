@@ -2,52 +2,24 @@ import { useMemo } from "react";
 import {
   formatShortDate,
   formatShortWeekday,
+  getAgendaDate,
   getWeekDays,
   isSameDay,
   isToday,
 } from "@/features/agenda/date-utils";
-import type {
-  Agendamento,
-  Profissional,
-  Servico,
-} from "@/features/agenda/types";
+import type { Agendamento } from "@/features/agenda/types";
 import { AgendaEmptyState } from "./agenda-empty-state";
 import { AppointmentCard } from "./appointment-card";
 
 interface WeekViewProps {
   agendamentos: Agendamento[];
-  profissionais: Profissional[];
   referenceDate: Date;
-  servicos: Servico[];
 }
 
-export function WeekView({
-  agendamentos,
-  profissionais,
-  referenceDate,
-  servicos,
-}: WeekViewProps) {
+export function WeekView({ agendamentos, referenceDate }: WeekViewProps) {
   const days = useMemo(() => getWeekDays(referenceDate), [referenceDate]);
 
-  const profissionalNames = useMemo(
-    () => new Map(profissionais.map((item) => [item.id, item.nome])),
-    [profissionais]
-  );
-
-  const servicoNames = useMemo(
-    () => new Map(servicos.map((item) => [item.id, item.nome])),
-    [servicos]
-  );
-
-  const hasAppointments = useMemo(
-    () =>
-      agendamentos.some((item) =>
-        days.some((day) => isSameDay(new Date(item.inicio), day))
-      ),
-    [agendamentos, days]
-  );
-
-  if (!hasAppointments) {
+  if (agendamentos.length === 0) {
     return (
       <AgendaEmptyState
         description="Não há atendimentos marcados nesta semana. Ajuste os filtros ou crie um novo agendamento."
@@ -60,7 +32,9 @@ export function WeekView({
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
       {days.map((day) => {
         const dayAppointments = agendamentos
-          .filter((item) => isSameDay(new Date(item.inicio), day))
+          .filter((item) =>
+            isSameDay(getAgendaDate(new Date(item.inicio)), day)
+          )
           .sort(
             (first, second) =>
               new Date(first.inicio).getTime() -
@@ -102,10 +76,6 @@ export function WeekView({
                 <AppointmentCard
                   agendamento={agendamento}
                   key={agendamento.id}
-                  profissionalNome={profissionalNames.get(
-                    agendamento.profissionalId
-                  )}
-                  servicoNome={servicoNames.get(agendamento.servicoId)}
                 />
               ))
             )}

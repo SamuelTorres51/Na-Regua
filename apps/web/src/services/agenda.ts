@@ -1,20 +1,23 @@
-import type {
-  Agendamento,
-  Profissional,
-  Servico,
-} from "@/features/agenda/types";
+import type { AgendaFilters, Agendamento } from "@/features/agenda/types";
+import { api, isApiEnabled } from "./api-client";
 
-// PROVISÓRIO: trocar pelas chamadas reais da API quando as rotas de agenda,
-// profissionais e serviços estiverem disponíveis.
-
-export function listarAgendamentos(): Promise<Agendamento[]> {
-  return Promise.resolve<Agendamento[]>([]);
+export interface AgendaQuery
+  extends Pick<AgendaFilters, "profissionalId" | "status"> {
+  fim: string;
+  inicio: string;
 }
 
-export function listarProfissionais(): Promise<Profissional[]> {
-  return Promise.resolve<Profissional[]>([]);
-}
+export function listarAgendamentos({
+  fim,
+  inicio,
+  profissionalId,
+  status,
+}: AgendaQuery): Promise<Agendamento[]> {
+  if (!isApiEnabled) {
+    return Promise.resolve([]);
+  }
 
-export function listarServicos(): Promise<Servico[]> {
-  return Promise.resolve<Servico[]>([]);
+  return api.get<Agendamento[]>("/agendamentos", {
+    query: { fim, inicio, profissional_id: profissionalId, status },
+  });
 }

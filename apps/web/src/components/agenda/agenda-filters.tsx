@@ -6,8 +6,7 @@ import { parseIsoDate, toIsoDate } from "@/features/agenda/date-utils";
 import { STATUS_LABELS } from "@/features/agenda/status";
 import {
   type AgendaFilters,
-  type Profissional,
-  type Servico,
+  type ReferenciaAgenda,
   STATUS_AGENDAMENTO,
   type StatusAgendamento,
 } from "@/features/agenda/types";
@@ -20,9 +19,10 @@ interface AgendaFiltersBarProps {
     key: Key,
     value: AgendaFilters[Key]
   ) => void;
-  profissionais: Profissional[];
+  profissionais: ReferenciaAgenda[];
+  profissional: ReferenciaAgenda | null;
   referenceDate: Date;
-  servicos: Servico[];
+  servicos: ReferenciaAgenda[];
 }
 
 export function AgendaFiltersBar({
@@ -30,22 +30,29 @@ export function AgendaFiltersBar({
   onClear,
   onDateChange,
   onFilterChange,
+  profissional,
   profissionais,
   referenceDate,
   servicos,
 }: AgendaFiltersBarProps) {
   const profissionalOptions = useMemo(
-    () => [
-      { label: "Todos os profissionais", value: "" },
-      ...profissionais.map((item) => ({ label: item.nome, value: item.id })),
-    ],
-    [profissionais]
+    () =>
+      profissional
+        ? [{ label: profissional.nome, value: String(profissional.id) }]
+        : [
+            { label: "Todos os profissionais", value: "" },
+            ...profissionais.map((item) => ({
+              label: item.nome,
+              value: String(item.id),
+            })),
+          ],
+    [profissional, profissionais]
   );
 
   const servicoOptions = useMemo(
     () => [
       { label: "Todos os serviços", value: "" },
-      ...servicos.map((item) => ({ label: item.nome, value: item.id })),
+      ...servicos.map((item) => ({ label: item.nome, value: String(item.id) })),
     ],
     [servicos]
   );
@@ -96,10 +103,13 @@ export function AgendaFiltersBar({
     <section className="rounded-3xl border border-zinc-800 bg-zinc-900/40 p-4 sm:p-5">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <SelectField
+          disabled={profissional !== null}
           label="Profissional"
           onChange={handleProfissionalChange}
           options={profissionalOptions}
-          value={filters.profissionalId}
+          value={
+            profissional ? String(profissional.id) : filters.profissionalId
+          }
         />
         <SelectField
           label="Serviço"
