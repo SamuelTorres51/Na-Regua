@@ -2,15 +2,14 @@
 import type { ReactNode } from "react";
 import { useCallback, useMemo, useState } from "react";
 
+import { AppointmentHistoryDialog } from "@/components/agenda/appointment-history-dialog";
 import { ClientFormDialog } from "@/components/clients/client-form-dialog";
-import { ClientHistoryPreview } from "@/components/clients/client-history-preview";
 import { ClientStatusDialog } from "@/components/clients/client-status-dialog";
 import { ActiveBadge } from "@/components/ui/active-badge";
 import { HistoryIcon, PlusIcon, SearchIcon } from "@/components/ui/icons";
 import { ErrorPanel, LoadingPanel } from "@/components/ui/state-panels";
 import type { Cliente } from "@/features/clients/types";
 import { useClients } from "@/features/clients/use-clients";
-import { isApiEnabled } from "@/services/api-client";
 import { onlyDigits } from "@/utils/phone";
 
 const PHONE_SEARCH_PATTERN = /^[\d\s()+.-]+$/;
@@ -88,21 +87,12 @@ function ClientTable({ clientes, hasSearch, onOpenDialog }: ClientTableProps) {
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-2">
                         <button
-                          aria-label={
-                            isApiEnabled
-                              ? `Histórico de ${cliente.nome} (em breve)`
-                              : `Ver histórico de ${cliente.nome}`
-                          }
-                          className="rounded-lg p-2 text-zinc-500 transition enabled:hover:bg-brand/10 enabled:hover:text-brand disabled:cursor-not-allowed disabled:opacity-50"
-                          disabled={isApiEnabled}
+                          aria-label={`Ver histórico de ${cliente.nome}`}
+                          className="rounded-lg p-2 text-zinc-500 transition hover:bg-brand/10 hover:text-brand"
                           onClick={() =>
                             onOpenDialog({ cliente, type: "history" })
                           }
-                          title={
-                            isApiEnabled
-                              ? "Histórico de atendimentos em breve"
-                              : "Ver histórico"
-                          }
+                          title="Ver histórico"
                           type="button"
                         >
                           <HistoryIcon className="h-4 w-4" />
@@ -256,8 +246,12 @@ export function ClientsPage() {
           onClose={closeDialog}
         />
       ) : null}
-      {!isApiEnabled && dialog?.type === "history" ? (
-        <ClientHistoryPreview cliente={dialog.cliente} onClose={closeDialog} />
+      {dialog?.type === "history" ? (
+        <AppointmentHistoryDialog
+          onClose={closeDialog}
+          pessoa={dialog.cliente}
+          tipo="cliente"
+        />
       ) : null}
     </>
   );

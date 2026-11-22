@@ -4,17 +4,20 @@ import type {
   Agendamento,
   DiaDisponibilidade,
   NovoAgendamentoInput,
+  TipoHistorico,
 } from "@/features/agenda/types";
 import type { Profissional } from "@/features/professionals/types";
 import { api, isApiEnabled } from "./api-client";
 
 export interface AgendaQuery
-  extends Pick<AgendaFilters, "profissionalId" | "status"> {
-  fim: string;
-  inicio: string;
+  extends Partial<Pick<AgendaFilters, "profissionalId" | "status">> {
+  clienteId?: number;
+  fim?: string;
+  inicio?: string;
 }
 
 export function listarAgendamentos({
+  clienteId,
   fim,
   inicio,
   profissionalId,
@@ -25,8 +28,30 @@ export function listarAgendamentos({
   }
 
   return api.get<Agendamento[]>("/agendamentos", {
-    query: { fim, inicio, profissional_id: profissionalId, status },
+    query: {
+      cliente_id: clienteId,
+      fim,
+      inicio,
+      profissional_id: profissionalId,
+      status,
+    },
   });
+}
+
+export async function listarHistoricoAtendimentos(
+  tipo: TipoHistorico,
+  id: number
+) {
+  const filtro =
+    tipo === "cliente" ? { clienteId: id } : { profissionalId: String(id) };
+  const agendamentos = await listarAgendamentos({
+    ...filtro,
+    status: "concluido",
+  });
+
+  return [...agendamentos].sort(
+    (first, second) => Date.parse(second.inicio) - Date.parse(first.inicio)
+  );
 }
 
 export function criarAgendamento(input: NovoAgendamentoInput) {
