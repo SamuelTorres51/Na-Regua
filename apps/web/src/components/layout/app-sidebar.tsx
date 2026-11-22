@@ -5,6 +5,7 @@ import {
   CalendarIcon,
   ProfessionalsIcon,
   ScissorsIcon,
+  StarIcon,
   StoreIcon,
   UsersIcon,
 } from "@/components/ui/icons";
@@ -19,6 +20,7 @@ interface NavItem {
 
 export type AppPage =
   | "agenda"
+  | "avaliacoes"
   | "barbearia"
   | "clientes"
   | "profissionais"
@@ -33,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "Profissionais",
     page: "profissionais",
   },
+  { icon: StarIcon, label: "Avaliações", page: "avaliacoes" },
   { icon: StoreIcon, label: "Barbearia", page: "barbearia" },
 ];
 

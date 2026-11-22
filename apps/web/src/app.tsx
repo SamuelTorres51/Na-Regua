@@ -11,11 +11,16 @@ import { BarbershopPage } from "@/pages/barbershop-page";
 import { ClientsPage } from "@/pages/clients-page";
 import { LoginPage } from "@/pages/login-page";
 import { ProfessionalsPage } from "@/pages/professionals-page";
+import { ReviewsPage } from "@/pages/reviews-page";
 import { ServicesPage } from "@/pages/services-page";
 
 const DEFAULT_PAGE: AppPage = "agenda";
 
 function getPageContent(page: AppPage, perfil: PerfilAcesso) {
+  if (page === "avaliacoes") {
+    return <ReviewsPage />;
+  }
+
   if (page === "barbearia") {
     return <BarbershopPage />;
   }

@@ -19,6 +19,10 @@ function getInitials(name: string) {
 }
 
 function getPageTitle(page: AppPage) {
+  if (page === "avaliacoes") {
+    return "Avaliações";
+  }
+
   if (page === "barbearia") {
     return "Barbearia";
   }
@@ -39,6 +43,10 @@ function getPageTitle(page: AppPage) {
 }
 
 function getPageSubtitle(page: AppPage, userRole: string) {
+  if (page === "avaliacoes") {
+    return "Notas e comentários dos atendimentos";
+  }
+
   if (page === "barbearia") {
     return "Horários de funcionamento";
   }
