@@ -4,6 +4,7 @@ import { Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { NextAppointment } from "@/components/appointments/next-appointment";
 import { TabScreen } from "@/components/layout/tab-screen";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SecondaryButton } from "@/components/ui/secondary-button";
@@ -11,6 +12,7 @@ import { ShortcutCard } from "@/components/ui/shortcut-card";
 import { getNextAppointment } from "@/features/appointments/status";
 import { useAppointments } from "@/features/appointments/use-appointments";
 import { useSession } from "@/features/auth/session-provider";
+import { useUnreadNotificationsCount } from "@/features/notifications/use-unread-notifications-count";
 import { layout } from "@/theme/styles";
 import { getFirstName, getGreeting } from "@/utils/format";
 
@@ -24,6 +26,8 @@ export default function Home() {
   const { session } = useSession();
   const { appointments, hasLoadError, isLoading, isRefreshing, refresh } =
     useAppointments();
+  const { refresh: refreshUnreadCount, unreadCount } =
+    useUnreadNotificationsCount();
 
   const firstName = getFirstName(session?.user.fullName ?? "");
   const nextAppointment = useMemo(
@@ -34,6 +38,15 @@ export default function Home() {
     nextAppointment?.status === "inProgress"
       ? "Acontecendo agora"
       : "Seu próximo horário";
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([refresh(), refreshUnreadCount()]);
+  }, [refresh, refreshUnreadCount]);
+
+  const handleGoToNotifications = useCallback(
+    () => router.push("/notifications"),
+    [router]
+  );
 
   const handleGoToBooking = useCallback(
     () => router.push("/booking"),
@@ -56,11 +69,17 @@ export default function Home() {
   );
 
   return (
-    <TabScreen isRefreshing={isRefreshing} onRefresh={refresh}>
+    <TabScreen isRefreshing={isRefreshing} onRefresh={handleRefresh}>
       <View className="px-6">
         <ScreenHeader
           subtitle="Pronto para ficar na régua?"
           title={`${getGreeting()},\n${firstName}`}
+          trailing={
+            <NotificationBell
+              onPress={handleGoToNotifications}
+              unreadCount={unreadCount}
+            />
+          }
         />
 
         <Animated.View

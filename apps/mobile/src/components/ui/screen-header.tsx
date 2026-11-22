@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
@@ -8,12 +9,14 @@ interface ScreenHeaderProps {
   delay?: number;
   subtitle: string;
   title: string;
+  trailing?: ReactNode;
 }
 
 export function ScreenHeader({
   delay = DEFAULT_DELAY,
   subtitle,
   title,
+  trailing,
 }: ScreenHeaderProps) {
   return (
     <Animated.View entering={FadeInDown.delay(delay).duration(DURATION)}>
@@ -24,6 +27,9 @@ export function ScreenHeader({
       <Text className="mt-3 font-roboto text-base text-zinc-400">
         {subtitle}
       </Text>
+      {trailing ? (
+        <View className="absolute top-3 right-0">{trailing}</View>
+      ) : null}
     </Animated.View>
   );
 }

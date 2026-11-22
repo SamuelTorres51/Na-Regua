@@ -163,7 +163,7 @@ export const api = {
     request<TResponse>(path, { method: "DELETE" }),
   get: <TResponse>(path: string, options?: Omit<RequestOptions, "method">) =>
     request<TResponse>(path, { ...options, method: "GET" }),
-  patch: <TResponse>(path: string, body: unknown) =>
+  patch: <TResponse>(path: string, body?: unknown) =>
     request<TResponse>(path, { body, method: "PATCH" }),
   post: <TResponse>(path: string, body: unknown) =>
     request<TResponse>(path, { body, method: "POST" }),
