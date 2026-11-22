@@ -3,7 +3,6 @@ import { useCallback } from "react";
 
 import { SpinnerIcon, StarIcon } from "@/components/ui/icons";
 import { useReviewsQuery } from "@/features/reviews/use-reviews-query";
-import { isApiEnabled } from "@/services/api-client";
 import { consultarMediaAvaliacoes } from "@/services/reviews";
 
 const averageFormatter = new Intl.NumberFormat("pt-BR", {
@@ -28,13 +27,7 @@ export function ProfessionalRatingSummary({
   );
 
   let content: ReactNode;
-  if (!isApiEnabled) {
-    content = (
-      <p className="font-roboto text-sm text-zinc-400">
-        Conecte o painel à API para consultar a média.
-      </p>
-    );
-  } else if (error) {
+  if (error) {
     content = (
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <p className="font-roboto text-danger text-sm" role="alert">

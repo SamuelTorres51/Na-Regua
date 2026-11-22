@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BusinessHoursForm } from "@/components/business-hours/business-hours-form";
 import { ErrorPanel, LoadingPanel } from "@/components/ui/state-panels";
 import type { Turno } from "@/features/business-hours/schedule";
-import { getApiErrorMessage, isApiEnabled } from "@/services/api-client";
+import { getApiErrorMessage } from "@/services/api-client";
 import { getBusinessHours } from "@/services/business-hours";
 
 const LOAD_ERROR_MESSAGE =
@@ -75,12 +75,6 @@ export function BarbershopPage() {
           Dias sem turnos ficam fechados. Para criar um intervalo, adicione mais
           de um turno ao mesmo dia.
         </p>
-        {isApiEnabled ? null : (
-          <p className="mt-2 font-roboto text-brand text-sm">
-            Modo de demonstração. Os horários são redefinidos ao recarregar a
-            página.
-          </p>
-        )}
       </header>
       {content}
     </div>

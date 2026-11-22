@@ -11,7 +11,6 @@ import {
 } from "@/features/agenda/date-utils";
 import type { Agendamento, DiaDisponibilidade } from "@/features/agenda/types";
 import { useAppointmentForm } from "@/features/agenda/use-appointment-form";
-import { isApiEnabled } from "@/services/api-client";
 
 const DAY_STATUS_LABELS: Record<DiaDisponibilidade["status"], string> = {
   disponivel: "",
@@ -189,40 +188,36 @@ export function NewAppointmentDialog(props: NewAppointmentDialogProps) {
       onClose={form.close}
       title="Novo agendamento"
     >
-      {isApiEnabled ? (
-        <form onSubmit={form.submit}>
-          <fieldset
-            className="flex min-w-0 flex-col gap-5"
-            disabled={form.isSaving}
-          >
-            <AppointmentFields form={form} />
-            {form.saveError ? <FormAlert message={form.saveError} /> : null}
+      <form onSubmit={form.submit}>
+        <fieldset
+          className="flex min-w-0 flex-col gap-5"
+          disabled={form.isSaving}
+        >
+          <AppointmentFields form={form} />
+          {form.saveError ? <FormAlert message={form.saveError} /> : null}
 
-            <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                className="h-14 rounded-2xl border border-zinc-700 px-6 font-roboto-medium text-sm text-white transition-colors hover:border-zinc-600 disabled:opacity-60"
-                onClick={form.close}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                aria-busy={form.isSaving}
-                className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand px-6 font-roboto-semibold text-base text-zinc-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:w-48"
-                disabled={!form.canSave || form.isSaving}
-                type="submit"
-              >
-                {form.isSaving ? (
-                  <SpinnerIcon className="h-5 w-5 animate-spin" />
-                ) : null}
-                {form.isSaving ? "Salvando..." : "Salvar"}
-              </button>
-            </div>
-          </fieldset>
-        </form>
-      ) : (
-        <FormAlert message="Conecte o painel à API para consultar a disponibilidade e registrar agendamentos." />
-      )}
+          <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              className="h-14 rounded-2xl border border-zinc-700 px-6 font-roboto-medium text-sm text-white transition-colors hover:border-zinc-600 disabled:opacity-60"
+              onClick={form.close}
+              type="button"
+            >
+              Cancelar
+            </button>
+            <button
+              aria-busy={form.isSaving}
+              className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-brand px-6 font-roboto-semibold text-base text-zinc-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60 sm:w-48"
+              disabled={!form.canSave || form.isSaving}
+              type="submit"
+            >
+              {form.isSaving ? (
+                <SpinnerIcon className="h-5 w-5 animate-spin" />
+              ) : null}
+              {form.isSaving ? "Salvando..." : "Salvar"}
+            </button>
+          </div>
+        </fieldset>
+      </form>
     </Dialog>
   );
 }

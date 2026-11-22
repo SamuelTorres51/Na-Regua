@@ -16,7 +16,7 @@ import type {
   TipoHistorico,
 } from "@/features/agenda/types";
 import { listarHistoricoAtendimentos } from "@/services/agenda";
-import { getApiErrorMessage, isApiEnabled } from "@/services/api-client";
+import { getApiErrorMessage } from "@/services/api-client";
 import { formatCurrency } from "@/utils/currency";
 
 const LOAD_ERROR_MESSAGE =
@@ -91,10 +91,6 @@ export function AppointmentHistoryDialog({
   const [result, setResult] = useState<LoadResult | null>(null);
 
   useEffect(() => {
-    if (!isApiEnabled) {
-      return;
-    }
-
     let isActive = true;
     listarHistoricoAtendimentos(tipo, id)
       .then((agendamentos) => {
@@ -126,11 +122,7 @@ export function AppointmentHistoryDialog({
       : null;
 
   let content: ReactNode;
-  if (!isApiEnabled) {
-    content = (
-      <FormAlert message="Conecte o painel à API para consultar o histórico." />
-    );
-  } else if (current === null) {
+  if (current === null) {
     content = <LoadingPanel label="Carregando histórico..." />;
   } else if (current.type === "error") {
     content = (

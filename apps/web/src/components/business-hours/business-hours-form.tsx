@@ -10,7 +10,7 @@ import {
   validarTurnos,
 } from "@/features/business-hours/schedule";
 import { useTurnosEditor } from "@/features/business-hours/use-turnos-editor";
-import { getApiErrorMessage, isApiEnabled } from "@/services/api-client";
+import { getApiErrorMessage } from "@/services/api-client";
 import { updateBusinessHours } from "@/services/business-hours";
 import { WeeklyHoursEditor } from "./weekly-hours-editor";
 
@@ -64,9 +64,7 @@ export function BusinessHoursForm({ turnos }: BusinessHoursFormProps) {
         setSaved(confirmed);
         resetDraft(confirmed);
         setFeedback({
-          message: isApiEnabled
-            ? "Expediente salvo com sucesso."
-            : "Expediente atualizado no modo de demonstração.",
+          message: "Expediente salvo com sucesso.",
           type: "success",
         });
       } catch (error) {

@@ -12,7 +12,6 @@ import {
 import {
   HTTP_STATUS,
   hasApiStatus,
-  isApiEnabled,
   setAccessToken,
   setUnauthorizedHandler,
 } from "@/services/api-client";
@@ -71,10 +70,6 @@ async function restoreSession(
   }
 
   setAccessToken(storedSession.token);
-
-  if (!isApiEnabled) {
-    return storedSession;
-  }
 
   try {
     const refreshedSession = {

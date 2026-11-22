@@ -10,12 +10,7 @@ import {
   type Turno,
 } from "@/features/business-hours/schedule";
 import { useProfessionalSchedule } from "@/features/professionals/use-professional-schedule";
-import { isApiEnabled } from "@/services/api-client";
 import { ProfessionalScheduleDialog } from "./professional-schedule-dialog";
-
-const SAVE_SUCCESS_MESSAGE = isApiEnabled
-  ? "Jornada salva com sucesso."
-  : "Jornada atualizada no modo de demonstração.";
 
 interface WeeklyHoursSummaryProps {
   emptyDayLabel: string;
@@ -166,7 +161,7 @@ export function ProfessionalScheduleCard({
         ) : null}
         {didSave ? (
           <p className="font-roboto text-emerald-300 text-sm" role="status">
-            {SAVE_SUCCESS_MESSAGE}
+            Jornada salva com sucesso.
           </p>
         ) : null}
         {isReady ? (

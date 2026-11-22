@@ -7,7 +7,7 @@ import type {
   TipoHistorico,
 } from "@/features/agenda/types";
 import type { Profissional } from "@/features/professionals/types";
-import { api, isApiEnabled } from "./api-client";
+import { api } from "./api-client";
 
 export interface AgendaQuery
   extends Partial<Pick<AgendaFilters, "profissionalId" | "status">> {
@@ -23,10 +23,6 @@ export function listarAgendamentos({
   profissionalId,
   status,
 }: AgendaQuery): Promise<Agendamento[]> {
-  if (!isApiEnabled) {
-    return Promise.resolve([]);
-  }
-
   return api.get<Agendamento[]>("/agendamentos", {
     query: {
       cliente_id: clienteId,
