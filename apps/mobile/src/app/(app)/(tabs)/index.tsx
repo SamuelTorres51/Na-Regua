@@ -4,6 +4,7 @@ import { Text, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { NextAppointment } from "@/components/appointments/next-appointment";
 import { TabScreen } from "@/components/layout/tab-screen";
+import { CancellationAlert } from "@/components/notifications/cancellation-alert";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { PrimaryButton } from "@/components/ui/primary-button";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -12,7 +13,7 @@ import { ShortcutCard } from "@/components/ui/shortcut-card";
 import { getNextAppointment } from "@/features/appointments/status";
 import { useAppointments } from "@/features/appointments/use-appointments";
 import { useSession } from "@/features/auth/session-provider";
-import { useUnreadNotificationsCount } from "@/features/notifications/use-unread-notifications-count";
+import { useNotificationsSummary } from "@/features/notifications/use-notifications-summary";
 import { layout } from "@/theme/styles";
 import { getFirstName, getGreeting } from "@/utils/format";
 
@@ -26,8 +27,11 @@ export default function Home() {
   const { session } = useSession();
   const { appointments, hasLoadError, isLoading, isRefreshing, refresh } =
     useAppointments();
-  const { refresh: refreshUnreadCount, unreadCount } =
-    useUnreadNotificationsCount();
+  const {
+    refresh: refreshNotifications,
+    unreadCancellations,
+    unreadCount,
+  } = useNotificationsSummary();
 
   const firstName = getFirstName(session?.user.fullName ?? "");
   const nextAppointment = useMemo(
@@ -40,8 +44,8 @@ export default function Home() {
       : "Seu próximo horário";
 
   const handleRefresh = useCallback(async () => {
-    await Promise.all([refresh(), refreshUnreadCount()]);
-  }, [refresh, refreshUnreadCount]);
+    await Promise.all([refresh(), refreshNotifications()]);
+  }, [refresh, refreshNotifications]);
 
   const handleGoToNotifications = useCallback(
     () => router.push("/notifications"),
@@ -86,6 +90,15 @@ export default function Home() {
           className="mt-10"
           entering={FadeInDown.delay(SECTION_DELAY).duration(ENTERING_DURATION)}
         >
+          {unreadCancellations.length > 0 ? (
+            <View className="mb-8">
+              <CancellationAlert
+                cancellations={unreadCancellations}
+                onPress={handleGoToNotifications}
+              />
+            </View>
+          ) : null}
+
           <Text className="mb-3 font-roboto-medium text-sm text-zinc-400">
             {sectionTitle}
           </Text>

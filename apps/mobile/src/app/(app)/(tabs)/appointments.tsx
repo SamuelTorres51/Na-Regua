@@ -1,5 +1,5 @@
-import { useRouter } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { AppointmentList } from "@/components/appointments/appointment-list";
@@ -12,13 +12,17 @@ import {
   type SegmentedOption,
 } from "@/components/ui/segmented-control";
 import { splitAppointments } from "@/features/appointments/status";
+import {
+  type AppointmentsTab,
+  isAppointmentsTab,
+} from "@/features/appointments/tabs";
 import { useAppointments } from "@/features/appointments/use-appointments";
 import { useCancellationDialog } from "@/features/appointments/use-cancellation-dialog";
 import { useMyReviews } from "@/features/reviews/use-my-reviews";
 import type { Appointment } from "@/types/models";
 import { formatRelativeDate, formatTime } from "@/utils/format";
 
-type AppointmentsTab = "history" | "upcoming";
+const DEFAULT_TAB: AppointmentsTab = "upcoming";
 
 const TABS: readonly SegmentedOption<AppointmentsTab>[] = [
   { label: "Próximos", value: "upcoming" },
@@ -50,6 +54,7 @@ function describeCancellation({ barber, service, startsAt }: Appointment) {
 
 export default function Appointments() {
   const router = useRouter();
+  const { tab: requestedTab } = useLocalSearchParams<{ tab?: string }>();
   const {
     appointments,
     cancelAppointment,
@@ -68,7 +73,18 @@ export default function Appointments() {
     handleRequestCancel,
   } = useCancellationDialog(cancelAppointment);
 
-  const [tab, setTab] = useState<AppointmentsTab>("upcoming");
+  const [tab, setTab] = useState<AppointmentsTab>(() =>
+    isAppointmentsTab(requestedTab) ? requestedTab : DEFAULT_TAB
+  );
+
+  useEffect(() => {
+    if (!isAppointmentsTab(requestedTab)) {
+      return;
+    }
+
+    setTab(requestedTab);
+    router.setParams({ tab: undefined });
+  }, [requestedTab, router]);
 
   const { history, upcoming } = useMemo(
     () => splitAppointments(appointments),
