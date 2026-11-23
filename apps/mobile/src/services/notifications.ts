@@ -16,10 +16,6 @@ interface NotificationResponse {
   tipo: string;
 }
 
-interface UnreadCountResponse {
-  total_nao_lidas: number;
-}
-
 function toNotification({
   agendamento_id: appointmentId,
   enviada_em: sentAt,
@@ -42,14 +38,6 @@ export async function listNotifications() {
   const responses = await api.get<NotificationResponse[]>("/notificacoes");
 
   return responses.map(toNotification);
-}
-
-export async function countUnreadNotifications() {
-  const { total_nao_lidas: total } = await api.get<UnreadCountResponse>(
-    "/notificacoes/nao-lidas/count"
-  );
-
-  return total;
 }
 
 export async function markNotificationAsRead(notificationId: string) {

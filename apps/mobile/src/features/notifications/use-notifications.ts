@@ -1,16 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
-import { useQueryData } from "@/hooks/use-query-data";
-import {
-  listNotifications,
-  markNotificationAsRead,
-} from "@/services/notifications";
+import type { AppointmentsTab } from "@/features/appointments/tabs";
+import { markNotificationAsRead } from "@/services/notifications";
 import type { AppNotification } from "@/types/models";
+import {
+  NOTIFICATIONS_QUERY_KEY,
+  useNotificationList,
+} from "./use-notification-list";
 
-export const NOTIFICATIONS_QUERY_KEY = ["notifications"] as const;
-
-const NO_NOTIFICATIONS: AppNotification[] = [];
+const CANCELLATION_TAB: AppointmentsTab = "history";
 
 export function useNotifications() {
   const router = useRouter();
@@ -21,11 +20,7 @@ export function useNotifications() {
     isLoading,
     isRefreshing,
     refresh,
-  } = useQueryData(
-    NOTIFICATIONS_QUERY_KEY,
-    listNotifications,
-    NO_NOTIFICATIONS
-  );
+  } = useNotificationList();
 
   const unreadIds = useMemo(
     () =>
@@ -66,9 +61,19 @@ export function useNotifications() {
         markAsRead([notification.id]);
       }
 
-      if (notification.appointmentId) {
-        router.navigate("/appointments");
+      if (!notification.appointmentId) {
+        return;
       }
+
+      if (notification.kind === "cancellation") {
+        router.navigate({
+          params: { tab: CANCELLATION_TAB },
+          pathname: "/appointments",
+        });
+        return;
+      }
+
+      router.navigate("/appointments");
     },
     [markAsRead, router]
   );
