@@ -25,7 +25,8 @@
       "expo-secure-store",
       "expo-router",
       "expo-splash-screen",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-background-task"
     ],
     "platforms": [
       "android"

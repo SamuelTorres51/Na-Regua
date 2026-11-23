@@ -7,6 +7,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { stopAppointmentReminders } from "@/features/reminders/reminder-task";
 import {
   HTTP_STATUS,
   hasApiStatus,
@@ -54,7 +55,7 @@ function isRevokedSession(error: unknown) {
 async function endStoredSession() {
   setAccessToken(null);
   queryClient.clear();
-  await clearSession();
+  await Promise.all([clearSession(), stopAppointmentReminders()]);
 }
 
 async function restoreSession(): Promise<AuthSession | null> {
