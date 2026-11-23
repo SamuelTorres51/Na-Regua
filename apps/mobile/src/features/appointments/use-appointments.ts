@@ -1,6 +1,10 @@
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import {
+  cancelAppointmentReminder,
+  syncAppointmentReminders,
+} from "@/services/appointment-reminders";
+import {
   listAppointments,
   cancelAppointment as requestCancelAppointment,
 } from "@/services/appointments";
@@ -15,8 +19,10 @@ export function useAppointments() {
 
   const loadAppointments = useCallback(async () => {
     try {
-      setAppointments(await listAppointments());
+      const nextAppointments = await listAppointments();
+      setAppointments(nextAppointments);
       setHasLoadError(false);
+      syncAppointmentReminders(nextAppointments);
     } catch {
       setHasLoadError(true);
     }
@@ -40,6 +46,7 @@ export function useAppointments() {
 
       try {
         await requestCancelAppointment(appointmentId);
+        cancelAppointmentReminder(appointmentId);
 
         setAppointments((current) =>
           current.map((appointment) =>

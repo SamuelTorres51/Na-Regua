@@ -3,6 +3,7 @@ import { useCallback } from "react";
 import { View } from "react-native";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 import { BookingSummary } from "@/components/booking/booking-summary";
+import { ReminderPrompt } from "@/components/booking/reminder-prompt";
 import { ScrollScreen } from "@/components/layout/scroll-screen";
 import { Icon } from "@/components/ui/icon";
 import { InfoNote } from "@/components/ui/info-note";
@@ -11,6 +12,8 @@ import { ScreenHeader } from "@/components/ui/screen-header";
 import { SecondaryButton } from "@/components/ui/secondary-button";
 import { CANCELLATION_POLICY_MESSAGE } from "@/features/appointments/cancellation";
 import { useBookingSelection } from "@/features/booking/use-booking-selection";
+import { useReminderPermission } from "@/features/reminders/use-reminder-permission";
+import { canRemindBefore } from "@/services/appointment-reminders";
 import { layout } from "@/theme/styles";
 
 const BADGE_DAMPING = 12;
@@ -25,6 +28,12 @@ export default function BookingSuccess() {
     startsAt: string;
   }>();
   const selection = useBookingSelection({ barberId, serviceId });
+  const {
+    handleEnableReminders,
+    handleOpenSettings,
+    isRequesting,
+    permission,
+  } = useReminderPermission();
 
   const handleGoToAppointments = useCallback(() => {
     router.dismissAll();
@@ -64,6 +73,15 @@ export default function BookingSuccess() {
           entering={FadeInDown.delay(ACTIONS_DELAY).duration(ACTIONS_DURATION)}
           style={layout.actionGroup}
         >
+          {canRemindBefore(startsAt) ? (
+            <ReminderPrompt
+              isRequesting={isRequesting}
+              onEnable={handleEnableReminders}
+              onOpenSettings={handleOpenSettings}
+              permission={permission}
+            />
+          ) : null}
+
           <InfoNote message={CANCELLATION_POLICY_MESSAGE} />
 
           <View className="mt-4" style={layout.actionGroup}>
