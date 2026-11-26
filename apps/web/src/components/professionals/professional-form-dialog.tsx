@@ -21,6 +21,7 @@ export function ProfessionalFormDialog({
   profissional,
 }: ProfessionalFormDialogProps) {
   const {
+    close,
     errors,
     handleSubmit,
     isEditing,
@@ -38,7 +39,7 @@ export function ProfessionalFormDialog({
           : "O profissional vai usar o e-mail e a senha cadastrados para entrar no painel."
       }
       isOpen
-      onClose={onClose}
+      onClose={close}
       title={isEditing ? "Editar profissional" : "Novo profissional"}
     >
       <form className="flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
@@ -92,7 +93,8 @@ export function ProfessionalFormDialog({
         <div className="mt-2 flex justify-end gap-3">
           <button
             className="h-11 rounded-xl border border-zinc-700 px-4 font-roboto-medium text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-white"
-            onClick={onClose}
+            disabled={isSaving}
+            onClick={close}
             type="button"
           >
             Cancelar

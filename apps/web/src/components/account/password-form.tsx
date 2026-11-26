@@ -9,6 +9,7 @@ import {
   validatePasswordChange,
 } from "@/features/auth/account-validation";
 import type { AlterarSenhaInput } from "@/features/auth/types";
+import { useUnsavedChanges } from "@/features/unsaved-changes";
 import {
   getApiErrorMessage,
   HTTP_STATUS,
@@ -33,6 +34,7 @@ export function PasswordForm({ isBusy, onSave }: PasswordFormProps) {
   const [feedback, setFeedback] = useState<AccountFeedback | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [resetCount, setResetCount] = useState(0);
+  useUnsavedChanges(Object.values(values).some(Boolean), isSaving);
 
   const change = useCallback((field: keyof PasswordValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));

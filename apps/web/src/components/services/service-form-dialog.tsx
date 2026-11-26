@@ -17,8 +17,15 @@ export function ServiceFormDialog({
   onSave,
   servico,
 }: ServiceFormDialogProps) {
-  const { errors, handleSubmit, isSaving, setField, submitError, values } =
-    useServiceForm({ onSave, onSuccess: onClose, servico });
+  const {
+    close,
+    errors,
+    handleSubmit,
+    isSaving,
+    setField,
+    submitError,
+    values,
+  } = useServiceForm({ onSave, onSuccess: onClose, servico });
 
   return (
     <Dialog
@@ -28,7 +35,7 @@ export function ServiceFormDialog({
           : "Cadastre um novo serviço no catálogo."
       }
       isOpen
-      onClose={onClose}
+      onClose={close}
       title={servico ? "Editar serviço" : "Novo serviço"}
     >
       <form className="flex flex-col gap-4" noValidate onSubmit={handleSubmit}>
@@ -89,7 +96,8 @@ export function ServiceFormDialog({
         <div className="mt-2 flex justify-end gap-3">
           <button
             className="h-11 rounded-xl border border-zinc-700 px-4 font-roboto-medium text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-white"
-            onClick={onClose}
+            disabled={isSaving}
+            onClick={close}
             type="button"
           >
             Cancelar

@@ -1,5 +1,5 @@
 import type { PropsWithChildren } from "react";
-import { useEffect, useId } from "react";
+import { useEffect, useId, useRef } from "react";
 
 import { CloseIcon } from "./icons";
 
@@ -18,6 +18,8 @@ export function Dialog({
   title,
 }: PropsWithChildren<DialogProps>) {
   const titleId = useId();
+  const descriptionId = `${titleId}-description`;
+  const dialog = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -25,7 +27,7 @@ export function Dialog({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === "Escape" && !dialog.current?.closest("[inert]")) {
         onClose();
       }
     };
@@ -49,9 +51,11 @@ export function Dialog({
       />
 
       <div
+        aria-describedby={description ? descriptionId : undefined}
         aria-labelledby={titleId}
         aria-modal="true"
         className="relative z-10 max-h-[90dvh] w-full max-w-lg animate-fade-in-up overflow-y-auto rounded-3xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl shadow-black/60 sm:p-8"
+        ref={dialog}
         role="dialog"
       >
         <div className="flex items-start justify-between gap-4">
@@ -60,7 +64,10 @@ export function Dialog({
               {title}
             </h2>
             {description ? (
-              <p className="mt-1 font-roboto text-sm text-zinc-400">
+              <p
+                className="mt-1 font-roboto text-sm text-zinc-400"
+                id={descriptionId}
+              >
                 {description}
               </p>
             ) : null}

@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { useCallback, useState } from "react";
 
+import { hasFieldChanges, useFormClose } from "@/features/unsaved-changes";
 import { getApiErrorMessage } from "@/services/api-client";
 import type { Servico, ServicoInput } from "./types";
 import {
@@ -24,10 +25,16 @@ export function useServiceForm({
   onSuccess,
   servico,
 }: UseServiceFormOptions) {
-  const [values, setValues] = useState(() => toServiceFormValues(servico));
+  const [initialValues] = useState(() => toServiceFormValues(servico));
+  const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<ServiceFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const close = useFormClose(
+    onSuccess,
+    hasFieldChanges(values, initialValues),
+    isSaving
+  );
 
   const setField = useCallback(
     <Key extends keyof ServiceFormValues>(
@@ -63,5 +70,13 @@ export function useServiceForm({
     [onSave, onSuccess, values]
   );
 
-  return { errors, handleSubmit, isSaving, setField, submitError, values };
+  return {
+    close,
+    errors,
+    handleSubmit,
+    isSaving,
+    setField,
+    submitError,
+    values,
+  };
 }

@@ -12,6 +12,7 @@ import {
   parseClientForm,
   toClientFormValues,
 } from "@/features/clients/validation";
+import { hasFieldChanges, useFormClose } from "@/features/unsaved-changes";
 import { getApiErrorMessage } from "@/services/api-client";
 
 interface ClientFormDialogProps {
@@ -26,11 +27,17 @@ export function ClientFormDialog({
   onSave,
 }: ClientFormDialogProps) {
   const isEditing = cliente !== null;
-  const [values, setValues] = useState(() => toClientFormValues(cliente));
+  const [initialValues] = useState(() => toClientFormValues(cliente));
+  const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<ClientFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const isSubmitting = useRef<boolean>(false);
+  const close = useFormClose(
+    onClose,
+    hasFieldChanges(values, initialValues),
+    isSaving
+  );
 
   const setField = useCallback(
     (field: keyof NovoClienteInput, value: string) => {
@@ -39,12 +46,6 @@ export function ClientFormDialog({
     },
     []
   );
-
-  const close = useCallback(() => {
-    if (!isSubmitting.current) {
-      onClose();
-    }
-  }, [onClose]);
 
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {

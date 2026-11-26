@@ -20,6 +20,7 @@ import {
   minutesOfDay,
 } from "@/features/agenda/date-utils";
 import type { Agendamento } from "@/features/agenda/types";
+import { useFormClose } from "@/features/unsaved-changes";
 import {
   atualizarStatusAgendamento,
   cancelarAgendamento,
@@ -96,6 +97,7 @@ export function ManageAppointmentDialog({
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const isSubmitting = useRef<boolean>(false);
+  const close = useFormClose(onClose, Boolean(selection || motivo), isSaving);
 
   const { id, inicio, status } = agendamento;
   const canCancel = podeCancelarAgendamento(agendamento);
@@ -126,12 +128,6 @@ export function ManageAppointmentDialog({
     },
     []
   );
-
-  const close = useCallback(() => {
-    if (!isSubmitting.current) {
-      onClose();
-    }
-  }, [onClose]);
 
   const submit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {

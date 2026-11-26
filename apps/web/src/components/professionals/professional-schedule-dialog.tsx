@@ -13,6 +13,7 @@ import {
   validarTurnos,
 } from "@/features/business-hours/schedule";
 import { useTurnosEditor } from "@/features/business-hours/use-turnos-editor";
+import { useFormClose } from "@/features/unsaved-changes";
 import { getApiErrorMessage } from "@/services/api-client";
 import { updateProfessionalSchedule } from "@/services/professional-schedule";
 
@@ -51,6 +52,7 @@ export function ProfessionalScheduleDialog({
   const editor = useTurnosEditor(saved ?? expediente ?? [], clearError);
   const payload = custom ? editor.turnos : null;
   const hasChanges = !turnosIguais(saved, payload);
+  const close = useFormClose(onClose, hasChanges, isSaving);
 
   const changeMode = useCallback(
     (value: string) => {
@@ -59,12 +61,6 @@ export function ProfessionalScheduleDialog({
     },
     [clearError]
   );
-
-  const close = useCallback(() => {
-    if (!isSubmitting.current) {
-      onClose();
-    }
-  }, [onClose]);
 
   const save = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {

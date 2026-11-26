@@ -1,8 +1,11 @@
+import type { Ref } from "react";
 import { Dialog } from "./dialog";
 import { FormAlert } from "./form-alert";
 import { SpinnerIcon } from "./icons";
 
 interface ConfirmDialogProps {
+  cancelButtonRef?: Ref<HTMLButtonElement>;
+  cancelLabel?: string;
   confirmLabel: string;
   description: string;
   error: string | null;
@@ -15,6 +18,8 @@ interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
+  cancelButtonRef,
+  cancelLabel = "Cancelar",
   confirmLabel,
   description,
   error,
@@ -35,13 +40,14 @@ export function ConfirmDialog({
       <div className="flex flex-col gap-4">
         {error ? <FormAlert message={error} /> : null}
 
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-3">
           <button
             className="h-11 rounded-xl border border-zinc-700 px-4 font-roboto-medium text-sm text-zinc-300 transition hover:border-zinc-600 hover:text-white"
             onClick={onClose}
+            ref={cancelButtonRef}
             type="button"
           >
-            Cancelar
+            {cancelLabel}
           </button>
           <button
             aria-busy={isLoading}

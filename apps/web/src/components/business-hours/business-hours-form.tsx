@@ -10,6 +10,7 @@ import {
   validarTurnos,
 } from "@/features/business-hours/schedule";
 import { useTurnosEditor } from "@/features/business-hours/use-turnos-editor";
+import { useUnsavedChanges } from "@/features/unsaved-changes";
 import { getApiErrorMessage } from "@/services/api-client";
 import { updateBusinessHours } from "@/services/business-hours";
 import { WeeklyHoursEditor } from "./weekly-hours-editor";
@@ -36,6 +37,7 @@ export function BusinessHoursForm({ turnos }: BusinessHoursFormProps) {
   const editor = useTurnosEditor(saved, clearFeedback);
   const { resetDraft, turnos: payload } = editor;
   const hasChanges = !turnosIguais(saved, payload);
+  useUnsavedChanges(hasChanges, isSaving);
 
   const discardChanges = useCallback(() => {
     resetDraft(saved);

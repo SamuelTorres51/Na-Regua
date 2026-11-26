@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { useCallback, useState } from "react";
 
+import { hasFieldChanges, useFormClose } from "@/features/unsaved-changes";
 import { getApiErrorMessage } from "@/services/api-client";
 import { formatPhone } from "@/utils/phone";
 import type { NovoProfissionalInput, Profissional } from "./types";
@@ -27,12 +28,18 @@ export function useProfessionalForm({
 }: UseProfessionalFormOptions) {
   const isEditing = profissional !== null;
 
-  const [values, setValues] = useState(() =>
+  const [initialValues] = useState(() =>
     toProfessionalFormValues(profissional)
   );
+  const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<ProfessionalFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const close = useFormClose(
+    onSuccess,
+    hasFieldChanges(values, initialValues),
+    isSaving
+  );
 
   const setField = useCallback(
     (key: keyof ProfessionalFormValues, value: string) => {
@@ -72,6 +79,7 @@ export function useProfessionalForm({
   );
 
   return {
+    close,
     errors,
     handleSubmit,
     isEditing,

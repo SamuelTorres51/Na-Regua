@@ -14,6 +14,7 @@ import type {
   DadosPerfil,
   Usuario,
 } from "@/features/auth/types";
+import { useUnsavedChanges } from "@/features/unsaved-changes";
 import {
   getApiErrorMessage,
   HTTP_STATUS,
@@ -38,6 +39,7 @@ export function ProfileForm({ isBusy, onSave, usuario }: ProfileFormProps) {
     [values, usuario]
   );
   const hasChanges = Object.keys(changes).length > 0;
+  useUnsavedChanges(hasChanges, isSaving);
 
   const change = useCallback((field: keyof DadosPerfil, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
