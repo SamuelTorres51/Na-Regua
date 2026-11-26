@@ -49,8 +49,8 @@ export function AgendaPage() {
     selectDate,
     servicos,
     setFilter,
+    setPreferredView,
     setReferenceDate,
-    setView,
     view,
   } = useAgenda();
 
@@ -146,7 +146,7 @@ export function AgendaPage() {
           onNext={goToNext}
           onPrevious={goToPrevious}
           onToday={goToToday}
-          onViewChange={setView}
+          onViewChange={setPreferredView}
           title={title}
           view={view}
         />
