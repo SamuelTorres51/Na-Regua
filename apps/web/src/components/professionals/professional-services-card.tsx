@@ -8,6 +8,7 @@ import { PlusIcon, ScissorsIcon, SpinnerIcon } from "@/components/ui/icons";
 import { SelectField } from "@/components/ui/select-field";
 import { useProfessionalServices } from "@/features/professionals/use-professional-services";
 import type { Servico } from "@/features/services/types";
+import { useUnsavedChanges } from "@/features/unsaved-changes";
 import { getApiErrorMessage } from "@/services/api-client";
 import { formatCurrency } from "@/utils/currency";
 
@@ -54,6 +55,7 @@ export function ProfessionalServicesCard({
   const [actionError, setActionError] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  useUnsavedChanges(Boolean(selectedServicoId), isAdding);
 
   const availableServicos = useMemo(() => {
     const linkedIds = new Set(servicos.map((servico) => servico.id));

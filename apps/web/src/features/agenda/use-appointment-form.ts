@@ -1,6 +1,7 @@
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useFormClose } from "@/features/unsaved-changes";
 import {
   consultarDisponibilidade,
   criarAgendamento,
@@ -97,6 +98,10 @@ export function useAppointmentForm({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const isSubmitting = useRef<boolean>(false);
+  const hasChanges = Boolean(
+    clienteId || servicoId || profissionalId || horario || data !== initialDate
+  );
+  const close = useFormClose(onClose, hasChanges, isSaving);
 
   const loadProfessionals = useCallback(
     () => listarProfissionaisDoServico(Number(servicoId)),
@@ -148,12 +153,6 @@ export function useAppointmentForm({
     setHorario(value);
     setSaveError(null);
   }, []);
-  const close = useCallback(() => {
-    if (!isSubmitting.current) {
-      onClose();
-    }
-  }, [onClose]);
-
   const submit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
