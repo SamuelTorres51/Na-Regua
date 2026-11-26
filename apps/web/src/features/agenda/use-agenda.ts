@@ -26,6 +26,28 @@ const EMPTY_FILTERS: AgendaFilters = {
 };
 
 const LOAD_ERROR_MESSAGE = "Não foi possível carregar a agenda.";
+const AGENDA_VIEW_STORAGE_PREFIX = "naregua.agenda.view.";
+
+function loadPreferredView(storageKey: string | null): AgendaView {
+  if (storageKey === null) {
+    return "dia";
+  }
+
+  try {
+    const storedView = localStorage.getItem(storageKey);
+    if (
+      storedView === "dia" ||
+      storedView === "semana" ||
+      storedView === "mes"
+    ) {
+      return storedView;
+    }
+  } catch {
+    // A agenda funciona com a visualização padrão se o navegador bloquear o armazenamento.
+  }
+
+  return "dia";
+}
 
 interface AgendaResult {
   agendamentos: Agendamento[];
@@ -44,8 +66,11 @@ export function useAgenda() {
   const { session } = useSession();
   const usuario = session?.usuario;
   const profissional = usuario?.perfil === "profissional" ? usuario : null;
+  const viewStorageKey = usuario
+    ? `${AGENDA_VIEW_STORAGE_PREFIX}${usuario.id}`
+    : null;
 
-  const [view, setView] = useState<AgendaView>("dia");
+  const [view, setView] = useState(() => loadPreferredView(viewStorageKey));
   const [referenceDate, setReferenceDate] = useState(() => getAgendaDate());
   const [filters, setFilters] = useState<AgendaFilters>(EMPTY_FILTERS);
   const [catalog, setCatalog] = useState<CatalogResult | null>(null);
@@ -159,6 +184,22 @@ export function useAgenda() {
 
   const goToToday = useCallback(() => setReferenceDate(getAgendaDate()), []);
 
+  const setPreferredView = useCallback(
+    (nextView: AgendaView) => {
+      setView(nextView);
+      if (viewStorageKey === null) {
+        return;
+      }
+
+      try {
+        localStorage.setItem(viewStorageKey, nextView);
+      } catch {
+        // A visualização já foi atualizada nesta visita.
+      }
+    },
+    [viewStorageKey]
+  );
+
   const selectDate = useCallback((date: Date) => {
     setReferenceDate(date);
     setView("dia");
@@ -182,8 +223,8 @@ export function useAgenda() {
     selectDate,
     servicos: catalog?.servicos ?? [],
     setFilter,
+    setPreferredView,
     setReferenceDate,
-    setView,
     view,
   };
 }
