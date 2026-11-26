@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -116,6 +116,29 @@ def test_atualiza_transicoes_permitidas(
 
     assert resultado.status == novo_status
     assert agendamento.status == novo_status
+
+
+@pytest.mark.parametrize(
+    ("status_atual", "novo_status"),
+    [
+        (StatusAgendamento.CONFIRMADO, StatusAgendamento.EM_ATENDIMENTO),
+        (StatusAgendamento.EM_ATENDIMENTO, StatusAgendamento.CONCLUIDO),
+    ],
+)
+def test_nao_permite_atribuir_status_antes_do_horario_agendado(
+    status_atual: StatusAgendamento,
+    novo_status: StatusAgendamento,
+) -> None:
+    caso, agendamento = _caso(status_atual)
+    agendamento.inicio = datetime.now(timezone.utc) + timedelta(hours=1)
+
+    with pytest.raises(AgendamentoStatusInvalidoError):
+        caso.execute(
+            AtualizarStatusAgendamentoInput(1, novo_status),
+            _usuario(20, PerfilAcesso.PROFISSIONAL),
+        )
+
+    assert agendamento.status == status_atual
 
 
 def test_nao_permite_cancelamento_pelo_fluxo_de_status() -> None:

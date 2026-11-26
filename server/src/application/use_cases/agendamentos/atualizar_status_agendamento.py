@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from application.common.exceptions import (
     AgendamentoNaoEncontradoError,
@@ -10,6 +12,14 @@ from domain.entities.usuario import Usuario
 from domain.enums.perfil_acesso import PerfilAcesso
 from domain.enums.status_agendamento import StatusAgendamento
 from domain.repositories.agendamento_repository import AgendamentoRepository
+
+FORTALEZA_TZ = ZoneInfo("America/Fortaleza")
+_STATUS_QUE_EXIGEM_HORARIO = frozenset(
+    {
+        StatusAgendamento.EM_ATENDIMENTO,
+        StatusAgendamento.CONCLUIDO,
+    }
+)
 
 _TRANSICOES_PERMITIDAS: dict[
     StatusAgendamento, frozenset[StatusAgendamento]
@@ -64,6 +74,18 @@ class AtualizarStatusAgendamentoUseCase:
                 f"Não é possível alterar o status de "
                 f"{status_atual.value} para {dados.status.value}."
             )
+
+        if dados.status in _STATUS_QUE_EXIGEM_HORARIO:
+            inicio = agendamento.inicio
+            if inicio.tzinfo is None or inicio.utcoffset() is None:
+                raise AgendamentoStatusInvalidoError(
+                    "A data e hora do agendamento devem informar o timezone."
+                )
+            if datetime.now(FORTALEZA_TZ) < inicio.astimezone(FORTALEZA_TZ):
+                raise AgendamentoStatusInvalidoError(
+                    f"O status {dados.status.value} só pode ser atribuído "
+                    "a partir do horário do agendamento."
+                )
 
         agendamento_atualizado = self.repository.atualizar_status(
             dados.agendamento_id,
